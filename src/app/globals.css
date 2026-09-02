@@ -1,0 +1,75 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Playfair+Display:ital,wght@0,600;0,700;1,600&family=JetBrains+Mono:wght@400;500;600;700&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --color-surface-base: #FAF5FF;
+  --color-surface-raised: #FFFFFF;
+  --color-surface-overlay: #F3E8FF;
+  --color-surface-hairline: #E9D5FF;
+  --color-text-primary: #2E1065;
+  --color-text-secondary: #581C87;
+  --color-text-muted: #7E22CE;
+  --color-brand-coral: #F97316;
+  --color-brand-coral-dim: #EA580C;
+  --color-brand-indigo: #6366F1;
+  --color-brand-gold: #F59E0B;
+  --color-ledger-surplus: #10B981;
+  --color-ledger-surplus-bg: #ECFDF5;
+  --color-ledger-deficit: #EF4444;
+  --color-ledger-deficit-bg: #FEF2F2;
+}
+
+body {
+  background-color: #FAF5FF;
+  color: #2E1065;
+  font-family: 'Inter', sans-serif;
+  overflow-x: hidden;
+  margin: 0;
+  padding: 0;
+}
+
+/* Custom tabular numeric alignment */
+.font-numeric {
+  font-family: 'JetBrains Mono', monospace;
+  font-variant-numeric: tabular-nums;
+}
+
+/* Humanist Serif Font for Headlines */
+.font-serif-display {
+  font-family: 'Playfair Display', Georgia, serif;
+}
+
+/* Scrollbar styling for Luxe Royal Velvet Theme */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: #FAF5FF;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #E9D5FF;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #6366F1;
+}
+
+/* Royal Paper Warm Shadow */
+.shadow-paper {
+  box-shadow: 0 4px 20px -2px rgba(46, 16, 101, 0.08), 0 2px 6px -1px rgba(46, 16, 101, 0.05);
+}
+
+.shadow-coral {
+  box-shadow: 0 8px 25px -4px rgba(249, 115, 22, 0.35);
+}
+
+.shadow-indigo {
+  box-shadow: 0 8px 25px -4px rgba(99, 102, 241, 0.35);
+}

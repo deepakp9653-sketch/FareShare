@@ -1,0 +1,183 @@
+'use client';
+
+import React, { useState } from 'react';
+import { BookingCategory, Participant } from '@/lib/types';
+import { X, Calendar, DollarSign, Tag, MapPin } from 'lucide-react';
+import { motion } from 'framer-motion';
+
+interface AddBookingModalProps {
+  isOpen: boolean;
+  onClose: () => void;
+  participants: Participant[];
+  onAddBooking: (bookingData: {
+    category: BookingCategory;
+    title: string;
+    vendor: string;
+    estimatedCost: number;
+    actualCost: number;
+    participantIds: string[];
+  }) => void;
+}
+
+export const AddBookingModal: React.FC<AddBookingModalProps> = ({
+  isOpen,
+  onClose,
+  participants,
+  onAddBooking,
+}) => {
+  const [title, setTitle] = useState('');
+  const [vendor, setVendor] = useState('');
+  const [category, setCategory] = useState<BookingCategory>('activity');
+  const [estimatedCost, setEstimatedCost] = useState<number>(500);
+  const [actualCost, setActualCost] = useState<number>(550);
+  const [selectedParticipantIds, setSelectedParticipantIds] = useState<string[]>(
+    participants.map((p) => p.id)
+  );
+
+  if (!isOpen) return null;
+
+  const handleToggleParticipant = (id: string) => {
+    setSelectedParticipantIds((prev) =>
+      prev.includes(id) ? prev.filter((pId) => pId !== id) : [...prev, id]
+    );
+  };
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!title.trim()) return;
+
+    onAddBooking({
+      category,
+      title,
+      vendor,
+      estimatedCost,
+      actualCost,
+      participantIds: selectedParticipantIds,
+    });
+    onClose();
+  };
+
+  return (
+    <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4">
+      <motion.div
+        initial={{ scale: 0.95, opacity: 0 }}
+        animate={{ scale: 1, opacity: 1 }}
+        className="bg-surface-raised border border-surface-hairline p-6 rounded-2xl max-w-lg w-full space-y-5 shadow-2xl"
+      >
+        <div className="flex items-center justify-between border-b border-surface-hairline pb-4">
+          <h3 className="text-lg font-display font-bold text-ink-primary flex items-center gap-2">
+            <Calendar className="w-5 h-5 text-brand-coral" /> Create Itinerary Booking
+          </h3>
+          <button onClick={onClose} className="p-1 rounded-lg text-ink-muted hover:text-ink-primary">
+            <X className="w-5 h-5" />
+          </button>
+        </div>
+
+        <form onSubmit={handleSubmit} className="space-y-4 text-xs">
+          <div>
+            <label className="block text-ink-muted mb-1">Booking Title</label>
+            <input
+              type="text"
+              required
+              value={title}
+              onChange={(e) => setTitle(e.target.value)}
+              placeholder="e.g. Fuji-Hakone Sightseeing Express Pass"
+              className="w-full bg-surface-base border border-surface-hairline rounded-xl px-3 py-2.5 text-ink-primary focus:border-brand-coral outline-none"
+            />
+          </div>
+
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="block text-ink-muted mb-1">Vendor / Operator</label>
+              <input
+                type="text"
+                required
+                value={vendor}
+                onChange={(e) => setVendor(e.target.value)}
+                placeholder="e.g. Odakyu Electric Railway"
+                className="w-full bg-surface-base border border-surface-hairline rounded-xl px-3 py-2.5 text-ink-primary focus:border-brand-coral outline-none"
+              />
+            </div>
+
+            <div>
+              <label className="block text-ink-muted mb-1">Category</label>
+              <select
+                value={category}
+                onChange={(e) => setCategory(e.target.value as any)}
+                className="w-full bg-surface-base border border-surface-hairline rounded-xl px-3 py-2.5 text-ink-primary focus:border-brand-coral outline-none cursor-pointer"
+              >
+                <option value="transport">Transport</option>
+                <option value="lodging">Lodging</option>
+                <option value="activity">Activity</option>
+                <option value="food">Food & Dining</option>
+              </select>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="block text-ink-muted mb-1">Estimated Budget ($)</label>
+              <input
+                type="number"
+                value={estimatedCost}
+                onChange={(e) => setEstimatedCost(parseFloat(e.target.value) || 0)}
+                className="w-full bg-surface-base border border-surface-hairline rounded-xl px-3 py-2.5 font-numeric text-ink-primary focus:border-brand-coral outline-none"
+              />
+            </div>
+
+            <div>
+              <label className="block text-ink-muted mb-1">Actual Final Cost ($)</label>
+              <input
+                type="number"
+                value={actualCost}
+                onChange={(e) => setActualCost(parseFloat(e.target.value) || 0)}
+                className="w-full bg-surface-base border border-surface-hairline rounded-xl px-3 py-2.5 font-numeric font-bold text-brand-coral focus:border-brand-coral outline-none"
+              />
+            </div>
+          </div>
+
+          {/* Participant Scope Selector */}
+          <div className="space-y-2 pt-2 border-t border-surface-hairline">
+            <label className="block text-ink-muted font-semibold">Participating Members</label>
+            <div className="grid grid-cols-2 gap-2">
+              {participants.map((p) => {
+                const isSelected = selectedParticipantIds.includes(p.id);
+                return (
+                  <button
+                    type="button"
+                    key={p.id}
+                    onClick={() => handleToggleParticipant(p.id)}
+                    className={`p-2 rounded-xl border flex items-center gap-2 text-xs transition-all ${
+                      isSelected
+                        ? 'bg-brand-coral/10 border-brand-coral text-ink-primary'
+                        : 'bg-surface-base border-surface-hairline text-ink-muted opacity-50'
+                    }`}
+                  >
+                    <img src={p.avatarUrl} alt={p.name} className="w-5 h-5 rounded-full object-cover" />
+                    <span>{p.name}</span>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+
+          <div className="flex justify-end gap-3 pt-3 border-t border-surface-hairline">
+            <button
+              type="button"
+              onClick={onClose}
+              className="px-4 py-2 rounded-xl text-ink-secondary hover:text-ink-primary"
+            >
+              Cancel
+            </button>
+            <button
+              type="submit"
+              className="px-4 py-2 rounded-xl bg-brand-coral text-surface-base font-semibold shadow-glow"
+            >
+              Save Booking to Timeline
+            </button>
+          </div>
+        </form>
+      </motion.div>
+    </div>
+  );
+};
