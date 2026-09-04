@@ -2,7 +2,7 @@
 
 import React from 'react';
 import { Participant, ParticipantNetBalance, Trip } from '@/lib/types';
-import { Compass, Wallet, UserCheck, Database, CheckCircle2, Home, Plus, Lock, QrCode, Copy, Layers, Key } from 'lucide-react';
+import { Compass, Wallet, UserCheck, Database, CheckCircle2, Home, Plus, Lock, QrCode, Copy, Layers, Key, Sparkles, MessageSquareText, Bell } from 'lucide-react';
 import { motion } from 'framer-motion';
 
 interface HeaderProps {
@@ -18,6 +18,10 @@ interface HeaderProps {
   onOpenTripSwitcher: () => void;
   onOpenAuth: () => void;
   onOpenUpiSetup: () => void;
+  onOpenExplainBalance?: () => void;
+  onOpenChatExpense?: () => void;
+  onOpenNudges?: () => void;
+  offlineIndicatorNode?: React.ReactNode;
 }
 
 export const Header: React.FC<HeaderProps> = ({
@@ -33,6 +37,10 @@ export const Header: React.FC<HeaderProps> = ({
   onOpenTripSwitcher,
   onOpenAuth,
   onOpenUpiSetup,
+  onOpenExplainBalance,
+  onOpenChatExpense,
+  onOpenNudges,
+  offlineIndicatorNode,
 }) => {
   const userBalance = netBalances.find((b) => b.participant.id === currentUserId);
   const currentUser = participants.find((p) => p.id === currentUserId);
@@ -116,12 +124,10 @@ export const Header: React.FC<HeaderProps> = ({
             <span>New Trip</span>
           </button>
 
-          {/* Global Balance Pill */}
-          <motion.div
-            key={netAmount + (isSettled ? 'settled' : 'active')}
-            initial={{ scale: 0.95, opacity: 0.8 }}
-            animate={{ scale: 1, opacity: 1 }}
-            className={`hidden lg:flex items-center gap-2 px-3 py-1.5 rounded-full border text-xs font-semibold transition-all ${
+          {/* Global Balance Pill (Clickable for Explain My Balance) */}
+          <button
+            onClick={onOpenExplainBalance}
+            className={`hidden lg:flex items-center gap-2 px-3 py-1.5 rounded-full border text-xs font-semibold transition-all hover:scale-105 active:scale-95 cursor-pointer ${
               isSettled
                 ? 'bg-ledger-surplusBg text-ledger-surplus border-ledger-surplus/40'
                 : netAmount > 0
@@ -130,6 +136,7 @@ export const Header: React.FC<HeaderProps> = ({
                 ? 'bg-ledger-deficitBg text-ledger-deficit border-ledger-deficit/40'
                 : 'bg-surface-raised text-ledger-neutral border-surface-hairline'
             }`}
+            title="Click to see full mathematical explanation of your balance"
           >
             <Wallet className="w-4 h-4 shrink-0" />
             {isSettled ? (
@@ -145,7 +152,35 @@ export const Header: React.FC<HeaderProps> = ({
             ) : (
               <span>Settled</span>
             )}
-          </motion.div>
+            <Sparkles className="w-3 h-3 text-brand-gold ml-0.5" />
+          </button>
+
+          {/* F19 Offline Queue Indicator */}
+          {offlineIndicatorNode}
+
+          {/* F14 & F15 Chat & Voice Expense Button */}
+          {onOpenChatExpense && (
+            <button
+              onClick={onOpenChatExpense}
+              className="px-3 py-1.5 rounded-xl bg-brand-coral/10 hover:bg-brand-coral hover:text-white border border-brand-coral/30 text-brand-coral transition-all text-xs font-bold flex items-center gap-1.5 shadow-sm"
+              title="Capture Expense via Natural Chat, Voice Note or Bill Receipt (F14 & F15)"
+            >
+              <MessageSquareText className="w-4 h-4" />
+              <span className="hidden md:inline">Chat / Voice</span>
+            </button>
+          )}
+
+          {/* F20 Nudge & Reminders Button */}
+          {onOpenNudges && (
+            <button
+              onClick={onOpenNudges}
+              className="px-3 py-1.5 rounded-xl bg-surface-raised border border-surface-hairline text-ink-secondary hover:text-ink-primary hover:border-brand-coral/40 transition-all text-xs font-bold flex items-center gap-1.5"
+              title="Open Nudge & Reminder Engine / WhatsApp Settlement Digest (F20)"
+            >
+              <Bell className="w-4 h-4 text-brand-gold" />
+              <span className="hidden lg:inline">Nudges</span>
+            </button>
+          )}
 
           {/* User Profile Button */}
           <button

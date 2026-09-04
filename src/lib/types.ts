@@ -15,11 +15,28 @@ export type EventType =
   | 'EXPENSE_CORRECTED'
   | 'REFUND_CREDITED'
   | 'PAYMENT_RECORDED'
+  | 'PAYMENT_CONFIRMED'
+  | 'PAYMENT_DISPUTED'
+  | 'ALLOCATION_DISPUTED'
+  | 'ALLOCATION_DISPUTE_RESOLVED'
+  | 'ANOMALY_FLAGGED'
+  | 'ANOMALY_DISMISSED'
+  | 'BUDGET_CEILING_SET'
+  | 'VARIANCE_THRESHOLD_BREACHED'
   | 'SETTLEMENT_SIMPLIFIED'
   | 'SETTLEMENT_CONFIRMED'
   | 'USER_LOGGED_IN'
   | 'UPI_SETUP_UPDATED'
-  | 'TRIP_JOINED_VIA_CODE';
+  | 'TRIP_JOINED_VIA_CODE'
+  | 'SQUAD_CREATED'
+  | 'SQUAD_MEMBER_LINKED'
+  | 'DEBT_REASSIGNED'
+  | 'DEBT_REASSIGNMENT_ACCEPTED'
+  | 'DEBT_REASSIGNMENT_REJECTED'
+  | 'REMINDER_SENT'
+  | 'ITINERARY_CONFLICT_FLAGGED'
+  | 'ITINERARY_CONFLICT_DISMISSED'
+  | 'OFFLINE_COMMAND_SYNCED';
 
 export interface Trip {
   id: string;
@@ -32,6 +49,7 @@ export interface Trip {
   inviteCode: string; // Unique 6-character code (e.g. "GOA2026")
   organizerId: string; // Participant ID of Creator
   createdAt: string;
+  categoryBudgets?: Record<string, number>;
 }
 
 export interface Participant {
@@ -94,12 +112,16 @@ export interface Booking {
   refundPolicy?: RefundPolicy;
   cancellationReason?: string;
   refundAmount?: number;
+  roomCapacity?: number;
 }
 
 export interface ExpenseAllocation {
   participantId: string;
   amountOwed: number;
   note?: string;
+  disputeStatus?: 'none' | 'active' | 'resolved';
+  disputeReason?: string;
+  disputeResolution?: string;
 }
 
 export interface Expense {
@@ -117,6 +139,10 @@ export interface Expense {
   subsidyAmount?: number;
   receiptUrl?: string;
   receiptName?: string;
+  hasActiveDisputes?: boolean;
+  isDuplicateAcknowledged?: boolean;
+  chatSourceRaw?: string;
+  receiptConfidence?: number;
 }
 
 export interface Payment {
@@ -127,6 +153,7 @@ export interface Payment {
   amount: number;
   note?: string;
   createdAt: string;
+  status?: 'pending' | 'confirmed' | 'disputed';
 }
 
 export interface LedgerEvent {
@@ -150,6 +177,8 @@ export interface SimplifiedDebt {
   status: 'proposed' | 'settled';
   payeeUpiId?: string;
   payeeQrCodeUrl?: string;
+  paymentId?: string;
+  isPendingVerification?: boolean;
 }
 
 export interface ParticipantNetBalance {
@@ -171,4 +200,96 @@ export interface ReconciliationAudit {
   isReconciled: boolean;
   discrepancy: number;
 }
+
+export type AnomalySeverity = 'high' | 'medium' | 'low';
+
+export interface Anomaly {
+  id: string;
+  tripId: string;
+  type: 'SCHEDULE_CONFLICT' | 'ROOM_OVERCAPACITY' | 'BUDGET_VARIANCE' | 'ROSTER_MISMATCH' | 'ALLOCATION_MISMATCH';
+  severity: AnomalySeverity;
+  title: string;
+  description: string;
+  affectedEntityIds: string[];
+  createdAt: string;
+  dismissed?: boolean;
+}
+
+export interface SquadMember {
+  name: string;
+  email: string;
+  upiId: string;
+  roomTier?: 'suite' | 'standard' | 'economy';
+}
+
+export interface Squad {
+  id: string;
+  name: string;
+  description?: string;
+  members: SquadMember[];
+  createdAt: string;
+}
+
+export interface DryRunDelta {
+  participantId: string;
+  participantName: string;
+  currentNet: number;
+  projectedNet: number;
+  delta: number;
+}
+
+export interface DryRunResult {
+  actionType: string;
+  description: string;
+  deltas: DryRunDelta[];
+  projectedAudit: ReconciliationAudit;
+  newSimplifiedDebts: SimplifiedDebt[];
+}
+
+export interface DebtReassignment {
+  id: string;
+  tripId: string;
+  allocationId?: string;
+  originalDebtorId: string;
+  newDebtorId: string;
+  creditorId: string;
+  amount: number;
+  reason?: string;
+  status: 'proposed' | 'accepted' | 'rejected';
+  createdAt: string;
+}
+
+export interface ItineraryConflict {
+  id: string;
+  tripId: string;
+  type: 'TRANSIT_OVERLAP' | 'CHECKOUT_START_MISMATCH' | 'HOURS_BREACH';
+  severity: 'high' | 'medium';
+  title: string;
+  description: string;
+  bookingIds: string[];
+  createdAt: string;
+  dismissed?: boolean;
+}
+
+export interface OfflineCommand {
+  id: string;
+  tripId: string;
+  type: 'LOG_EXPENSE' | 'RECORD_PAYMENT';
+  payload: any;
+  clientTimestamp: string;
+  status: 'queued' | 'syncing' | 'synced';
+}
+
+export interface ParsedChatExpense {
+  title: string;
+  totalAmount: number;
+  detectedParticipantIds: string[];
+  suggestedSplitMethod: SplitMethod;
+  confidence: number;
+  rawText: string;
+  payerId?: string;
+  category: BookingCategory;
+}
+
+
 

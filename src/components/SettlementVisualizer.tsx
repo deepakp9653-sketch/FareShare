@@ -1,8 +1,8 @@
 'use client';
 
 import React, { useState, useEffect, useRef } from 'react';
-import { Participant, ParticipantNetBalance, SimplifiedDebt } from '@/lib/types';
-import { GitCommit, Sparkles, ArrowRight, CheckCircle2, QrCode, User, Zap } from 'lucide-react';
+import { Participant, ParticipantNetBalance, SimplifiedDebt, Payment } from '@/lib/types';
+import { GitCommit, Sparkles, ArrowRight, CheckCircle2, QrCode, User, Zap, ShieldCheck, AlertCircle, Check, X, ArrowRightLeft, Layers } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { animate, stagger } from 'animejs';
 import { UpiQrModal } from './UpiQrModal';
@@ -12,8 +12,14 @@ interface SettlementVisualizerProps {
   netBalances: ParticipantNetBalance[];
   simplifiedDebts: SimplifiedDebt[];
   currentUserId: string;
+  payments?: Payment[];
   onSettleDebt: (fromId: string, toId: string, amount: number) => void;
+  onConfirmPaymentReceipt?: (paymentId: string) => void;
+  onDisputePayment?: (paymentId: string) => void;
   isSettled: boolean;
+  isCrossTripNetting?: boolean;
+  onToggleCrossTripNetting?: () => void;
+  onOpenReassignDebt?: (settlement: { id: string; fromParticipantId: string; toParticipantId: string; amount: number }) => void;
 }
 
 export const SettlementVisualizer: React.FC<SettlementVisualizerProps> = ({
@@ -21,8 +27,14 @@ export const SettlementVisualizer: React.FC<SettlementVisualizerProps> = ({
   netBalances,
   simplifiedDebts,
   currentUserId,
+  payments = [],
   onSettleDebt,
+  onConfirmPaymentReceipt,
+  onDisputePayment,
   isSettled,
+  isCrossTripNetting = false,
+  onToggleCrossTripNetting,
+  onOpenReassignDebt,
 }) => {
   const [isSimplified, setIsSimplified] = useState<boolean>(true);
   const [filterPersonal, setFilterPersonal] = useState<boolean>(false);
@@ -84,7 +96,21 @@ export const SettlementVisualizer: React.FC<SettlementVisualizerProps> = ({
         </div>
 
         {/* Control Action Buttons */}
-        <div className="flex items-center gap-3">
+        <div className="flex flex-wrap items-center gap-2.5">
+          {onToggleCrossTripNetting && (
+            <button
+              onClick={onToggleCrossTripNetting}
+              className={`px-3.5 py-2 rounded-xl text-xs font-semibold border transition-all flex items-center gap-1.5 ${
+                isCrossTripNetting
+                  ? 'bg-brand-coral text-surface-base border-brand-coral font-bold shadow-coral'
+                  : 'bg-surface-base text-ink-secondary border-surface-hairline hover:text-ink-primary'
+              }`}
+            >
+              <Layers className="w-4 h-4" />
+              {isCrossTripNetting ? 'Squad Netting: Multi-Trip Active' : 'Consolidate Squad Trips (F21)'}
+            </button>
+          )}
+
           <button
             onClick={() => setFilterPersonal(!filterPersonal)}
             className={`px-3.5 py-2 rounded-xl text-xs font-semibold border transition-all flex items-center gap-1.5 ${
@@ -199,6 +225,71 @@ export const SettlementVisualizer: React.FC<SettlementVisualizerProps> = ({
           </div>
         </div>
 
+        {/* Two-Sided Verification Alerts (F3) */}
+        {payments.some((p) => p.status === 'pending') && (
+          <div className="p-4 rounded-2xl bg-amber-500/10 border border-amber-500/30 space-y-3">
+            <div className="flex items-center gap-2">
+              <ShieldCheck className="w-4 h-4 text-amber-400" />
+              <h5 className="font-bold text-xs uppercase tracking-wider text-amber-300">
+                Two-Sided Settlement Verification Required
+              </h5>
+            </div>
+
+            <div className="space-y-2">
+              {payments
+                .filter((p) => p.status === 'pending')
+                .map((p) => {
+                  const payer = participants.find((part) => part.id === p.payerId)?.name || 'Member';
+                  const payee = participants.find((part) => part.id === p.payeeId)?.name || 'Member';
+                  const isPayee = p.payeeId === currentUserId;
+                  const isPayer = p.payerId === currentUserId;
+
+                  return (
+                    <div
+                      key={p.id}
+                      className="p-3 bg-surface-base/80 border border-amber-500/20 rounded-xl flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs"
+                    >
+                      <div>
+                        <div className="flex items-center gap-2 font-semibold text-ink-primary">
+                          <span>{payer}</span>
+                          <ArrowRight className="w-3.5 h-3.5 text-brand-gold" />
+                          <span>{payee}</span>
+                          <span className="font-numeric font-bold text-amber-300 ml-1">
+                            ₹{p.amount.toLocaleString('en-IN')}
+                          </span>
+                        </div>
+                        <p className="text-[11px] text-ink-secondary mt-0.5">
+                          {isPayee
+                            ? `${payer} reported sending you ₹${p.amount} via UPI. Please confirm receipt.`
+                            : isPayer
+                            ? `You marked ₹${p.amount} as paid to ${payee}. Awaiting their verification.`
+                            : `Payment pending confirmation between ${payer} and ${payee}.`}
+                        </p>
+                      </div>
+
+                      {isPayee && onConfirmPaymentReceipt && onDisputePayment && (
+                        <div className="flex items-center gap-2 flex-shrink-0">
+                          <button
+                            onClick={() => onDisputePayment(p.id)}
+                            className="px-3 py-1.5 rounded-lg border border-red-500/30 text-red-400 hover:bg-red-500/10 text-xs font-bold transition flex items-center gap-1"
+                          >
+                            <X className="w-3.5 h-3.5" /> Dispute
+                          </button>
+                          <button
+                            onClick={() => onConfirmPaymentReceipt(p.id)}
+                            className="px-3 py-1.5 rounded-lg bg-emerald-500 text-surface-base hover:bg-emerald-600 text-xs font-bold transition flex items-center gap-1 shadow-sm"
+                          >
+                            <Check className="w-3.5 h-3.5 stroke-[3]" /> Confirm Received
+                          </button>
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
+            </div>
+          </div>
+        )}
+
         {/* Bottom Action Cards: Minimal Settlement Execution Paths */}
         <div className="pt-4 border-t border-surface-hairline space-y-3">
           <h4 className="text-xs font-semibold uppercase tracking-wider text-ink-muted flex items-center justify-between">
@@ -223,10 +314,28 @@ export const SettlementVisualizer: React.FC<SettlementVisualizerProps> = ({
                       <span className="font-semibold text-ledger-surplus">{debt.toName}</span>
                     </div>
 
-                    <div className="flex items-center gap-3">
-                      <span className="font-numeric font-bold text-sm text-ink-primary">
+                    <div className="flex items-center gap-2">
+                      <span className="font-numeric font-bold text-sm text-ink-primary mr-1">
                         ₹{debt.amount.toLocaleString('en-IN', { minimumFractionDigits: 2 })}
                       </span>
+                      {onOpenReassignDebt && (
+                        <button
+                          type="button"
+                          onClick={() =>
+                            onOpenReassignDebt({
+                              id: `settle-${debt.fromId}-${debt.toId}`,
+                              fromParticipantId: debt.fromId,
+                              toParticipantId: debt.toId,
+                              amount: debt.amount,
+                            })
+                          }
+                          title="Transfer or reassign this debt obligation (F18)"
+                          className="px-2.5 py-1.5 rounded-xl border border-surface-hairline hover:border-brand-coral text-ink-secondary hover:text-brand-coral text-xs font-semibold transition-all flex items-center gap-1"
+                        >
+                          <ArrowRightLeft className="w-3.5 h-3.5" />
+                          <span className="hidden sm:inline">Reassign</span>
+                        </button>
+                      )}
                       <button
                         onClick={() => setSelectedUpiDebt({ ...debt, payeeUpiId: upiId })}
                         className="px-3 py-1.5 rounded-xl bg-brand-coral text-surface-base hover:bg-brand-coralDim text-xs font-bold transition-all shadow-sm flex items-center gap-1.5"

@@ -1,12 +1,13 @@
 import React from 'react';
-import { Trip, Booking, Expense, Payment, ParticipantNetBalance, SimplifiedDebt, RefundEvent, Vendor } from '@/lib/types';
+import { Trip, Booking, Expense, Payment, ParticipantNetBalance, SimplifiedDebt, RefundEvent, Vendor, Anomaly } from '@/lib/types';
 import { calculateVariance, computeReconciliationAudit } from '@/lib/ledger-engine';
-import { TrendingUp, TrendingDown, DollarSign, PieChart, ShieldCheck, ArrowRight, Plus, Sparkles, Flame, Sun, Trophy, Compass, QrCode, Copy, Key, Crown, Building2 } from 'lucide-react';
+import { TrendingUp, TrendingDown, DollarSign, PieChart, ShieldCheck, ArrowRight, Plus, Sparkles, Flame, Sun, Trophy, Compass, QrCode, Copy, Key, Crown, Building2, Zap, FileSpreadsheet, Users, BedDouble, AlertTriangle } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { SpendDonutChart } from './SpendDonutChart';
 import { ParticipantBarChart } from './ParticipantBarChart';
 import { TripVibeGauge } from './TripVibeGauge';
 import { ReconciliationAuditCard } from './ReconciliationAuditCard';
+import { AnomalyFeedBanner } from './AnomalyFeedBanner';
 
 interface OverviewSectionProps {
   trip: Trip;
@@ -17,12 +18,20 @@ interface OverviewSectionProps {
   simplifiedDebts: SimplifiedDebt[];
   refunds?: RefundEvent[];
   vendors?: Vendor[];
+  anomalies?: Anomaly[];
   currentUserId: string;
   onOpenAddExpense: () => void;
   onOpenAddBooking: () => void;
   onOpenUpiSetup: () => void;
   onOpenVendors?: () => void;
   onNavigateTab: (tab: any) => void;
+  onDismissAnomaly?: (id: string) => void;
+  onOpenExplainBalance?: (participantId: string) => void;
+  onOpenWhatIf?: () => void;
+  onOpenChaosDemo?: () => void;
+  onOpenRoomOptimizer?: () => void;
+  onOpenSettlementReport?: () => void;
+  onOpenSquadManager?: () => void;
 }
 
 export const OverviewSection: React.FC<OverviewSectionProps> = ({
@@ -34,12 +43,20 @@ export const OverviewSection: React.FC<OverviewSectionProps> = ({
   simplifiedDebts,
   refunds = [],
   vendors = [],
+  anomalies = [],
   currentUserId,
   onOpenAddExpense,
   onOpenAddBooking,
   onOpenUpiSetup,
   onOpenVendors,
   onNavigateTab,
+  onDismissAnomaly,
+  onOpenExplainBalance,
+  onOpenWhatIf,
+  onOpenChaosDemo,
+  onOpenRoomOptimizer,
+  onOpenSettlementReport,
+  onOpenSquadManager,
 }) => {
   const variance = calculateVariance(bookings, expenses);
   const totalSpend = variance.totalActual;
@@ -107,11 +124,55 @@ export const OverviewSection: React.FC<OverviewSectionProps> = ({
             </p>
           </div>
 
-          <div className="flex flex-wrap items-center gap-3">
+          <div className="flex flex-wrap items-center gap-2.5">
+            {onOpenChaosDemo && (
+              <button
+                onClick={onOpenChaosDemo}
+                className="px-4 py-2.5 rounded-xl bg-gradient-to-r from-brand-coral to-amber-500 hover:brightness-110 text-surface-base text-xs font-bold transition shadow-coral flex items-center gap-2 animate-pulse"
+                title="Run live chaos dynamic recalculation demo"
+              >
+                <Zap className="w-4 h-4 fill-current stroke-[2]" />
+                <span>Chaos Demo Mode</span>
+              </button>
+            )}
+
+            {onOpenWhatIf && (
+              <button
+                onClick={onOpenWhatIf}
+                className="px-4 py-2.5 rounded-xl bg-brand-gold/15 hover:bg-brand-gold/25 border border-brand-gold/30 text-brand-gold text-xs font-bold transition backdrop-blur-md flex items-center gap-1.5"
+                title="Speculative Dry-Run Simulator"
+              >
+                <Compass className="w-4 h-4" />
+                <span>What-If Simulator</span>
+              </button>
+            )}
+
+            {onOpenRoomOptimizer && (
+              <button
+                onClick={onOpenRoomOptimizer}
+                className="px-3.5 py-2.5 rounded-xl bg-surface-raised/90 hover:bg-surface-raised border border-surface-hairline text-ink-primary text-xs font-bold transition backdrop-blur-md flex items-center gap-1.5"
+                title="Optimize lodging room allocation"
+              >
+                <BedDouble className="w-4 h-4 text-brand-gold" />
+                <span>Rooms</span>
+              </button>
+            )}
+
+            {onOpenSettlementReport && (
+              <button
+                onClick={onOpenSettlementReport}
+                className="px-3.5 py-2.5 rounded-xl bg-surface-raised/90 hover:bg-surface-raised border border-surface-hairline text-ink-primary text-xs font-bold transition backdrop-blur-md flex items-center gap-1.5"
+                title="Printable Read-Only Settlement Report"
+              >
+                <FileSpreadsheet className="w-4 h-4 text-emerald-400" />
+                <span>Report</span>
+              </button>
+            )}
+
             {onOpenVendors && (
               <button
                 onClick={onOpenVendors}
-                className="px-4 py-2.5 rounded-xl bg-purple-500/10 hover:bg-purple-500/20 border border-purple-500/30 text-purple-300 text-xs font-bold transition-all backdrop-blur-md shadow-sm flex items-center gap-2"
+                className="px-3.5 py-2.5 rounded-xl bg-purple-500/10 hover:bg-purple-500/20 border border-purple-500/30 text-purple-300 text-xs font-bold transition backdrop-blur-md flex items-center gap-1.5"
               >
                 <Building2 className="w-4 h-4 text-purple-400" />
                 <span>Vendors ({vendors.length})</span>
@@ -120,23 +181,23 @@ export const OverviewSection: React.FC<OverviewSectionProps> = ({
 
             <button
               onClick={onOpenUpiSetup}
-              className="px-4 py-2.5 rounded-xl bg-surface-raised/90 hover:bg-surface-raised border border-surface-hairline text-ink-primary text-xs font-bold transition-all backdrop-blur-md shadow-sm flex items-center gap-2"
+              className="px-3.5 py-2.5 rounded-xl bg-surface-raised/90 hover:bg-surface-raised border border-surface-hairline text-ink-primary text-xs font-bold transition backdrop-blur-md flex items-center gap-1.5"
             >
               <QrCode className="w-4 h-4 text-brand-coral" />
-              <span>Setup My UPI QR</span>
+              <span>My UPI</span>
             </button>
 
             <button
               onClick={onOpenAddBooking}
-              className="px-4 py-2.5 rounded-xl bg-surface-raised/90 hover:bg-surface-raised border border-surface-hairline text-ink-primary text-xs font-bold transition-all backdrop-blur-md shadow-sm flex items-center gap-2"
+              className="px-3.5 py-2.5 rounded-xl bg-surface-raised/90 hover:bg-surface-raised border border-surface-hairline text-ink-primary text-xs font-bold transition backdrop-blur-md flex items-center gap-1.5"
             >
               <Plus className="w-4 h-4 text-brand-gold" />
-              <span>Add Booking</span>
+              <span>Booking</span>
             </button>
 
             <button
               onClick={onOpenAddExpense}
-              className="px-5 py-2.5 rounded-xl bg-brand-coral hover:bg-brand-coralDim text-surface-base text-xs font-bold transition-all shadow-coral flex items-center gap-2"
+              className="px-4 py-2.5 rounded-xl bg-brand-coral hover:bg-brand-coralDim text-surface-base text-xs font-bold transition shadow-coral flex items-center gap-1.5"
             >
               <Plus className="w-4 h-4 stroke-[3]" />
               <span>Log Expense</span>
@@ -145,7 +206,12 @@ export const OverviewSection: React.FC<OverviewSectionProps> = ({
         </div>
       </div>
 
-      {/* Live Financial Reconciliation Audit Card */}
+      {/* Deterministic Anomaly Conflict Feed Banner (F6) */}
+      {anomalies.length > 0 && onDismissAnomaly && (
+        <AnomalyFeedBanner anomalies={anomalies} onDismissAnomaly={onDismissAnomaly} />
+      )}
+
+      {/* Live Financial Reconciliation Audit Card (F1) */}
       <ReconciliationAuditCard audit={audit} />
 
       {/* Bento Grid Visual Dashboard */}
@@ -268,6 +334,93 @@ export const OverviewSection: React.FC<OverviewSectionProps> = ({
             <ArrowRight className="w-4 h-4" />
           </button>
         </motion.div>
+      </div>
+
+      {/* Target-Budget Guardrails & Category Variance Watcher (F9) */}
+      <div className="bg-surface-raised p-6 rounded-3xl border border-surface-hairline shadow-paper space-y-4">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-surface-hairline/60 pb-3">
+          <div>
+            <div className="flex items-center gap-2">
+              <h3 className="font-serif-display font-bold text-base text-ink-primary flex items-center gap-2">
+                <DollarSign className="w-5 h-5 text-brand-gold" /> Reverse Budget Guardrails & Target Ratios
+              </h3>
+              <span className="text-[10px] px-2 py-0.5 rounded-full bg-brand-gold/20 text-brand-gold font-bold uppercase">
+                Advisory Ceilings
+              </span>
+            </div>
+            <p className="text-xs text-ink-secondary mt-0.5">
+              Target spending heuristic (40% Lodging · 25% Transport · 20% Activities · 15% Food). Pulses warning when variance crosses ±15%.
+            </p>
+          </div>
+
+          {onOpenExplainBalance && (
+            <button
+              onClick={() => onOpenExplainBalance(currentUserId)}
+              className="px-4 py-2 rounded-xl bg-surface-base hover:bg-surface-overlay border border-brand-coral/40 text-brand-coral text-xs font-bold transition flex items-center gap-2"
+            >
+              <Sparkles className="w-4 h-4" />
+              <span>Explain My Balance</span>
+            </button>
+          )}
+        </div>
+
+        {/* Category Budget Cards */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          {[
+            { cat: 'lodging', label: 'Lodging & Stays', ratio: 0.4, color: 'text-purple-400' },
+            { cat: 'transport', label: 'Transit & Flights', ratio: 0.25, color: 'text-blue-400' },
+            { cat: 'activity', label: 'Activities & Tours', ratio: 0.2, color: 'text-brand-coral' },
+            { cat: 'food', label: 'Dining & Provisions', ratio: 0.15, color: 'text-emerald-400' },
+          ].map((item) => {
+            const targetBudget = budget * item.ratio;
+            const actualSpend = variance.byCategory[item.cat]?.actual || 0;
+            const pctUsed = targetBudget > 0 ? Math.round((actualSpend / targetBudget) * 100) : 0;
+            const isBreached = actualSpend > targetBudget * 1.15;
+
+            return (
+              <div
+                key={item.cat}
+                className={`p-4 rounded-2xl border transition-all ${
+                  isBreached
+                    ? 'bg-red-500/10 border-red-500/40 ring-1 ring-red-500/30'
+                    : 'bg-surface-base border-surface-hairline'
+                }`}
+              >
+                <div className="flex items-center justify-between text-xs mb-1">
+                  <span className={`font-bold capitalize ${item.color}`}>{item.label}</span>
+                  <span className="font-numeric font-bold text-ink-muted">{Math.round(item.ratio * 100)}% Target</span>
+                </div>
+
+                <div className="flex items-baseline justify-between mt-2">
+                  <span className="font-numeric font-bold text-base text-ink-primary">
+                    ₹{actualSpend.toLocaleString('en-IN')}
+                  </span>
+                  <span className="text-[11px] text-ink-muted">
+                    of ₹{targetBudget.toLocaleString('en-IN', { maximumFractionDigits: 0 })}
+                  </span>
+                </div>
+
+                <div className="h-1.5 w-full bg-surface-overlay rounded-full overflow-hidden mt-3">
+                  <div
+                    className={`h-full transition-all duration-500 ${
+                      isBreached ? 'bg-red-400' : 'bg-brand-coral'
+                    }`}
+                    style={{ width: `${Math.min(100, pctUsed)}%` }}
+                  />
+                </div>
+
+                <div className="flex items-center justify-between text-[10px] text-ink-muted mt-2">
+                  <span>{pctUsed}% allocated</span>
+                  {isBreached && (
+                    <span className="font-bold text-red-400 flex items-center gap-1">
+                      <AlertTriangle className="w-3 h-3" /> +15% Threshold Exceeded
+                    </span>
+                  )}
+                </div>
+              </div>
+            );
+          })}
+        </div>
       </div>
     </div>
   );

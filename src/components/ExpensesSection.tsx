@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react';
 import { Expense, Participant, Booking, RefundEvent } from '@/lib/types';
-import { Receipt, Plus, Search, Calendar, FileText, ExternalLink, X, CheckCircle2, Image as ImageIcon } from 'lucide-react';
+import { Receipt, Plus, Search, Calendar, FileText, ExternalLink, X, CheckCircle2, Image as ImageIcon, AlertCircle, ShieldAlert, Check } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
 interface ExpensesSectionProps {
@@ -10,7 +10,10 @@ interface ExpensesSectionProps {
   participants: Participant[];
   bookings: Booking[];
   refunds?: RefundEvent[];
+  currentUserId?: string;
   onOpenAddExpense: () => void;
+  onDisputeAllocation?: (expenseId: string, participantId: string, reason: string) => void;
+  onResolveDispute?: (expenseId: string, participantId: string) => void;
 }
 
 export const ExpensesSection: React.FC<ExpensesSectionProps> = ({
@@ -18,7 +21,10 @@ export const ExpensesSection: React.FC<ExpensesSectionProps> = ({
   participants,
   bookings,
   refunds = [],
+  currentUserId,
   onOpenAddExpense,
+  onDisputeAllocation,
+  onResolveDispute,
 }) => {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
@@ -168,15 +174,53 @@ export const ExpensesSection: React.FC<ExpensesSectionProps> = ({
                   <div className="flex flex-wrap gap-2">
                     {exp.allocations.map((alloc) => {
                       const p = participants.find((part) => part.id === alloc.participantId);
+                      const isDisputed = alloc.disputeStatus === 'active';
+                      const isUser = alloc.participantId === currentUserId;
+                      const currentUserObj = participants.find((part) => part.id === currentUserId);
+                      const isOrganizer = currentUserObj?.isOrganizer;
+
                       return (
                         <div
                           key={alloc.participantId}
-                          className="px-2.5 py-1 rounded-lg bg-surface-base border border-surface-hairline text-xs flex items-center gap-2"
+                          className={`px-3 py-1.5 rounded-xl border text-xs flex flex-wrap items-center gap-2 transition ${
+                            isDisputed
+                              ? 'bg-amber-500/10 border-amber-500/30 text-amber-300'
+                              : 'bg-surface-base border-surface-hairline text-ink-primary'
+                          }`}
                         >
                           <span className="text-ink-secondary">{p?.name || 'User'}:</span>
                           <span className="font-numeric font-bold text-brand-coral">
                             ₹{alloc.amountOwed.toLocaleString('en-IN', { minimumFractionDigits: 2 })}
                           </span>
+
+                          {isDisputed && (
+                            <span className="text-[10px] px-1.5 py-0.2 rounded bg-amber-500/20 text-amber-300 font-bold flex items-center gap-1">
+                              <ShieldAlert className="w-3 h-3" /> Disputed: "{alloc.disputeReason || 'Unfair share'}"
+                            </span>
+                          )}
+
+                          {isDisputed && isOrganizer && onResolveDispute && (
+                            <button
+                              onClick={() => onResolveDispute(exp.id, alloc.participantId)}
+                              className="px-2 py-0.5 rounded bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-300 text-[10px] font-bold border border-emerald-500/30 flex items-center gap-1"
+                            >
+                              <Check className="w-3 h-3" /> Resolve
+                            </button>
+                          )}
+
+                          {!isDisputed && isUser && onDisputeAllocation && (
+                            <button
+                              onClick={() => {
+                                const reason = prompt('Reason for disputing this allocation:', 'I did not attend this activity / expense');
+                                if (reason) {
+                                  onDisputeAllocation(exp.id, alloc.participantId, reason);
+                                }
+                              }}
+                              className="text-[10px] text-ink-muted hover:text-amber-400 underline ml-1"
+                            >
+                              Dispute
+                            </button>
+                          )}
                         </div>
                       );
                     })}

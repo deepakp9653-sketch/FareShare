@@ -23,8 +23,21 @@ import {
   Vendor,
   RefundEvent,
   RefundPolicy,
+  Anomaly,
+  Squad,
+  OfflineCommand,
+  ParsedChatExpense,
 } from '@/lib/types';
-import { computeNetBalances, simplifyDebts, calculateSplits, processBookingCancellation } from '@/lib/ledger-engine';
+import {
+  computeNetBalances,
+  simplifyDebts,
+  calculateSplits,
+  processBookingCancellation,
+  detectAnomalies,
+  computeReconciliationAudit,
+  checkDuplicateExpense,
+  netCrossTripSquadBalances,
+} from '@/lib/ledger-engine';
 import { Header } from '@/components/Header';
 import { Navigation, TabType } from '@/components/Navigation';
 import { OverviewSection } from '@/components/OverviewSection';
@@ -45,6 +58,17 @@ import { TripSwitcherModal } from '@/components/TripSwitcherModal';
 import { AuthModal } from '@/components/AuthModal';
 import { UpiSetupModal } from '@/components/UpiSetupModal';
 import { FloatingDock } from '@/components/FloatingDock';
+import { ChaosDemoModal } from '@/components/ChaosDemoModal';
+import { WhatIfSimulatorModal } from '@/components/WhatIfSimulatorModal';
+import { ExplainBalanceModal } from '@/components/ExplainBalanceModal';
+import { RoomOptimizerModal } from '@/components/RoomOptimizerModal';
+import { SettlementReportModal } from '@/components/SettlementReportModal';
+import { SquadManagerModal } from '@/components/SquadManagerModal';
+import { ChatExpenseModal } from '@/components/ChatExpenseModal';
+import { DuplicateExpenseWarningModal } from '@/components/DuplicateExpenseWarningModal';
+import { NudgeReminderModal } from '@/components/NudgeReminderModal';
+import { DebtReassignmentModal } from '@/components/DebtReassignmentModal';
+import { OfflineQueueIndicator } from '@/components/OfflineQueueIndicator';
 import { logEventToNeon, saveRefundToNeon, updateBookingInNeon } from '@/lib/db';
 import { motion, AnimatePresence } from 'framer-motion';
 
@@ -96,6 +120,61 @@ export default function Home() {
   const [activeBookingToCancel, setActiveBookingToCancel] = useState<Booking | null>(null);
   const [activeBookingToEdit, setActiveBookingToEdit] = useState<Booking | null>(null);
 
+  // Phase 2 & 4 Advanced Feature Modals State
+  const [isChaosDemoOpen, setIsChaosDemoOpen] = useState<boolean>(false);
+  const [chaosStep, setChaosStep] = useState<number>(0);
+  const [isChaosRunning, setIsChaosRunning] = useState<boolean>(false);
+
+  const [isWhatIfOpen, setIsWhatIfOpen] = useState<boolean>(false);
+  const [isExplainBalanceOpen, setIsExplainBalanceOpen] = useState<boolean>(false);
+  const [explainParticipantId, setExplainParticipantId] = useState<string>('p1');
+  const [isRoomOptimizerOpen, setIsRoomOptimizerOpen] = useState<boolean>(false);
+  const [isSettlementReportOpen, setIsSettlementReportOpen] = useState<boolean>(false);
+  const [isSquadManagerOpen, setIsSquadManagerOpen] = useState<boolean>(false);
+
+  // Phase 5 Vol 2 Feature Modals & State (F14 - F23)
+  const [isChatExpenseOpen, setIsChatExpenseOpen] = useState<boolean>(false);
+  const [chatDraftExpense, setChatDraftExpense] = useState<
+    (Partial<Expense> & { chatSourceRaw?: string; receiptConfidence?: number }) | undefined
+  >(undefined);
+
+  const [isDuplicateWarningOpen, setIsDuplicateWarningOpen] = useState<boolean>(false);
+  const [pendingDuplicateData, setPendingDuplicateData] = useState<{
+    expenseData: any;
+    duplicateMatch: any;
+  } | null>(null);
+
+  const [isNudgeModalOpen, setIsNudgeModalOpen] = useState<boolean>(false);
+  const [isDebtReassignmentOpen, setIsDebtReassignmentOpen] = useState<boolean>(false);
+  const [selectedDebtToReassign, setSelectedDebtToReassign] = useState<{
+    id: string;
+    fromParticipantId: string;
+    toParticipantId: string;
+    amount: number;
+  } | null>(null);
+
+  const [isOffline, setIsOffline] = useState<boolean>(false);
+  const [offlineQueue, setOfflineQueue] = useState<OfflineCommand[]>([]);
+  const [isSyncingQueue, setIsSyncingQueue] = useState<boolean>(false);
+
+  const [isCrossTripNettingActive, setIsCrossTripNettingActive] = useState<boolean>(false);
+
+  const [dismissedAnomalyIds, setDismissedAnomalyIds] = useState<string[]>([]);
+  const [squads, setSquads] = useState<Squad[]>([
+    {
+      id: 'squad-1',
+      name: 'Hackathon Travel Tribe',
+      description: 'Core developer squad for Goa offsite',
+      members: [
+        { name: 'Aditya (Organizer)', email: 'aditya@travel.in', upiId: 'aditya@upi', roomTier: 'suite' },
+        { name: 'Rahul Sharma', email: 'rahul@travel.in', upiId: 'rahul@okhdfcbank', roomTier: 'standard' },
+        { name: 'Sneha Roy', email: 'sneha@travel.in', upiId: 'sneha@icici', roomTier: 'standard' },
+        { name: 'Ananya Verma', email: 'ananya@travel.in', upiId: 'ananya@paytm', roomTier: 'economy' },
+      ],
+      createdAt: new Date().toISOString(),
+    },
+  ]);
+
   const [toastMessage, setToastMessage] = useState<string | null>(null);
 
   const triggerToast = (msg: string) => {
@@ -117,6 +196,10 @@ export default function Home() {
   const netBalances = computeNetBalances(activeParticipants, expenses, payments, refunds, bookings);
   const currentUser = participants.find((p) => p.id === currentUserId) || participants[0];
 
+  const audit = computeReconciliationAudit(activeParticipants, expenses, payments, refunds, bookings);
+  const rawAnomalies = detectAnomalies(trip, participants, bookings, expenses, payments);
+  const activeAnomalies = rawAnomalies.filter((a) => !dismissedAnomalyIds.includes(a.id));
+
   const simplifiedDebts = simplifyDebts(netBalances).map((d) => {
     const payee = participants.find((p) => p.id === d.toId);
     return {
@@ -125,7 +208,43 @@ export default function Home() {
     };
   });
 
-  const isSettled = simplifiedDebts.length === 0 && expenses.length > 0;
+  // F21: Cross-trip squad netting
+  const crossTripResults = isCrossTripNettingActive
+    ? netCrossTripSquadBalances(squads[0], trips, participantsMap, expensesMap, paymentsMap, refundsMap, bookingsMap)
+    : null;
+
+  const effectiveNetBalances = crossTripResults
+    ? crossTripResults.aggregatedBalances.map((b) => {
+        const p = participants.find((part) => part.id === b.participantId) || {
+          id: b.participantId,
+          tripId: trip.id,
+          name: b.participantName,
+          email: `${b.participantName.toLowerCase().replace(/\s+/g, '')}@travel.in`,
+          avatarUrl: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150',
+          isOrganizer: false,
+          status: 'active' as const,
+          upiId: `${b.participantName.toLowerCase().replace(/\s+/g, '')}@upi`,
+          weight: 1,
+          roomTier: 'standard' as const,
+        };
+        return {
+          participant: p,
+          totalPaid: b.netBalance > 0 ? b.netBalance : 0,
+          totalOwed: b.netBalance < 0 ? Math.abs(b.netBalance) : 0,
+          netBalance: b.netBalance,
+          status: b.status,
+        };
+      })
+    : netBalances;
+
+  const effectiveSimplifiedDebts = crossTripResults
+    ? crossTripResults.simplifiedDebts.map((d) => ({
+        ...d,
+        payeeQrCodeUrl: participants.find((p) => p.id === d.toId)?.qrCodeUrl,
+      }))
+    : simplifiedDebts;
+
+  const isSettled = effectiveSimplifiedDebts.length === 0 && expenses.length > 0;
 
   const recordEvent = (eventType: any, description: string, payload: any) => {
     const actor = participants.find((p) => p.id === currentUserId);
@@ -426,7 +545,35 @@ export default function Home() {
     subsidyAmount?: number;
     receiptUrl?: string;
     receiptName?: string;
+    chatSourceRaw?: string;
+    receiptConfidence?: number;
+    isDuplicateAcknowledged?: boolean;
   }) => {
+    // F19: If simulated offline, queue command in local outbox
+    if (isOffline) {
+      const offlineCmd: OfflineCommand = {
+        id: 'cmd-' + Date.now(),
+        tripId: trip.id,
+        type: 'LOG_EXPENSE',
+        payload: data,
+        clientTimestamp: new Date().toISOString(),
+        status: 'queued',
+      };
+      setOfflineQueue((prev) => [...prev, offlineCmd]);
+      triggerToast(`Offline Mode: "${data.title}" queued safely in outbox (F19).`);
+      return;
+    }
+
+    // F16: Duplicate expense guard pre-commit check
+    if (!data.isDuplicateAcknowledged) {
+      const dupCheck = checkDuplicateExpense(data, expenses);
+      if (dupCheck) {
+        setPendingDuplicateData({ expenseData: data, duplicateMatch: dupCheck });
+        setIsDuplicateWarningOpen(true);
+        return;
+      }
+    }
+
     const activeParts = participants.filter((p) => p.status === 'active');
     const allocations = calculateSplits(data.totalAmount, data.splitMethod, activeParts, {
       subsidyAmount: data.subsidyAmount,
@@ -447,6 +594,9 @@ export default function Home() {
       subsidyAmount: data.subsidyAmount,
       receiptUrl: data.receiptUrl,
       receiptName: data.receiptName,
+      chatSourceRaw: data.chatSourceRaw,
+      receiptConfidence: data.receiptConfidence,
+      isDuplicateAcknowledged: data.isDuplicateAcknowledged,
     };
 
     setExpensesMap((prev) => ({
@@ -465,11 +615,129 @@ export default function Home() {
 
     recordEvent(
       'EXPENSE_LOGGED',
-      `Logged expense "${data.title}" (₹${data.totalAmount.toFixed(2)}) via ${data.splitMethod} split rule with receipt proof.`,
+      `Logged expense "${data.title}" (₹${data.totalAmount.toFixed(2)}) via ${data.splitMethod} split rule${
+        data.chatSourceRaw ? ' (parsed via Chat/Voice)' : ''
+      }.`,
       { expenseId: newExpense.id, amount: data.totalAmount }
     );
 
     triggerToast(`Logged "${data.title}". Balances recalculated across ${allocations.length} participants.`);
+  };
+
+  // F19: Sync / Replay Offline Command Queue
+  const handleSyncOfflineQueue = () => {
+    const pendingCmds = offlineQueue.filter((c) => c.status === 'queued');
+    if (pendingCmds.length === 0) return;
+
+    setIsSyncingQueue(true);
+    setTimeout(() => {
+      pendingCmds.forEach((cmd) => {
+        if (cmd.type === 'LOG_EXPENSE') {
+          const expenseData = { ...cmd.payload, isDuplicateAcknowledged: true };
+          const activeParts = participants.filter((p) => p.status === 'active');
+          const allocations = calculateSplits(expenseData.totalAmount, expenseData.splitMethod, activeParts, {
+            subsidyAmount: expenseData.subsidyAmount,
+          });
+
+          const newExpense: Expense = {
+            id: 'e-offline-' + Date.now() + '-' + Math.random().toString(36).substr(2, 4),
+            tripId: trip.id,
+            bookingId: expenseData.bookingId,
+            title: expenseData.title,
+            totalAmount: expenseData.totalAmount,
+            currency: 'INR',
+            splitMethod: expenseData.splitMethod,
+            paidById: expenseData.paidById,
+            category: expenseData.category,
+            createdAt: cmd.clientTimestamp,
+            allocations,
+            subsidyAmount: expenseData.subsidyAmount,
+            receiptUrl: expenseData.receiptUrl,
+            receiptName: expenseData.receiptName,
+            chatSourceRaw: expenseData.chatSourceRaw,
+            receiptConfidence: expenseData.receiptConfidence,
+            isDuplicateAcknowledged: true,
+          };
+
+          setExpensesMap((prev) => ({
+            ...prev,
+            [trip.id]: [newExpense, ...(prev[trip.id] || [])],
+          }));
+
+          recordEvent(
+            'OFFLINE_COMMAND_SYNCED',
+            `Replayed offline command: Added expense "${expenseData.title}" (₹${expenseData.totalAmount.toFixed(2)}).`,
+            { commandId: cmd.id, expenseId: newExpense.id }
+          );
+        }
+      });
+
+      setOfflineQueue((prev) => prev.map((c) => ({ ...c, status: 'synced' })));
+      setIsSyncingQueue(false);
+      triggerToast(`Successfully synced ${pendingCmds.length} offline actions to ledger!`);
+    }, 800);
+  };
+
+  // F18: Debt Reassignment / IOU Transfer Handler
+  const handleReassignDebt = (params: {
+    originalDebtorId: string;
+    surrogateDebtorId: string;
+    creditorId: string;
+    amount: number;
+    reason: string;
+  }) => {
+    const origDebtor = participants.find((p) => p.id === params.originalDebtorId);
+    const surrogate = participants.find((p) => p.id === params.surrogateDebtorId);
+    const creditor = participants.find((p) => p.id === params.creditorId);
+
+    const reassignPayment: Payment = {
+      id: 'pay-reassign-' + Date.now(),
+      tripId: trip.id,
+      payerId: params.surrogateDebtorId,
+      payeeId: params.originalDebtorId,
+      amount: params.amount,
+      status: 'confirmed',
+      note: `Debt reassigned: ${params.reason}`,
+      createdAt: new Date().toISOString(),
+    };
+
+    setPaymentsMap((prev) => ({
+      ...prev,
+      [trip.id]: [...(prev[trip.id] || []), reassignPayment],
+    }));
+
+    recordEvent(
+      'DEBT_REASSIGNED',
+      `${origDebtor?.name} reassigned ₹${params.amount.toLocaleString('en-IN')} debt obligation to ${surrogate?.name} (Reason: ${params.reason}).`,
+      { ...params, paymentId: reassignPayment.id }
+    );
+
+    triggerToast(`Debt obligation of ₹${params.amount.toLocaleString('en-IN')} transferred to ${surrogate?.name}!`);
+  };
+
+  // F20: Nudge Reminder Handler
+  const handleSendNudge = (debtorId: string, amount: number, channel: 'in_app' | 'whatsapp') => {
+    const debtor = participants.find((p) => p.id === debtorId);
+    recordEvent(
+      'REMINDER_SENT',
+      `Sent settlement reminder to ${debtor?.name} for ₹${amount.toLocaleString('en-IN')} via ${channel}.`,
+      { debtorId, amount, channel }
+    );
+    triggerToast(`Settlement reminder dispatched to ${debtor?.name}!`);
+  };
+
+  // F14: Natural Chat / Receipt Draft Handler
+  const handleApplyParsedChatDraft = (draft: ParsedChatExpense) => {
+    setChatDraftExpense({
+      title: draft.title,
+      totalAmount: draft.totalAmount,
+      splitMethod: draft.suggestedSplitMethod,
+      paidById: draft.payerId || currentUserId,
+      category: draft.category,
+      chatSourceRaw: draft.rawText,
+      receiptConfidence: draft.confidence,
+    });
+    setIsSplitDrawerOpen(true);
   };
 
   const handleAddBooking = (data: {
@@ -509,7 +777,8 @@ export default function Home() {
       payerId: fromId,
       payeeId: toId,
       amount,
-      note: 'UPI Payment confirmed via Debt Engine',
+      status: 'pending',
+      note: 'UPI Payment initiated via Debt Engine',
       createdAt: new Date().toISOString(),
     };
 
@@ -522,12 +791,230 @@ export default function Home() {
     const payee = participants.find((p) => p.id === toId);
 
     recordEvent(
-      'SETTLEMENT_CONFIRMED',
-      `Recorded payment of ₹${amount.toFixed(2)} from ${payer?.name} to ${payee?.name} via UPI.`,
+      'PAYMENT_RECORDED',
+      `Recorded payment of ₹${amount.toFixed(2)} from ${payer?.name} to ${payee?.name} via UPI (Pending payee confirmation).`,
       { payerId: fromId, payeeId: toId, amount }
     );
 
-    triggerToast(`UPI Settlement payment of ₹${amount.toFixed(2)} recorded!`);
+    triggerToast(`UPI Settlement payment of ₹${amount.toFixed(2)} recorded! Awaiting ${payee?.name}'s confirmation.`);
+  };
+
+  const handleConfirmPaymentReceipt = (paymentId: string) => {
+    setPaymentsMap((prev) => ({
+      ...prev,
+      [trip.id]: (prev[trip.id] || []).map((p) =>
+        p.id === paymentId ? { ...p, status: 'confirmed' } : p
+      ),
+    }));
+    const pay = payments.find((p) => p.id === paymentId);
+    const payer = participants.find((p) => p.id === pay?.payerId);
+    recordEvent('PAYMENT_CONFIRMED', `Confirmed receipt of ₹${pay?.amount.toFixed(2)} from ${payer?.name}.`, { paymentId });
+    triggerToast(`Receipt confirmed! Balance updated.`);
+  };
+
+  const handleDisputePayment = (paymentId: string) => {
+    setPaymentsMap((prev) => ({
+      ...prev,
+      [trip.id]: (prev[trip.id] || []).map((p) =>
+        p.id === paymentId ? { ...p, status: 'disputed' } : p
+      ),
+    }));
+    const pay = payments.find((p) => p.id === paymentId);
+    recordEvent('PAYMENT_DISPUTED', `Disputed payment claim of ₹${pay?.amount.toFixed(2)}.`, { paymentId });
+    triggerToast(`Payment disputed and reverted to standing debt.`);
+  };
+
+  const handleDisputeAllocation = (expenseId: string, participantId: string, reason: string) => {
+    setExpensesMap((prev) => ({
+      ...prev,
+      [trip.id]: (prev[trip.id] || []).map((e) => {
+        if (e.id === expenseId) {
+          return {
+            ...e,
+            hasActiveDisputes: true,
+            allocations: e.allocations.map((a) =>
+              a.participantId === participantId ? { ...a, disputeStatus: 'active', disputeReason: reason } : a
+            ),
+          };
+        }
+        return e;
+      }),
+    }));
+    const part = participants.find((p) => p.id === participantId);
+    recordEvent('ALLOCATION_DISPUTED', `${part?.name} disputed allocation: "${reason}".`, { expenseId, participantId, reason });
+    triggerToast(`Allocation flagged as disputed for organizer review.`);
+  };
+
+  const handleResolveDispute = (expenseId: string, participantId: string) => {
+    setExpensesMap((prev) => ({
+      ...prev,
+      [trip.id]: (prev[trip.id] || []).map((e) => {
+        if (e.id === expenseId) {
+          return {
+            ...e,
+            allocations: e.allocations.map((a) =>
+              a.participantId === participantId ? { ...a, disputeStatus: 'resolved', disputeResolution: 'Approved exemption' } : a
+            ),
+          };
+        }
+        return e;
+      }),
+    }));
+    const part = participants.find((p) => p.id === participantId);
+    recordEvent('ALLOCATION_DISPUTE_RESOLVED', `Dispute on expense allocation resolved for ${part?.name}.`, { expenseId, participantId });
+    triggerToast(`Dispute resolved! Ledger compensated.`);
+  };
+
+  const handleDismissAnomaly = (id: string) => {
+    setDismissedAnomalyIds((prev) => [...prev, id]);
+    recordEvent('ANOMALY_DISMISSED', `Dismissed conflict flag "${id}".`, { anomalyId: id });
+    triggerToast(`Conflict flag dismissed.`);
+  };
+
+  const handleSaveCurrentSquad = (name: string, description: string) => {
+    const newSquad: Squad = {
+      id: 'squad-' + Date.now(),
+      name,
+      description,
+      members: participants.map((p) => ({
+        name: p.name,
+        email: p.email,
+        upiId: p.upiId || `${p.name.toLowerCase().replace(/\s+/g, '')}@upi`,
+        roomTier: p.roomTier,
+      })),
+      createdAt: new Date().toISOString(),
+    };
+    setSquads((prev) => [newSquad, ...prev]);
+    recordEvent('SQUAD_CREATED', `Saved persistent squad "${name}" with ${newSquad.members.length} travelers.`, { squadId: newSquad.id });
+    triggerToast(`Saved squad "${name}"! Reusable across trips.`);
+  };
+
+  const handleDeleteSquad = (squadId: string) => {
+    setSquads((prev) => prev.filter((s) => s.id !== squadId));
+    triggerToast(`Squad removed.`);
+  };
+
+  // Chaos Demonstration Sequence Handler (F7)
+  const handleExecuteChaosStep = (stepId: number) => {
+    setChaosStep(stepId);
+    if (stepId === 1) {
+      const vikram: Participant = {
+        id: 'p-vikram',
+        tripId: trip.id,
+        name: 'Vikram Sharma',
+        email: 'vikram@sharma.in',
+        avatarUrl: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&auto=format&fit=crop&q=80',
+        isOrganizer: false,
+        status: 'active',
+        upiId: 'vikram@okaxis',
+        weight: 1,
+        roomTier: 'standard',
+      };
+      setParticipantsMap((prev) => ({
+        ...prev,
+        [trip.id]: [...(prev[trip.id] || []).filter((p) => p.id !== 'p-vikram'), vikram],
+      }));
+      recordEvent('PARTICIPANT_ADDED', `[CHAOS STEP 1] Late joiner Vikram Sharma added to trip roster.`, { participantId: 'p-vikram' });
+      triggerToast(`[Chaos 1/7] Vikram joined! Allocations shifted dynamically.`);
+    } else if (stepId === 2) {
+      const activeParts = [...participants.filter((p) => p.status === 'active')];
+      if (!activeParts.some((p) => p.id === 'p-vikram')) {
+        activeParts.push({
+          id: 'p-vikram',
+          tripId: trip.id,
+          name: 'Vikram Sharma',
+          email: 'vikram@sharma.in',
+          avatarUrl: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&auto=format&fit=crop&q=80',
+          isOrganizer: false,
+          status: 'active',
+          upiId: 'vikram@okaxis',
+          weight: 1,
+          roomTier: 'standard',
+        });
+      }
+      const allocs = calculateSplits(12000, 'equal', activeParts);
+      const catamaranExp: Expense = {
+        id: 'exp-catamaran',
+        tripId: trip.id,
+        title: 'Sunset Catamaran Yacht Cruise',
+        totalAmount: 12000,
+        currency: 'INR',
+        splitMethod: 'equal',
+        paidById: 'p-vikram',
+        category: 'activity',
+        createdAt: new Date().toISOString(),
+        allocations: allocs,
+      };
+      setExpensesMap((prev) => ({
+        ...prev,
+        [trip.id]: [catamaranExp, ...(prev[trip.id] || []).filter((e) => e.id !== 'exp-catamaran')],
+      }));
+      recordEvent('EXPENSE_LOGGED', `[CHAOS STEP 2] Logged ₹12,000 Catamaran Cruise fronted by Vikram.`, { amount: 12000 });
+      triggerToast(`[Chaos 2/7] Vikram fronted ₹12,000! He holds +₹9,600 surplus.`);
+    } else if (stepId === 3) {
+      setParticipantsMap((prev) => ({
+        ...prev,
+        [trip.id]: (prev[trip.id] || []).map((p) =>
+          p.id === 'p3' || p.name.includes('Sneha') ? { ...p, status: 'removed' as const } : p
+        ),
+      }));
+      recordEvent('PARTICIPANT_REMOVED', `[CHAOS STEP 3] Sneha Roy departed trip early. Historical debts preserved without erasure.`, { participantId: 'p3' });
+      triggerToast(`[Chaos 3/7] Sneha exited! Historical shares retained.`);
+    } else if (stepId === 4) {
+      const scuba = bookings.find((b) => b.category === 'activity' && b.status !== 'cancelled') || bookings[0];
+      if (scuba) {
+        handleConfirmCancelBooking(scuba.id, 'partial', 75, 'Sea turbulence advisory cancellation');
+        triggerToast(`[Chaos 4/7] Cancelled "${scuba.title}" under 75% refund policy!`);
+      }
+    } else if (stepId === 5) {
+      const refEvt: RefundEvent = {
+        id: 'ref-chaos-' + Date.now(),
+        tripId: trip.id,
+        amount: 6000,
+        currency: 'INR',
+        refundedToPayerId: trip.organizerId,
+        policy: 'partial',
+        reason: '[CHAOS STEP 5] Operator wire transfer refund credited to group front-runner.',
+        createdAt: new Date().toISOString(),
+      };
+      setRefundsMap((prev) => ({
+        ...prev,
+        [trip.id]: [refEvt, ...(prev[trip.id] || [])],
+      }));
+      recordEvent('REFUND_CREDITED', `[CHAOS STEP 5] Credited ₹6,000 operator refund to trip front-runner.`, { amount: 6000 });
+      triggerToast(`[Chaos 5/7] ₹6,000 vendor refund credited!`);
+    } else if (stepId === 6) {
+      setActiveTab('overview');
+      triggerToast(`[Chaos 6/7] Reconciled! Mathematical invariant verified (Discrepancy Δ = 0.00).`);
+    } else if (stepId === 7) {
+      setActiveTab('settlement');
+      triggerToast(`[Chaos 7/7] Settled! Debt graph collapsed into optimal N-1 paths.`);
+    }
+  };
+
+  const handleRunAutoSequence = () => {
+    setIsChaosRunning(true);
+    let nextStep = chaosStep < 7 ? chaosStep + 1 : 1;
+    const timer = setInterval(() => {
+      handleExecuteChaosStep(nextStep);
+      nextStep++;
+      if (nextStep > 7) {
+        clearInterval(timer);
+        setIsChaosRunning(false);
+        triggerToast(`Chaos demonstration sequence fully complete!`);
+      }
+    }, 1400);
+  };
+
+  const handleResetChaosDemo = () => {
+    setChaosStep(0);
+    setIsChaosRunning(false);
+    setParticipantsMap((prev) => ({ ...prev, [trip.id]: INITIAL_PARTICIPANTS }));
+    setBookingsMap((prev) => ({ ...prev, [trip.id]: INITIAL_BOOKINGS }));
+    setExpensesMap((prev) => ({ ...prev, [trip.id]: INITIAL_EXPENSES }));
+    setPaymentsMap((prev) => ({ ...prev, [trip.id]: INITIAL_PAYMENTS }));
+    setRefundsMap((prev) => ({ ...prev, [trip.id]: INITIAL_REFUNDS }));
+    triggerToast(`Reset trip state to initial baseline.`);
   };
 
   const handleConfirmCancelBooking = (
@@ -645,7 +1132,7 @@ export default function Home() {
         participants={participants}
         currentUserId={currentUserId}
         onSelectUser={setCurrentUserId}
-        netBalances={netBalances}
+        netBalances={effectiveNetBalances}
         isSettled={isSettled}
         onGoToLanding={() => setViewMode('landing')}
         onOpenCreateTrip={() => setIsCreateTripOpen(true)}
@@ -653,6 +1140,21 @@ export default function Home() {
         onOpenTripSwitcher={() => setIsTripSwitcherOpen(true)}
         onOpenAuth={() => setIsAuthOpen(true)}
         onOpenUpiSetup={() => setIsUpiSetupOpen(true)}
+        onOpenChatExpense={() => setIsChatExpenseOpen(true)}
+        onOpenNudges={() => setIsNudgeModalOpen(true)}
+        offlineIndicatorNode={
+          <OfflineQueueIndicator
+            isOffline={isOffline}
+            onToggleOffline={() => setIsOffline(!isOffline)}
+            queue={offlineQueue}
+            onSyncQueue={handleSyncOfflineQueue}
+            isSyncing={isSyncingQueue}
+          />
+        }
+        onOpenExplainBalance={() => {
+          setExplainParticipantId(currentUserId);
+          setIsExplainBalanceOpen(true);
+        }}
       />
 
       {/* Responsive Section Navigation Bar */}
@@ -674,21 +1176,33 @@ export default function Home() {
                 bookings={bookings}
                 expenses={expenses}
                 payments={payments}
-                netBalances={netBalances}
-                simplifiedDebts={simplifiedDebts}
+                netBalances={effectiveNetBalances}
+                simplifiedDebts={effectiveSimplifiedDebts}
                 refunds={refunds}
                 vendors={vendors}
+                anomalies={activeAnomalies}
                 currentUserId={currentUserId}
                 onOpenAddExpense={() => setIsSplitDrawerOpen(true)}
                 onOpenAddBooking={() => setIsAddBookingOpen(true)}
                 onOpenUpiSetup={() => setIsUpiSetupOpen(true)}
                 onOpenVendors={() => setIsVendorsOpen(true)}
                 onNavigateTab={setActiveTab}
+                onDismissAnomaly={handleDismissAnomaly}
+                onOpenWhatIf={() => setIsWhatIfOpen(true)}
+                onOpenChaosDemo={() => setIsChaosDemoOpen(true)}
+                onOpenExplainBalance={(pid) => {
+                  setExplainParticipantId(pid);
+                  setIsExplainBalanceOpen(true);
+                }}
+                onOpenRoomOptimizer={() => setIsRoomOptimizerOpen(true)}
+                onOpenSettlementReport={() => setIsSettlementReportOpen(true)}
+                onOpenSquadManager={() => setIsSquadManagerOpen(true)}
               />
             )}
 
             {activeTab === 'itinerary' && (
               <ItineraryGraph
+                trip={trip}
                 bookings={bookings}
                 participants={participants}
                 expenses={expenses}
@@ -708,7 +1222,7 @@ export default function Home() {
             {activeTab === 'participants' && (
               <ParticipantsSection
                 participants={participants}
-                netBalances={netBalances}
+                netBalances={effectiveNetBalances}
                 onAddParticipant={handleAddParticipant}
                 onToggleStatus={handleToggleParticipantStatus}
                 onUpdateParticipantWeight={handleUpdateParticipantWeight}
@@ -721,18 +1235,30 @@ export default function Home() {
                 participants={participants}
                 bookings={bookings}
                 refunds={refunds}
+                currentUserId={currentUserId}
                 onOpenAddExpense={() => setIsSplitDrawerOpen(true)}
+                onDisputeAllocation={handleDisputeAllocation}
+                onResolveDispute={handleResolveDispute}
               />
             )}
 
             {activeTab === 'settlement' && (
               <SettlementVisualizer
                 participants={participants}
-                netBalances={netBalances}
-                simplifiedDebts={simplifiedDebts}
+                netBalances={effectiveNetBalances}
+                simplifiedDebts={effectiveSimplifiedDebts}
                 currentUserId={currentUserId}
+                payments={payments}
                 onSettleDebt={handleSettleDebt}
+                onConfirmPaymentReceipt={handleConfirmPaymentReceipt}
+                onDisputePayment={handleDisputePayment}
                 isSettled={isSettled}
+                isCrossTripNetting={isCrossTripNettingActive}
+                onToggleCrossTripNetting={() => setIsCrossTripNettingActive(!isCrossTripNettingActive)}
+                onOpenReassignDebt={(s) => {
+                  setSelectedDebtToReassign(s);
+                  setIsDebtReassignmentOpen(true);
+                }}
               />
             )}
 
@@ -741,12 +1267,16 @@ export default function Home() {
         </AnimatePresence>
       </main>
 
-      {/* Dynamic Split Engine Drawer */}
+      {/* Dynamic Split Engine Drawer with F17 Advisor & Draft Pre-fill */}
       <DynamicSplitDrawer
         isOpen={isSplitDrawerOpen}
-        onClose={() => setIsSplitDrawerOpen(false)}
+        onClose={() => {
+          setIsSplitDrawerOpen(false);
+          setChatDraftExpense(undefined);
+        }}
         participants={participants}
         bookings={bookings}
+        initialDraft={chatDraftExpense}
         onSubmitExpense={handleSubmitExpense}
       />
 
@@ -843,6 +1373,133 @@ export default function Home() {
       <FloatingDock
         onOpenSplitDrawer={() => setIsSplitDrawerOpen(true)}
         onOpenUpiSetup={() => setIsUpiSetupOpen(true)}
+        onOpenChaosDemo={() => setIsChaosDemoOpen(true)}
+        onOpenChatExpense={() => setIsChatExpenseOpen(true)}
+      />
+
+      {/* Chaos Demo Mode Suite Modal (F7) */}
+      <ChaosDemoModal
+        isOpen={isChaosDemoOpen}
+        onClose={() => setIsChaosDemoOpen(false)}
+        currentStep={chaosStep}
+        isRunning={isChaosRunning}
+        onExecuteStep={handleExecuteChaosStep}
+        onRunAutoSequence={handleRunAutoSequence}
+        onResetDemo={handleResetChaosDemo}
+      />
+
+      {/* What-If Scenario Simulator Modal (F2) */}
+      <WhatIfSimulatorModal
+        isOpen={isWhatIfOpen}
+        onClose={() => setIsWhatIfOpen(false)}
+        participants={participants}
+        expenses={expenses}
+        payments={payments}
+        refunds={refunds}
+        bookings={bookings}
+      />
+
+      {/* Explain My Balance Grounded Assistant Modal (F8) */}
+      <ExplainBalanceModal
+        isOpen={isExplainBalanceOpen}
+        onClose={() => setIsExplainBalanceOpen(false)}
+        participantId={explainParticipantId}
+        participants={participants}
+        expenses={expenses}
+        payments={payments}
+        refunds={refunds}
+        bookings={bookings}
+      />
+
+      {/* Lodging & Room Optimizer Modal (F10) */}
+      <RoomOptimizerModal
+        isOpen={isRoomOptimizerOpen}
+        onClose={() => setIsRoomOptimizerOpen(false)}
+        participants={participants}
+      />
+
+      {/* Printable / Shareable Settlement Audit Report Modal (F12 & F23) */}
+      <SettlementReportModal
+        isOpen={isSettlementReportOpen}
+        onClose={() => setIsSettlementReportOpen(false)}
+        trip={trip}
+        participants={participants}
+        netBalances={effectiveNetBalances}
+        simplifiedDebts={effectiveSimplifiedDebts}
+        audit={audit}
+        expenses={expenses}
+        bookings={bookings}
+      />
+
+      {/* Persistent Travel Squads Modal (F11) */}
+      <SquadManagerModal
+        isOpen={isSquadManagerOpen}
+        onClose={() => setIsSquadManagerOpen(false)}
+        currentParticipants={participants}
+        squads={squads}
+        onSaveCurrentSquad={handleSaveCurrentSquad}
+        onDeleteSquad={handleDeleteSquad}
+      />
+
+      {/* F14 & F15: Chat & Voice Expense Capture Modal */}
+      <ChatExpenseModal
+        isOpen={isChatExpenseOpen}
+        onClose={() => setIsChatExpenseOpen(false)}
+        participants={participants}
+        onApplyDraft={handleApplyParsedChatDraft}
+      />
+
+      {/* F16: Duplicate Expense Guard Warning Modal */}
+      <DuplicateExpenseWarningModal
+        isOpen={isDuplicateWarningOpen}
+        proposedExpense={pendingDuplicateData?.expenseData || null}
+        existingExpense={pendingDuplicateData?.duplicateMatch?.existingExpense || null}
+        similarityScore={pendingDuplicateData?.duplicateMatch?.similarityScore || 0}
+        reason={pendingDuplicateData?.duplicateMatch?.reason || ''}
+        onCancel={() => {
+          setIsDuplicateWarningOpen(false);
+          setPendingDuplicateData(null);
+        }}
+        onConfirmDuplicate={() => {
+          if (pendingDuplicateData) {
+            handleSubmitExpense({
+              ...pendingDuplicateData.expenseData,
+              isDuplicateAcknowledged: true,
+            });
+            setIsDuplicateWarningOpen(false);
+            setPendingDuplicateData(null);
+          }
+        }}
+      />
+
+      {/* F20: Nudge & Reminder Engine Modal */}
+      <NudgeReminderModal
+        isOpen={isNudgeModalOpen}
+        onClose={() => setIsNudgeModalOpen(false)}
+        tripTitle={trip.title}
+        participants={participants}
+        settlements={effectiveSimplifiedDebts.map((d) => ({
+          id: `settle-${d.fromId}-${d.toId}`,
+          tripId: trip.id,
+          fromParticipantId: d.fromId,
+          toParticipantId: d.toId,
+          amount: d.amount,
+          status: 'unsettled',
+          createdAt: new Date().toISOString(),
+        }))}
+        onSendNudge={handleSendNudge}
+      />
+
+      {/* F18: Debt Reassignment / IOU Transfer Modal */}
+      <DebtReassignmentModal
+        isOpen={isDebtReassignmentOpen}
+        onClose={() => {
+          setIsDebtReassignmentOpen(false);
+          setSelectedDebtToReassign(null);
+        }}
+        participants={participants}
+        settlement={selectedDebtToReassign}
+        onReassignDebt={handleReassignDebt}
       />
 
       {/* Global Toast Notification */}

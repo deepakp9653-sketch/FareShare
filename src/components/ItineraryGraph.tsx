@@ -1,8 +1,9 @@
 'use client';
 
 import React, { useState, useEffect, useRef } from 'react';
-import { Booking, Participant, Expense } from '@/lib/types';
-import { Plane, Hotel, Compass, UtensilsCrossed, ChevronDown, ChevronUp, Clock, MapPin, Tag } from 'lucide-react';
+import { Booking, Participant, Expense, ItineraryConflict, Trip } from '@/lib/types';
+import { checkItineraryFeasibility } from '@/lib/ledger-engine';
+import { Plane, Hotel, Compass, UtensilsCrossed, ChevronDown, ChevronUp, Clock, MapPin, Tag, AlertTriangle, CheckCircle2, ShieldAlert } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { animate, stagger } from 'animejs';
 
@@ -10,6 +11,7 @@ interface ItineraryGraphProps {
   bookings: Booking[];
   participants: Participant[];
   expenses: Expense[];
+  trip?: Trip;
   onOpenAddBooking: () => void;
   onOpenEditBooking?: (booking: Booking) => void;
   onOpenCancelBooking?: (booking: Booking) => void;
@@ -20,6 +22,7 @@ export const ItineraryGraph: React.FC<ItineraryGraphProps> = ({
   bookings,
   participants,
   expenses,
+  trip,
   onOpenAddBooking,
   onOpenEditBooking,
   onOpenCancelBooking,
@@ -27,7 +30,24 @@ export const ItineraryGraph: React.FC<ItineraryGraphProps> = ({
 }) => {
   const [expandedBookingId, setExpandedBookingId] = useState<string | null>(null);
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
+  const [dismissedConflictIds, setDismissedConflictIds] = useState<string[]>([]);
   const containerRef = useRef<HTMLDivElement>(null);
+
+  // F22: Feasibility check on active bookings
+  const mockTrip: Trip = trip || {
+    id: bookings[0]?.tripId || 'trip-1',
+    title: 'Group Trip',
+    destination: 'Destination',
+    startDate: '',
+    endDate: '',
+    budgetCeiling: 100000,
+    baseCurrency: 'INR',
+    inviteCode: 'TRIP26',
+    organizerId: participants[0]?.id || 'p1',
+    createdAt: new Date().toISOString(),
+  };
+  const allConflicts = checkItineraryFeasibility(mockTrip, bookings, participants);
+  const activeConflicts = allConflicts.filter((c) => !dismissedConflictIds.includes(c.id));
 
   useEffect(() => {
     if (containerRef.current) {
@@ -93,6 +113,54 @@ export const ItineraryGraph: React.FC<ItineraryGraphProps> = ({
           ))}
         </div>
       </div>
+
+      {/* F22: Itinerary Feasibility Alerts */}
+      {activeConflicts.length > 0 && (
+        <div className="p-4 rounded-3xl bg-amber-500/10 border border-amber-500/30 space-y-3">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2 text-amber-600 dark:text-amber-400">
+              <ShieldAlert className="w-5 h-5" />
+              <span className="font-serif-display font-bold text-sm">
+                Logistical Feasibility Conflicts Detected ({activeConflicts.length})
+              </span>
+            </div>
+            <span className="text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-700 dark:text-amber-300">
+              Deterministic Guardrail
+            </span>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+            {activeConflicts.map((c) => (
+              <div
+                key={c.id}
+                className="p-3 rounded-2xl bg-surface-base border border-amber-500/20 text-xs flex items-start justify-between gap-3"
+              >
+                <div className="space-y-0.5">
+                  <div className="flex items-center gap-1.5">
+                    <span
+                      className={`text-[10px] font-bold px-1.5 py-0.2 rounded uppercase ${
+                        c.severity === 'high' ? 'bg-red-500/20 text-red-600' : 'bg-amber-500/20 text-amber-600'
+                      }`}
+                    >
+                      {c.severity}
+                    </span>
+                    <span className="font-semibold text-ink-primary capitalize">{c.type.replace('_', ' ')}</span>
+                  </div>
+                  <p className="text-[11px] text-ink-secondary">{c.description}</p>
+                </div>
+
+                <button
+                  type="button"
+                  onClick={() => setDismissedConflictIds((prev) => [...prev, c.id])}
+                  className="text-[11px] font-semibold text-ink-muted hover:text-ink-primary shrink-0 px-2 py-1 rounded-lg bg-surface-overlay"
+                >
+                  Dismiss
+                </button>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* Horizontal Swimlanes / Day Columns */}
       <div className="space-y-6">

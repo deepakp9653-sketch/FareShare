@@ -1,9 +1,9 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { Participant, SplitMethod, Booking, BookingCategory } from '@/lib/types';
-import { calculateSplits } from '@/lib/ledger-engine';
-import { X, Calculator, ShieldAlert, CheckCircle2, DollarSign, Upload, FileText, Image as ImageIcon } from 'lucide-react';
+import { Participant, SplitMethod, Booking, BookingCategory, Expense } from '@/lib/types';
+import { calculateSplits, suggestSplitMethod } from '@/lib/ledger-engine';
+import { X, Calculator, ShieldAlert, CheckCircle2, DollarSign, Upload, FileText, Image as ImageIcon, Sparkles, Lightbulb } from 'lucide-react';
 import { motion } from 'framer-motion';
 
 interface DynamicSplitDrawerProps {
@@ -11,6 +11,7 @@ interface DynamicSplitDrawerProps {
   onClose: () => void;
   participants: Participant[];
   bookings: Booking[];
+  initialDraft?: Partial<Expense> & { chatSourceRaw?: string; receiptConfidence?: number };
   onSubmitExpense: (expenseData: {
     title: string;
     totalAmount: number;
@@ -21,6 +22,8 @@ interface DynamicSplitDrawerProps {
     subsidyAmount?: number;
     receiptUrl?: string;
     receiptName?: string;
+    chatSourceRaw?: string;
+    receiptConfidence?: number;
   }) => void;
 }
 
@@ -29,6 +32,7 @@ export const DynamicSplitDrawer: React.FC<DynamicSplitDrawerProps> = ({
   onClose,
   participants,
   bookings,
+  initialDraft,
   onSubmitExpense,
 }) => {
   const [title, setTitle] = useState('');
@@ -45,6 +49,18 @@ export const DynamicSplitDrawer: React.FC<DynamicSplitDrawerProps> = ({
 
   const [lineItems, setLineItems] = useState<Record<string, number>>({});
   const [weights, setWeights] = useState<Record<string, number>>({});
+
+  // Populate from initialDraft when opened
+  useEffect(() => {
+    if (initialDraft) {
+      if (initialDraft.title) setTitle(initialDraft.title);
+      if (initialDraft.totalAmount) setTotalAmount(initialDraft.totalAmount);
+      if (initialDraft.splitMethod) setSplitMethod(initialDraft.splitMethod);
+      if (initialDraft.paidById) setPaidById(initialDraft.paidById);
+      if (initialDraft.category) setCategory(initialDraft.category);
+      if (initialDraft.bookingId) setBookingId(initialDraft.bookingId);
+    }
+  }, [initialDraft]);
 
   useEffect(() => {
     if (participants.length > 0) {
@@ -76,6 +92,9 @@ export const DynamicSplitDrawer: React.FC<DynamicSplitDrawerProps> = ({
   };
 
   const activeParticipants = participants.filter((p) => p.status === 'active');
+  const linkedBooking = bookings.find((b) => b.id === bookingId);
+  const splitAdvice = suggestSplitMethod(category, activeParticipants, linkedBooking);
+
   const calculatedAllocations = calculateSplits(totalAmount, splitMethod, activeParticipants, {
     weights,
     lineItems: splitMethod === 'line_item' ? lineItems : undefined,
@@ -100,6 +119,8 @@ export const DynamicSplitDrawer: React.FC<DynamicSplitDrawerProps> = ({
       subsidyAmount: splitMethod === 'organizer_subsidy' ? subsidyAmount : undefined,
       receiptUrl: receiptPreview || undefined,
       receiptName: receiptFile?.name || undefined,
+      chatSourceRaw: initialDraft?.chatSourceRaw,
+      receiptConfidence: initialDraft?.receiptConfidence,
     });
     onClose();
   };
@@ -133,6 +154,47 @@ export const DynamicSplitDrawer: React.FC<DynamicSplitDrawerProps> = ({
 
         {/* Form Body */}
         <form onSubmit={handleSubmit} className="flex-1 overflow-y-auto p-6 space-y-6">
+          {/* Chat / Voice Origin Banner if parsed */}
+          {initialDraft?.chatSourceRaw && (
+            <div className="p-3 rounded-2xl bg-brand-coral/5 border border-brand-coral/20 text-xs text-ink-secondary flex items-center justify-between">
+              <span className="truncate mr-2">
+                Draft source: <strong className="text-ink-primary font-mono">"{initialDraft.chatSourceRaw}"</strong>
+              </span>
+              <span className="text-ledger-surplus font-bold shrink-0">
+                Confidence: {((initialDraft.receiptConfidence ?? 0.95) * 100).toFixed(0)}%
+              </span>
+            </div>
+          )}
+
+          {/* F17 Split-Method Advisor Banner */}
+          <div className="p-3.5 rounded-2xl bg-brand-sand/60 border border-surface-hairline flex items-start gap-3">
+            <div className="p-2 rounded-xl bg-brand-coral/10 text-brand-coral shrink-0">
+              <Lightbulb className="w-4 h-4" />
+            </div>
+            <div className="flex-1 text-xs">
+              <div className="flex items-center justify-between">
+                <span className="font-bold text-ink-primary flex items-center gap-1.5">
+                  Split-Method Advisor (F17)
+                  <span className="text-[10px] px-2 py-0.2 rounded-full bg-surface-base border border-surface-hairline font-mono text-ink-secondary">
+                    {(splitAdvice.confidence * 100).toFixed(0)}% match
+                  </span>
+                </span>
+                {splitMethod !== splitAdvice.method && (
+                  <button
+                    type="button"
+                    onClick={() => setSplitMethod(splitAdvice.method)}
+                    className="text-[11px] font-bold text-brand-coral hover:underline flex items-center gap-0.5"
+                  >
+                    Apply ({splitAdvice.method.replace('_', ' ')}) →
+                  </button>
+                )}
+              </div>
+              <p className="text-ink-secondary text-[11px] mt-1">
+                {splitAdvice.reason}
+              </p>
+            </div>
+          </div>
+
           {/* Amount & Title Input */}
           <div className="space-y-4">
             <div>
