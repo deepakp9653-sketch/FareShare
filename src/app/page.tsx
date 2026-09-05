@@ -77,7 +77,7 @@ import { logEventToNeon, saveRefundToNeon, updateBookingInNeon } from '@/lib/db'
 import { motion, AnimatePresence } from 'framer-motion';
 
 export default function Home() {
-  const [viewMode, setViewMode] = useState<'landing' | 'app'>('app');
+  const [viewMode, setViewMode] = useState<'landing' | 'app'>('landing');
 
   // Multi-Trip State Management
   const [trips, setTrips] = useState<Trip[]>([INITIAL_TRIP]);
@@ -119,13 +119,12 @@ export default function Home() {
   const [isAccountSwitcherOpen, setIsAccountSwitcherOpen] = useState<boolean>(false);
   const [isShareTripOpen, setIsShareTripOpen] = useState<boolean>(false);
 
-  // Hydrate persistent state on client mount (prevents page refresh from resetting to home page)
+  // Hydrate persistent state on client mount (trips and settings)
   useEffect(() => {
     try {
       const saved = localStorage.getItem('group_ledger_session_v3');
       if (saved) {
         const data = JSON.parse(saved);
-        if (data.viewMode) setViewMode(data.viewMode);
         if (data.activeTripId) setActiveTripId(data.activeTripId);
         if (data.activeTab) setActiveTab(data.activeTab);
         if (data.currentUserId) setCurrentUserId(data.currentUserId);
@@ -146,7 +145,6 @@ export default function Home() {
       localStorage.setItem(
         'group_ledger_session_v3',
         JSON.stringify({
-          viewMode,
           activeTripId,
           activeTab,
           currentUserId,
@@ -161,7 +159,6 @@ export default function Home() {
       console.warn('Could not save session to localStorage:', e);
     }
   }, [
-    viewMode,
     activeTripId,
     activeTab,
     currentUserId,
