@@ -27,7 +27,7 @@ export const UpiQrModal: React.FC<UpiQrModalProps> = ({
 }) => {
   if (!isOpen) return null;
 
-  const upiLink = `upi://pay?pa=${encodeURIComponent(payeeUpiId)}&pn=${encodeURIComponent(toName)}&am=${amount}&cu=INR&tn=${encodeURIComponent('GroupTrip Ledger Settlement')}`;
+  const upiLink = `upi://pay?pa=${encodeURIComponent(payeeUpiId)}&pn=${encodeURIComponent(toName)}&am=${amount}&cu=INR&tn=${encodeURIComponent('FareShare Settlement')}`;
   // Generated SVG QR code fallback
   const generatedQrImg = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(upiLink)}&color=1C1B18&bgcolor=FBF8F3`;
 
@@ -47,7 +47,7 @@ export const UpiQrModal: React.FC<UpiQrModalProps> = ({
       >
         <div className="flex items-center justify-between border-b border-surface-hairline pb-3">
           <div className="flex items-center gap-2 text-xs font-bold text-ink-primary">
-            <QrCode className="w-4 h-4 text-brand-coral" />
+            <QrCode className="w-4 h-4 text-emerald-400" />
             <span>Instant UPI Settle (₹ INR)</span>
           </div>
           <button onClick={onClose} className="p-1 rounded-lg text-ink-muted hover:text-ink-primary">
@@ -57,12 +57,12 @@ export const UpiQrModal: React.FC<UpiQrModalProps> = ({
 
         <div>
           <span className="text-xs text-ink-muted block">Transfer Amount</span>
-          <span className="font-numeric font-bold text-3xl text-brand-coral">
+          <span className="font-numeric font-bold text-3xl text-ink-primary">
             ₹{amount.toLocaleString('en-IN', { minimumFractionDigits: 2 })}
           </span>
           <p className="text-xs text-ink-secondary mt-1">
-            <span className="font-semibold text-ledger-deficit">{fromName}</span> →{' '}
-            <span className="font-semibold text-ledger-surplus">{toName}</span>
+            <span className="font-semibold text-rose-400">{fromName}</span> →{' '}
+            <span className="font-semibold text-emerald-400">{toName}</span>
           </p>
         </div>
 
@@ -70,7 +70,7 @@ export const UpiQrModal: React.FC<UpiQrModalProps> = ({
         <div className="p-4 bg-surface-base rounded-2xl border border-surface-hairline inline-block shadow-inner space-y-2">
           <img src={activeQrImg} alt="UPI QR Code" className="w-44 h-44 mx-auto rounded-lg object-contain" />
           {payeeQrCodeUrl && (
-            <span className="text-[10px] font-bold text-ledger-surplus block">
+            <span className="text-[10px] font-bold text-emerald-400 block">
               ✓ Verified Payee QR Image
             </span>
           )}
@@ -79,7 +79,7 @@ export const UpiQrModal: React.FC<UpiQrModalProps> = ({
         {/* UPI VPA Pill */}
         <div className="p-2.5 rounded-xl bg-surface-base border border-surface-hairline text-xs flex items-center justify-between">
           <span className="text-ink-muted">UPI VPA: <span className="font-semibold text-ink-primary">{payeeUpiId}</span></span>
-          <button onClick={handleCopyUpi} className="p-1 rounded text-brand-coral hover:bg-surface-overlay" title="Copy UPI ID">
+          <button onClick={handleCopyUpi} className="p-1 rounded text-emerald-400 hover:bg-surface-overlay" title="Copy UPI ID">
             <Copy className="w-3.5 h-3.5" />
           </button>
         </div>
@@ -90,7 +90,7 @@ export const UpiQrModal: React.FC<UpiQrModalProps> = ({
               onConfirmPayment();
               onClose();
             }}
-            className="w-full py-3 rounded-xl bg-ledger-surplus text-surface-base text-xs font-bold shadow-sm flex items-center justify-center gap-2"
+            className="w-full py-3 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-semibold shadow-emerald flex items-center justify-center gap-2 transition-all"
           >
             <CheckCircle2 className="w-4 h-4" />
             Mark as Paid & Update Ledger

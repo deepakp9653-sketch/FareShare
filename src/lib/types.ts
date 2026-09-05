@@ -1,4 +1,4 @@
-// GroupTrip Ledger Core Domain Types
+// FareShare Core Domain Types
 
 export type SplitMethod = 'equal' | 'weighted' | 'line_item' | 'room_tier' | 'organizer_subsidy';
 
@@ -289,6 +289,7 @@ export interface ParsedChatExpense {
   rawText: string;
   payerId?: string;
   category: BookingCategory;
+  receiptUrl?: string;
 }
 
 

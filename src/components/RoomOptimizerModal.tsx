@@ -158,7 +158,7 @@ export const RoomOptimizerModal: React.FC<RoomOptimizerModalProps> = ({
                     <span
                       className={`text-[10px] px-2 py-0.5 rounded-full font-bold uppercase tracking-wider ${
                         assignment.tier === 'suite'
-                          ? 'bg-brand-coral/20 text-brand-coral'
+                          ? 'bg-purple-500/20 text-purple-300'
                           : assignment.tier === 'standard'
                           ? 'bg-brand-gold/20 text-brand-gold'
                           : 'bg-blue-500/20 text-blue-300'
@@ -240,7 +240,7 @@ export const RoomOptimizerModal: React.FC<RoomOptimizerModalProps> = ({
                 />
                 <button
                   onClick={handleAddRoom}
-                  className="flex-1 py-2 rounded-xl bg-brand-gold text-surface-base font-bold flex items-center justify-center gap-1"
+                  className="flex-1 py-2 rounded-xl bg-white text-black hover:bg-neutral-200 font-semibold shadow-subtle flex items-center justify-center gap-1 transition-all"
                 >
                   <Plus className="w-4 h-4" /> Add
                 </button>

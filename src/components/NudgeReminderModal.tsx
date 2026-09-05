@@ -40,7 +40,7 @@ export const NudgeReminderModal: React.FC<NudgeReminderModalProps> = ({
   const generateDigestText = () => {
     let header = `🌴 *${tripTitle} — Expense Settlement Update* 🌴\n\n`;
     if (tone === 'friendly') {
-      header += `Hey everyone! Hope you had an amazing time on the trip. Here is the friendly reminder of the unsettled balances to wrap up our group ledger:\n\n`;
+      header += `Hey everyone! Hope you had an amazing time on the trip. Here is the friendly reminder of the unsettled balances to wrap up our FareShare ledger:\n\n`;
     } else if (tone === 'direct') {
       header += `Hi squad, the final ledger is calculated. Please clear the pending dues below at your earliest convenience:\n\n`;
     } else {
@@ -58,7 +58,7 @@ export const NudgeReminderModal: React.FC<NudgeReminderModalProps> = ({
       items = `🎉 All balances are completely cleared! Zero-sum balanced.\n`;
     }
 
-    const footer = `\n📲 Pay via UPI to Organizer:\nupi://pay?pa=trip.organizer@okaxis&pn=${encodeURIComponent(tripTitle)}&cu=INR\n\n_Generated deterministically by GroupTrip Ledger_`;
+    const footer = `\n📲 Pay via UPI to Organizer:\nupi://pay?pa=trip.organizer@okaxis&pn=${encodeURIComponent(tripTitle)}&cu=INR\n\n_Generated deterministically by FareShare_`;
     return header + items + footer;
   };
 
@@ -85,13 +85,13 @@ export const NudgeReminderModal: React.FC<NudgeReminderModalProps> = ({
         {/* Header */}
         <div className="p-6 border-b border-surface-hairline bg-surface-base flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="p-2.5 rounded-2xl bg-brand-coral/10 text-brand-coral border border-brand-coral/20">
+            <div className="p-2.5 rounded-2xl bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
               <Bell className="w-6 h-6" />
             </div>
             <div>
               <h3 className="text-xl font-serif-display font-bold text-ink-primary flex items-center gap-2">
                 Nudge & Reminder Engine
-                <span className="text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded-full bg-brand-coral/10 text-brand-coral border border-brand-coral/20">
+                <span className="text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
                   F20 Auto-Digest
                 </span>
               </h3>
@@ -148,17 +148,17 @@ export const NudgeReminderModal: React.FC<NudgeReminderModalProps> = ({
                         disabled={isNudged}
                         className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold border transition-all ${
                           isNudged
-                            ? 'bg-ledger-surplus/20 border-ledger-surplus/30 text-ledger-surplus cursor-default'
-                            : 'bg-brand-coral/10 border-brand-coral/30 text-brand-coral hover:bg-brand-coral hover:text-white'
+                            ? 'bg-emerald-500/20 border-emerald-500/30 text-emerald-400 cursor-default'
+                            : 'bg-surface-overlay border-surface-hairline text-ink-primary hover:border-emerald-500/50 hover:bg-surface-raised'
                         }`}
                       >
                         {isNudged ? (
                           <>
-                            <Check className="w-3.5 h-3.5" /> Nudged
+                            <Check className="w-3.5 h-3.5 text-emerald-400" /> Nudged
                           </>
                         ) : (
                           <>
-                            <Send className="w-3.5 h-3.5" /> Send In-App Nudge
+                            <Send className="w-3.5 h-3.5 text-emerald-400" /> Send In-App Nudge
                           </>
                         )}
                       </button>
@@ -173,7 +173,7 @@ export const NudgeReminderModal: React.FC<NudgeReminderModalProps> = ({
           <div className="space-y-3 pt-4 border-t border-surface-hairline">
             <div className="flex items-center justify-between">
               <span className="text-xs font-semibold text-ink-muted uppercase tracking-wider flex items-center gap-1.5">
-                <MessageSquare className="w-4 h-4 text-brand-coral" /> WhatsApp / Chat Digest Formatter
+                <MessageSquare className="w-4 h-4 text-emerald-400" /> WhatsApp / Chat Digest Formatter
               </span>
               <div className="flex items-center gap-1">
                 {(['friendly', 'direct', 'firm'] as const).map((t) => (
@@ -183,7 +183,7 @@ export const NudgeReminderModal: React.FC<NudgeReminderModalProps> = ({
                     onClick={() => setTone(t)}
                     className={`text-[11px] px-2.5 py-0.5 rounded-full capitalize border transition-all ${
                       tone === t
-                        ? 'bg-brand-coral text-surface-base border-brand-coral font-bold'
+                        ? 'bg-white text-black border-white font-bold'
                         : 'bg-surface-base text-ink-muted border-surface-hairline hover:text-ink-primary'
                     }`}
                   >
@@ -217,7 +217,7 @@ export const NudgeReminderModal: React.FC<NudgeReminderModalProps> = ({
             <button
               type="button"
               onClick={handleCopyDigest}
-              className="px-5 py-2.5 rounded-xl bg-brand-coral text-surface-base font-semibold text-xs flex items-center gap-2 shadow-coral hover:brightness-105 active:scale-95 transition-all"
+              className="px-5 py-2.5 rounded-xl bg-white text-black font-semibold text-xs flex items-center gap-2 shadow-subtle hover:bg-neutral-200 active:scale-95 transition-all"
             >
               {copied ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
               <span>{copied ? 'Copied to Clipboard!' : 'Copy WhatsApp Digest'}</span>

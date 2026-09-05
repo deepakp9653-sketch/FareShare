@@ -31,7 +31,7 @@ export const JoinTripModal: React.FC<JoinTripModalProps> = ({
     const success = onJoinTrip(
       inviteCode.trim().toUpperCase(),
       name.trim(),
-      email.trim() || `${name.toLowerCase().replace(/\s+/g, '')}@grouptrip.in`,
+      email.trim() || `${name.toLowerCase().replace(/\s+/g, '')}@fareshare.in`,
       upiId.trim() || `${name.toLowerCase().replace(/\s+/g, '')}@upi`
     );
 
@@ -120,7 +120,7 @@ export const JoinTripModal: React.FC<JoinTripModalProps> = ({
                 type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                placeholder="deepak@grouptrip.in"
+                placeholder="deepak@fareshare.in"
                 className="w-full bg-surface-base border border-surface-hairline rounded-xl pl-9 pr-3 py-2.5 text-ink-primary font-medium focus:border-brand-indigo outline-none"
               />
             </div>
@@ -142,7 +142,7 @@ export const JoinTripModal: React.FC<JoinTripModalProps> = ({
 
           <button
             type="submit"
-            className="w-full py-3 rounded-xl bg-brand-indigo hover:bg-indigo-600 text-surface-base font-bold shadow-indigo flex items-center justify-center gap-2 transition-all mt-2"
+            className="w-full py-3 rounded-xl bg-white text-black hover:bg-neutral-200 font-semibold text-xs shadow-subtle flex items-center justify-center gap-2 transition-all mt-2"
           >
             <CheckCircle2 className="w-4 h-4" />
             <span>Join Trip Roster & Launch Ledger</span>

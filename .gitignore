@@ -30,3 +30,10 @@ tsconfig.tsbuildinfo
 # environment variables
 .env
 .env*.local
+
+# reference repositories and external clones
+/reference/
+/design-system/
+.agent/
+skills/
+*.log

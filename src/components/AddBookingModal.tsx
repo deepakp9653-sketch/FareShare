@@ -66,7 +66,7 @@ export const AddBookingModal: React.FC<AddBookingModalProps> = ({
       >
         <div className="flex items-center justify-between border-b border-surface-hairline pb-4">
           <h3 className="text-lg font-display font-bold text-ink-primary flex items-center gap-2">
-            <Calendar className="w-5 h-5 text-brand-coral" /> Create Itinerary Booking
+            <Calendar className="w-5 h-5 text-emerald-400" /> Create Itinerary Booking
           </h3>
           <button onClick={onClose} className="p-1 rounded-lg text-ink-muted hover:text-ink-primary">
             <X className="w-5 h-5" />
@@ -82,7 +82,7 @@ export const AddBookingModal: React.FC<AddBookingModalProps> = ({
               value={title}
               onChange={(e) => setTitle(e.target.value)}
               placeholder="e.g. Fuji-Hakone Sightseeing Express Pass"
-              className="w-full bg-surface-base border border-surface-hairline rounded-xl px-3 py-2.5 text-ink-primary focus:border-brand-coral outline-none"
+              className="w-full bg-surface-base border border-surface-hairline rounded-xl px-3 py-2.5 text-ink-primary focus:border-emerald-500 outline-none"
             />
           </div>
 
@@ -95,7 +95,7 @@ export const AddBookingModal: React.FC<AddBookingModalProps> = ({
                 value={vendor}
                 onChange={(e) => setVendor(e.target.value)}
                 placeholder="e.g. Odakyu Electric Railway"
-                className="w-full bg-surface-base border border-surface-hairline rounded-xl px-3 py-2.5 text-ink-primary focus:border-brand-coral outline-none"
+                className="w-full bg-surface-base border border-surface-hairline rounded-xl px-3 py-2.5 text-ink-primary focus:border-emerald-500 outline-none"
               />
             </div>
 
@@ -104,7 +104,7 @@ export const AddBookingModal: React.FC<AddBookingModalProps> = ({
               <select
                 value={category}
                 onChange={(e) => setCategory(e.target.value as any)}
-                className="w-full bg-surface-base border border-surface-hairline rounded-xl px-3 py-2.5 text-ink-primary focus:border-brand-coral outline-none cursor-pointer"
+                className="w-full bg-surface-base border border-surface-hairline rounded-xl px-3 py-2.5 text-ink-primary focus:border-emerald-500 outline-none cursor-pointer"
               >
                 <option value="transport">Transport</option>
                 <option value="lodging">Lodging</option>
@@ -116,22 +116,22 @@ export const AddBookingModal: React.FC<AddBookingModalProps> = ({
 
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="block text-ink-muted mb-1">Estimated Budget ($)</label>
+              <label className="block text-ink-muted mb-1">Estimated Budget (₹)</label>
               <input
                 type="number"
                 value={estimatedCost}
                 onChange={(e) => setEstimatedCost(parseFloat(e.target.value) || 0)}
-                className="w-full bg-surface-base border border-surface-hairline rounded-xl px-3 py-2.5 font-numeric text-ink-primary focus:border-brand-coral outline-none"
+                className="w-full bg-surface-base border border-surface-hairline rounded-xl px-3 py-2.5 font-numeric text-ink-primary focus:border-emerald-500 outline-none"
               />
             </div>
 
             <div>
-              <label className="block text-ink-muted mb-1">Actual Final Cost ($)</label>
+              <label className="block text-ink-muted mb-1">Actual Final Cost (₹)</label>
               <input
                 type="number"
                 value={actualCost}
                 onChange={(e) => setActualCost(parseFloat(e.target.value) || 0)}
-                className="w-full bg-surface-base border border-surface-hairline rounded-xl px-3 py-2.5 font-numeric font-bold text-brand-coral focus:border-brand-coral outline-none"
+                className="w-full bg-surface-base border border-surface-hairline rounded-xl px-3 py-2.5 font-numeric font-bold text-emerald-400 focus:border-emerald-500 outline-none"
               />
             </div>
           </div>
@@ -149,7 +149,7 @@ export const AddBookingModal: React.FC<AddBookingModalProps> = ({
                     onClick={() => handleToggleParticipant(p.id)}
                     className={`p-2 rounded-xl border flex items-center gap-2 text-xs transition-all ${
                       isSelected
-                        ? 'bg-brand-coral/10 border-brand-coral text-ink-primary'
+                        ? 'bg-emerald-500/15 border-emerald-500/40 text-emerald-300 font-medium'
                         : 'bg-surface-base border-surface-hairline text-ink-muted opacity-50'
                     }`}
                   >
@@ -171,7 +171,7 @@ export const AddBookingModal: React.FC<AddBookingModalProps> = ({
             </button>
             <button
               type="submit"
-              className="px-4 py-2 rounded-xl bg-brand-coral text-surface-base font-semibold shadow-glow"
+              className="px-5 py-2.5 rounded-xl bg-white text-black hover:bg-neutral-200 font-semibold text-xs shadow-subtle transition-all active:scale-95"
             >
               Save Booking to Timeline
             </button>

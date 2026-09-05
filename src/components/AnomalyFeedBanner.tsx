@@ -35,7 +35,7 @@ export const AnomalyFeedBanner: React.FC<AnomalyFeedBannerProps> = ({
   const getIcon = (type: Anomaly['type']) => {
     switch (type) {
       case 'SCHEDULE_CONFLICT':
-        return <Clock className="w-4 h-4 text-brand-coral" />;
+        return <Clock className="w-4 h-4 text-amber-400" />;
       case 'ROOM_OVERCAPACITY':
         return <Home className="w-4 h-4 text-brand-gold" />;
       case 'BUDGET_VARIANCE':

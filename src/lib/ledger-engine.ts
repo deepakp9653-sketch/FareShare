@@ -1,4 +1,4 @@
-// GroupTrip Ledger Core Math & State Engine
+// FareShare Core Math & State Engine
 
 import {
   Participant,

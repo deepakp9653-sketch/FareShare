@@ -138,7 +138,7 @@ export const DynamicSplitDrawer: React.FC<DynamicSplitDrawerProps> = ({
         <div className="p-6 border-b border-surface-hairline flex items-center justify-between bg-surface-base">
           <div>
             <h3 className="text-xl font-serif-display font-bold text-ink-primary flex items-center gap-2">
-              <Calculator className="w-5 h-5 text-brand-coral" /> Dynamic Split Engine
+              <Calculator className="w-5 h-5 text-emerald-400" /> Dynamic Split Engine
             </h3>
             <p className="text-xs text-ink-secondary mt-0.5">
               Configure cost distribution rules, attach bill proofs & verify real-time reconciliation (₹ INR).
@@ -156,7 +156,7 @@ export const DynamicSplitDrawer: React.FC<DynamicSplitDrawerProps> = ({
         <form onSubmit={handleSubmit} className="flex-1 overflow-y-auto p-6 space-y-6">
           {/* Chat / Voice Origin Banner if parsed */}
           {initialDraft?.chatSourceRaw && (
-            <div className="p-3 rounded-2xl bg-brand-coral/5 border border-brand-coral/20 text-xs text-ink-secondary flex items-center justify-between">
+            <div className="p-3 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 text-xs text-ink-secondary flex items-center justify-between">
               <span className="truncate mr-2">
                 Draft source: <strong className="text-ink-primary font-mono">"{initialDraft.chatSourceRaw}"</strong>
               </span>
@@ -168,7 +168,7 @@ export const DynamicSplitDrawer: React.FC<DynamicSplitDrawerProps> = ({
 
           {/* F17 Split-Method Advisor Banner */}
           <div className="p-3.5 rounded-2xl bg-brand-sand/60 border border-surface-hairline flex items-start gap-3">
-            <div className="p-2 rounded-xl bg-brand-coral/10 text-brand-coral shrink-0">
+            <div className="p-2 rounded-xl bg-amber-400/10 text-amber-400 shrink-0">
               <Lightbulb className="w-4 h-4" />
             </div>
             <div className="flex-1 text-xs">
@@ -183,7 +183,7 @@ export const DynamicSplitDrawer: React.FC<DynamicSplitDrawerProps> = ({
                   <button
                     type="button"
                     onClick={() => setSplitMethod(splitAdvice.method)}
-                    className="text-[11px] font-bold text-brand-coral hover:underline flex items-center gap-0.5"
+                    className="text-[11px] font-bold text-emerald-400 hover:underline flex items-center gap-0.5"
                   >
                     Apply ({splitAdvice.method.replace('_', ' ')}) →
                   </button>
@@ -202,7 +202,7 @@ export const DynamicSplitDrawer: React.FC<DynamicSplitDrawerProps> = ({
                 Expense Total Amount (₹ INR)
               </label>
               <div className="relative">
-                <span className="absolute left-4 top-1/2 -translate-y-1/2 text-2xl font-numeric text-brand-coral font-bold">
+                <span className="absolute left-4 top-1/2 -translate-y-1/2 text-2xl font-numeric text-ink-primary font-bold">
                   ₹
                 </span>
                 <input
@@ -211,7 +211,7 @@ export const DynamicSplitDrawer: React.FC<DynamicSplitDrawerProps> = ({
                   required
                   value={totalAmount}
                   onChange={(e) => setTotalAmount(parseFloat(e.target.value) || 0)}
-                  className="w-full bg-surface-base border-2 border-surface-hairline focus:border-brand-coral rounded-2xl pl-10 pr-4 py-3 text-3xl font-numeric font-bold text-ink-primary outline-none"
+                  className="w-full bg-surface-base border-2 border-surface-hairline focus:border-emerald-500 rounded-2xl pl-10 pr-4 py-3 text-3xl font-numeric font-bold text-ink-primary outline-none"
                 />
               </div>
             </div>
@@ -225,7 +225,7 @@ export const DynamicSplitDrawer: React.FC<DynamicSplitDrawerProps> = ({
                   value={title}
                   onChange={(e) => setTitle(e.target.value)}
                   placeholder="e.g. Thalassa Seafood Feast & Wine"
-                  className="w-full bg-surface-base border border-surface-hairline rounded-xl px-3 py-2.5 text-xs text-ink-primary focus:border-brand-coral outline-none"
+                  className="w-full bg-surface-base border border-surface-hairline rounded-xl px-3 py-2.5 text-xs text-ink-primary focus:border-emerald-500 outline-none"
                 />
               </div>
 
@@ -234,7 +234,7 @@ export const DynamicSplitDrawer: React.FC<DynamicSplitDrawerProps> = ({
                 <select
                   value={paidById}
                   onChange={(e) => setPaidById(e.target.value)}
-                  className="w-full bg-surface-base border border-surface-hairline rounded-xl px-3 py-2.5 text-xs text-ink-primary focus:border-brand-coral outline-none cursor-pointer"
+                  className="w-full bg-surface-base border border-surface-hairline rounded-xl px-3 py-2.5 text-xs text-ink-primary focus:border-emerald-500 outline-none cursor-pointer"
                 >
                   {participants.map((p) => (
                     <option key={p.id} value={p.id}>
@@ -251,7 +251,7 @@ export const DynamicSplitDrawer: React.FC<DynamicSplitDrawerProps> = ({
                 <select
                   value={category}
                   onChange={(e) => setCategory(e.target.value as any)}
-                  className="w-full bg-surface-base border border-surface-hairline rounded-xl px-3 py-2.5 text-xs text-ink-primary focus:border-brand-coral outline-none cursor-pointer"
+                  className="w-full bg-surface-base border border-surface-hairline rounded-xl px-3 py-2.5 text-xs text-ink-primary focus:border-emerald-500 outline-none cursor-pointer"
                 >
                   <option value="general">General</option>
                   <option value="lodging">Lodging</option>
@@ -266,7 +266,7 @@ export const DynamicSplitDrawer: React.FC<DynamicSplitDrawerProps> = ({
                 <select
                   value={bookingId}
                   onChange={(e) => setBookingId(e.target.value)}
-                  className="w-full bg-surface-base border border-surface-hairline rounded-xl px-3 py-2.5 text-xs text-ink-primary focus:border-brand-coral outline-none cursor-pointer"
+                  className="w-full bg-surface-base border border-surface-hairline rounded-xl px-3 py-2.5 text-xs text-ink-primary focus:border-emerald-500 outline-none cursor-pointer"
                 >
                   <option value="">None (Trip-level Cost)</option>
                   {bookings.map((b) => (
@@ -285,7 +285,7 @@ export const DynamicSplitDrawer: React.FC<DynamicSplitDrawerProps> = ({
               Upload Bill / Receipt Spending Proof
             </label>
 
-            <div className="p-4 border-2 border-dashed border-surface-hairline hover:border-brand-coral/60 rounded-2xl bg-surface-base text-center space-y-2 cursor-pointer relative transition-all">
+            <div className="p-4 border-2 border-dashed border-surface-hairline hover:border-emerald-500/60 rounded-2xl bg-surface-base text-center space-y-2 cursor-pointer relative transition-all">
               <input
                 type="file"
                 accept="image/*,application/pdf"
@@ -295,7 +295,7 @@ export const DynamicSplitDrawer: React.FC<DynamicSplitDrawerProps> = ({
 
               {receiptPreview ? (
                 <div className="flex items-center justify-center gap-3">
-                  <ImageIcon className="w-6 h-6 text-brand-coral" />
+                  <ImageIcon className="w-6 h-6 text-emerald-400" />
                   <div className="text-left text-xs">
                     <span className="font-semibold text-ink-primary block">{receiptFile?.name || 'Attached Receipt'}</span>
                     <span className="text-ledger-surplus text-[11px] font-bold">Proof Verified ✓</span>
@@ -305,7 +305,7 @@ export const DynamicSplitDrawer: React.FC<DynamicSplitDrawerProps> = ({
                 <>
                   <Upload className="w-6 h-6 text-ink-muted mx-auto" />
                   <p className="text-xs text-ink-secondary">
-                    Drag & drop bill receipt image/PDF, or <span className="text-brand-coral font-semibold">browse files</span>
+                    Drag & drop bill receipt image/PDF, or <span className="text-emerald-400 font-semibold">browse files</span>
                   </p>
                 </>
               )}
@@ -332,7 +332,7 @@ export const DynamicSplitDrawer: React.FC<DynamicSplitDrawerProps> = ({
                   onClick={() => setSplitMethod(strat.id as SplitMethod)}
                   className={`p-2.5 rounded-xl text-xs font-semibold border text-center transition-all ${
                     splitMethod === strat.id
-                      ? 'bg-brand-coral text-surface-base border-brand-coral shadow-coral font-bold'
+                      ? 'bg-white text-black border-white shadow-subtle font-bold'
                       : 'bg-surface-base text-ink-secondary border-surface-hairline hover:text-ink-primary'
                   }`}
                 >
@@ -427,9 +427,9 @@ export const DynamicSplitDrawer: React.FC<DynamicSplitDrawerProps> = ({
           <button
             onClick={handleSubmit}
             disabled={!isReconciled}
-            className={`w-full py-3 rounded-xl text-sm font-bold shadow-coral transition-all ${
+            className={`w-full py-3 rounded-xl text-sm font-semibold transition-all ${
               isReconciled
-                ? 'bg-brand-coral hover:bg-brand-coralDim text-surface-base cursor-pointer'
+                ? 'bg-white text-black hover:bg-neutral-200 cursor-pointer shadow-subtle'
                 : 'bg-surface-overlay text-ink-muted cursor-not-allowed border border-surface-hairline'
             }`}
           >

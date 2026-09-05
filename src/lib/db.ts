@@ -1,4 +1,4 @@
-// Neon PostgreSQL DB Client for GroupTrip Ledger
+// Neon PostgreSQL DB Client for FareShare
 import { neon } from '@neondatabase/serverless';
 
 const connectionString =

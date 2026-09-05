@@ -1,9 +1,22 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
-import { Participant, ParsedChatExpense, BookingCategory } from '@/lib/types';
+import React, { useState, useEffect, useRef } from 'react';
+import { Participant, ParsedChatExpense } from '@/lib/types';
 import { parseNaturalChatExpense } from '@/lib/ledger-engine';
-import { MessageSquareText, Mic, Upload, Sparkles, Check, ArrowRight, X, Volume2, Receipt, AlertCircle } from 'lucide-react';
+import {
+  MessageSquareText,
+  Mic,
+  MicOff,
+  Upload,
+  Sparkles,
+  ArrowRight,
+  X,
+  Receipt,
+  AlertCircle,
+  Zap,
+  CheckCircle2,
+  FileText,
+} from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
 interface ChatExpenseModalProps {
@@ -12,28 +25,6 @@ interface ChatExpenseModalProps {
   participants: Participant[];
   onApplyDraft: (draft: ParsedChatExpense) => void;
 }
-
-const SAMPLE_CHATS = [
-  "Dinner at Fisherman's Wharf for 3500 paid by Priya for Rahul and Vikram",
-  "Uber cab to Calangute beach 850 paid by Rohan",
-  "Scooter rental 1200 paid by Rahul for everyone",
-  "Watersports jet ski 4800 paid by Vikram for Priya, Arjun and Rohan",
-];
-
-const MOCK_RECEIPTS = [
-  {
-    name: "Goa Beach Shack Seafood Dinner",
-    text: "Fisherman's Wharf Goa - Total INR 4,200. Paid by Rohan. Attendees: Rahul, Priya, Vikram.",
-    amount: 4200,
-    category: "food" as BookingCategory,
-  },
-  {
-    name: "Calangute Scuba & Watersports Club",
-    text: "Scuba diving package bill 6,500 INR paid by Vikram for Rahul, Priya, Arjun.",
-    amount: 6500,
-    category: "activity" as BookingCategory,
-  },
-];
 
 export const ChatExpenseModal: React.FC<ChatExpenseModalProps> = ({
   isOpen,
@@ -45,18 +36,70 @@ export const ChatExpenseModal: React.FC<ChatExpenseModalProps> = ({
   const [parsed, setParsed] = useState<ParsedChatExpense | null>(null);
   const [isRecording, setIsRecording] = useState(false);
   const [recordingSeconds, setRecordingSeconds] = useState(0);
+  const [voiceStatus, setVoiceStatus] = useState<string | null>(null);
+  const [isAiLoading, setIsAiLoading] = useState(false);
+  const [aiEngineLabel, setAiEngineLabel] = useState<string>('Local Zero-Latency Engine');
+  
+  // Real receipt attachment state (no mock data)
+  const [attachedFile, setAttachedFile] = useState<{
+    name: string;
+    size: number;
+    type: string;
+    previewUrl?: string;
+  } | null>(null);
 
-  // Live parse whenever input text changes
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const recognitionRef = useRef<any>(null);
+  const debounceTimerRef = useRef<NodeJS.Timeout | null>(null);
+
+  // Live parse whenever input text changes: instant local regex + async AI enhancement
   useEffect(() => {
     if (inputText.trim().length > 3) {
-      const result = parseNaturalChatExpense(inputText, participants);
-      setParsed(result);
+      // 1. Instant local parse
+      const localResult = parseNaturalChatExpense(inputText, participants);
+      setParsed(localResult);
+
+      // 2. Debounce call to AI parsing API
+      if (debounceTimerRef.current) clearTimeout(debounceTimerRef.current);
+      debounceTimerRef.current = setTimeout(async () => {
+        setIsAiLoading(true);
+        try {
+          const res = await fetch('/api/ai/parse-expense', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ text: inputText, participants }),
+          });
+          const data = await res.json();
+          if (data.success && data.data) {
+            setParsed({
+              title: data.data.title || localResult.title,
+              totalAmount: data.data.totalAmount || localResult.totalAmount,
+              category: data.data.category || localResult.category,
+              payerId: data.data.payerId || localResult.payerId,
+              detectedParticipantIds:
+                data.data.detectedParticipantIds || localResult.detectedParticipantIds,
+              suggestedSplitMethod: 'equal',
+              confidence: data.data.confidence || 0.95,
+              rawText: inputText,
+            });
+            setAiEngineLabel(data.model ? 'AI Neural Parser' : 'Zero-Latency Parser');
+          }
+        } catch (err) {
+          console.warn('AI enhancement fallback:', err);
+        } finally {
+          setIsAiLoading(false);
+        }
+      }, 500);
     } else {
       setParsed(null);
     }
+
+    return () => {
+      if (debounceTimerRef.current) clearTimeout(debounceTimerRef.current);
+    };
   }, [inputText, participants]);
 
-  // Voice recording simulation timer
+  // Voice recording timer
   useEffect(() => {
     let interval: NodeJS.Timeout;
     if (isRecording) {
@@ -67,39 +110,149 @@ export const ChatExpenseModal: React.FC<ChatExpenseModalProps> = ({
     return () => clearInterval(interval);
   }, [isRecording]);
 
+  // Clean up speech recognition on unmount
+  useEffect(() => {
+    return () => {
+      if (recognitionRef.current) {
+        try {
+          recognitionRef.current.stop();
+        } catch (e) {
+          // ignore
+        }
+      }
+    };
+  }, []);
+
   if (!isOpen) return null;
 
-  const handleSimulateVoiceNote = () => {
-    if (!isRecording) {
-      setIsRecording(true);
-      setRecordingSeconds(0);
-      setTimeout(() => {
-        setIsRecording(false);
-        const voiceTranscription = "Hey squad, I just paid 2,800 rupees for watersports at Baga for Vikram and Priya.";
-        setInputText(voiceTranscription);
-      }, 3200);
-    } else {
+  // Real Speech Recognition handler
+  const handleToggleVoiceRecording = () => {
+    if (isRecording) {
+      if (recognitionRef.current) {
+        try {
+          recognitionRef.current.stop();
+        } catch (e) {
+          console.warn('Error stopping recognition:', e);
+        }
+      }
       setIsRecording(false);
+      setVoiceStatus(null);
+      return;
+    }
+
+    const SpeechRecognition =
+      typeof window !== 'undefined'
+        ? (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition
+        : null;
+
+    if (!SpeechRecognition) {
+      setVoiceStatus('Web Speech API is not supported in this browser. Please type directly or use Chrome / Edge / Safari.');
+      return;
+    }
+
+    try {
+      const recognition = new SpeechRecognition();
+      recognition.continuous = true;
+      recognition.interimResults = true;
+      recognition.lang = 'en-IN';
+
+      recognition.onstart = () => {
+        setIsRecording(true);
+        setRecordingSeconds(0);
+        setVoiceStatus('Listening to your microphone... Speak your expense clearly.');
+      };
+
+      recognition.onresult = (event: any) => {
+        let transcript = '';
+        for (let i = event.resultIndex; i < event.results.length; ++i) {
+          transcript += event.results[i][0].transcript;
+        }
+        if (transcript.trim()) {
+          setInputText((prev) => {
+            const trimmed = prev.trim();
+            return trimmed ? `${trimmed} ${transcript.trim()}` : transcript.trim();
+          });
+        }
+      };
+
+      recognition.onerror = (event: any) => {
+        console.warn('Speech recognition error:', event.error);
+        setIsRecording(false);
+        if (event.error === 'not-allowed') {
+          setVoiceStatus('Microphone permission denied. Please enable microphone permissions in your browser.');
+        } else if (event.error === 'no-speech') {
+          setVoiceStatus('No speech detected. Tap microphone and speak again.');
+        } else {
+          setVoiceStatus(`Microphone status: ${event.error}. You can also type directly.`);
+        }
+      };
+
+      recognition.onend = () => {
+        setIsRecording(false);
+      };
+
+      recognitionRef.current = recognition;
+      recognition.start();
+    } catch (err) {
+      console.error('Failed to start speech recognition:', err);
+      setIsRecording(false);
+      setVoiceStatus('Unable to access microphone. Please ensure microphone permissions are granted.');
     }
   };
 
-  const handleApplyReceipt = (receipt: typeof MOCK_RECEIPTS[0]) => {
-    setInputText(receipt.text);
+  // Real Receipt File Selection
+  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    const isImage = file.type.startsWith('image/');
+    const previewUrl = isImage ? URL.createObjectURL(file) : undefined;
+
+    setAttachedFile({
+      name: file.name,
+      size: file.size,
+      type: file.type,
+      previewUrl,
+    });
+
+    // If input is empty, prefill with a sensible title from file name
+    if (!inputText.trim()) {
+      const cleanName = file.name
+        .replace(/\.[^/.]+$/, '')
+        .replace(/[-_]/g, ' ')
+        .replace(/\b\w/g, (c) => c.toUpperCase());
+      setInputText(`Receipt for ${cleanName}`);
+    }
+  };
+
+  const handleRemoveAttachedFile = () => {
+    if (attachedFile?.previewUrl) {
+      URL.revokeObjectURL(attachedFile.previewUrl);
+    }
+    setAttachedFile(null);
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
   };
 
   const handleConfirmAndProceed = () => {
     if (!parsed) return;
-    onApplyDraft(parsed);
+    onApplyDraft({
+      ...parsed,
+      receiptUrl: attachedFile?.previewUrl,
+    });
     onClose();
   };
 
-  const detectedPayerName = participants.find((p) => p.id === parsed?.payerId)?.name || 'Auto-select (Organizer)';
-  const detectedBeneficiaryNames = parsed?.detectedParticipantIds && parsed.detectedParticipantIds.length > 0
-    ? parsed.detectedParticipantIds.map((id) => participants.find((p) => p.id === id)?.name || id).join(', ')
-    : 'All Active Squad Members';
+  const detectedPayerName =
+    participants.find((p) => p.id === parsed?.payerId)?.name || 'Auto-select (Organizer)';
+  const detectedBeneficiaryNames =
+    parsed?.detectedParticipantIds && parsed.detectedParticipantIds.length > 0
+      ? parsed.detectedParticipantIds.map((id) => participants.find((p) => p.id === id)?.name || id).join(', ')
+      : 'All Active Squad Members';
 
   return (
-    <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
+    <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4">
       <motion.div
         initial={{ opacity: 0, scale: 0.95, y: 10 }}
         animate={{ opacity: 1, scale: 1, y: 0 }}
@@ -109,18 +262,19 @@ export const ChatExpenseModal: React.FC<ChatExpenseModalProps> = ({
         {/* Header */}
         <div className="p-6 border-b border-surface-hairline bg-surface-base flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="p-2.5 rounded-2xl bg-brand-coral/10 text-brand-coral border border-brand-coral/20">
+            <div className="p-2.5 rounded-2xl bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
               <MessageSquareText className="w-6 h-6" />
             </div>
             <div>
-              <h3 className="text-xl font-serif-display font-bold text-ink-primary flex items-center gap-2">
-                Chat & Voice Expense Capture
-                <span className="text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded-full bg-brand-sand text-ink-primary border border-surface-hairline">
-                  NLP / OCR
+              <h3 className="text-xl font-sans font-bold text-ink-primary flex items-center gap-2">
+                Chat &amp; Voice Expense Capture
+                <span className="text-[10px] uppercase font-mono font-bold tracking-wider px-2 py-0.5 rounded-full bg-surface-overlay text-emerald-400 border border-emerald-500/30 flex items-center gap-1">
+                  <Zap className="w-3 h-3 text-emerald-400 fill-emerald-400" />
+                  Live Parser Active
                 </span>
               </h3>
-              <p className="text-xs text-ink-secondary">
-                Natural-language parser extracts amounts, participants, and categories into a validated draft.
+              <p className="text-xs text-ink-secondary mt-0.5">
+                Speak into your microphone or type natural expense details to auto-generate a validated split draft.
               </p>
             </div>
           </div>
@@ -134,40 +288,58 @@ export const ChatExpenseModal: React.FC<ChatExpenseModalProps> = ({
 
         {/* Modal Content */}
         <div className="p-6 overflow-y-auto space-y-6 flex-1">
-          {/* Quick Input Bar with Voice Note button */}
+          {/* Real Voice Dictation & Input Bar */}
           <div className="space-y-2">
             <div className="flex items-center justify-between">
               <label className="text-xs font-semibold text-ink-muted uppercase tracking-wider">
-                Type Natural Chat Message or Note
+                Speak or Type Transaction Details
               </label>
               <div className="flex items-center gap-2">
                 <button
                   type="button"
-                  onClick={handleSimulateVoiceNote}
+                  onClick={handleToggleVoiceRecording}
                   className={`flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium border transition-all ${
                     isRecording
-                      ? 'bg-ledger-deficit/20 border-ledger-deficit text-ledger-deficit animate-pulse'
-                      : 'bg-surface-base border-surface-hairline text-ink-secondary hover:text-brand-coral hover:border-brand-coral/40'
+                      ? 'bg-rose-500/20 border-rose-500 text-rose-400 animate-pulse shadow-sm'
+                      : 'bg-surface-base border-surface-hairline text-ink-secondary hover:text-emerald-400 hover:border-emerald-500/40'
                   }`}
+                  title={isRecording ? 'Click to stop listening' : 'Click to dictate expense using real microphone'}
                 >
-                  <Mic className={`w-3.5 h-3.5 ${isRecording ? 'text-ledger-deficit' : ''}`} />
-                  {isRecording ? `Recording Voice (${recordingSeconds}s)...` : 'Simulate Voice Note'}
+                  {isRecording ? (
+                    <>
+                      <MicOff className="w-3.5 h-3.5 text-rose-400" />
+                      <span>Listening ({recordingSeconds}s)... Tap to Stop</span>
+                    </>
+                  ) : (
+                    <>
+                      <Mic className="w-3.5 h-3.5 text-emerald-400" />
+                      <span>Take Real Voice Input</span>
+                    </>
+                  )}
                 </button>
               </div>
             </div>
+
+            {/* Voice Status Alert if any */}
+            {voiceStatus && (
+              <div className="p-2.5 rounded-xl bg-surface-base border border-surface-hairline text-xs flex items-center gap-2 text-ink-secondary">
+                <AlertCircle className="w-4 h-4 text-emerald-400 shrink-0" />
+                <span>{voiceStatus}</span>
+              </div>
+            )}
 
             <div className="relative">
               <textarea
                 value={inputText}
                 onChange={(e) => setInputText(e.target.value)}
-                placeholder="e.g. Paid 3500 for seafood dinner for Priya and Rahul..."
+                placeholder="Example: Paid 2800 for dinner for Vikram and Priya, or speak using the mic above..."
                 rows={3}
-                className="w-full bg-surface-base border-2 border-surface-hairline focus:border-brand-coral rounded-2xl p-4 text-sm text-ink-primary outline-none transition-all resize-none shadow-inner"
+                className="w-full bg-surface-base border-2 border-surface-hairline focus:border-emerald-500 rounded-2xl p-4 text-sm text-ink-primary outline-none transition-all resize-none shadow-inner"
               />
               {inputText && (
                 <button
                   onClick={() => setInputText('')}
-                  className="absolute right-3 top-3 text-ink-muted hover:text-ink-primary text-xs bg-surface-overlay px-2 py-1 rounded-lg"
+                  className="absolute right-3 top-3 text-ink-muted hover:text-ink-primary text-xs bg-surface-overlay px-2 py-1 rounded-lg transition-colors"
                 >
                   Clear
                 </button>
@@ -175,50 +347,72 @@ export const ChatExpenseModal: React.FC<ChatExpenseModalProps> = ({
             </div>
           </div>
 
-          {/* Quick Preset Prompts */}
-          <div className="space-y-2">
-            <span className="text-[11px] font-semibold text-ink-muted uppercase tracking-wider">
-              Quick Suggestions (Tap to fill)
-            </span>
-            <div className="flex flex-wrap gap-2">
-              {SAMPLE_CHATS.map((sample, idx) => (
-                <button
-                  key={idx}
-                  type="button"
-                  onClick={() => setInputText(sample)}
-                  className="text-xs text-left px-3 py-1.5 rounded-xl bg-surface-base border border-surface-hairline hover:border-brand-coral/50 hover:bg-surface-overlay text-ink-secondary transition-all"
-                >
-                  💬 {sample}
-                </button>
-              ))}
-            </div>
-          </div>
-
-          {/* Photo Receipt Ingestion Mock */}
-          <div className="space-y-2 pt-2 border-t border-surface-hairline">
+          {/* Real Receipt Upload & Attachment (Zero Mock Data) */}
+          <div className="space-y-3 pt-2 border-t border-surface-hairline">
             <div className="flex items-center justify-between">
               <span className="text-[11px] font-semibold text-ink-muted uppercase tracking-wider flex items-center gap-1.5">
-                <Receipt className="w-3.5 h-3.5 text-brand-coral" /> Photo Receipt Ingestion (OCR Simulation)
+                <Receipt className="w-3.5 h-3.5 text-emerald-400" /> Real Bill Receipt / Invoice Attachment
               </span>
             </div>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              {MOCK_RECEIPTS.map((rec, i) => (
-                <div
-                  key={i}
-                  onClick={() => handleApplyReceipt(rec)}
-                  className="p-3 rounded-2xl border border-surface-hairline bg-surface-base hover:border-brand-coral/50 hover:bg-surface-overlay transition-all cursor-pointer flex items-start gap-3"
-                >
-                  <div className="p-2 rounded-xl bg-brand-sand/50 text-ink-primary mt-0.5">
-                    <Upload className="w-4 h-4" />
-                  </div>
-                  <div className="flex-1">
-                    <p className="text-xs font-semibold text-ink-primary">{rec.name}</p>
-                    <p className="text-[11px] text-brand-coral font-numeric font-bold">₹{rec.amount.toLocaleString('en-IN')}</p>
-                    <p className="text-[10px] text-ink-muted line-clamp-1 mt-0.5">{rec.text}</p>
+
+            <input
+              type="file"
+              ref={fileInputRef}
+              accept="image/*,application/pdf"
+              onChange={handleFileSelect}
+              className="hidden"
+            />
+
+            {!attachedFile ? (
+              <div
+                onClick={() => fileInputRef.current?.click()}
+                className="p-4 rounded-2xl border border-dashed border-surface-hairline hover:border-emerald-500/50 bg-surface-base hover:bg-surface-overlay transition-all cursor-pointer flex items-center justify-center gap-3 text-center group"
+              >
+                <div className="p-2.5 rounded-xl bg-surface-overlay text-ink-muted group-hover:text-emerald-400 transition-colors">
+                  <Upload className="w-5 h-5" />
+                </div>
+                <div className="text-left">
+                  <p className="text-xs font-semibold text-ink-primary group-hover:text-emerald-400 transition-colors">
+                    Click or drop real receipt image or PDF bill
+                  </p>
+                  <p className="text-[11px] text-ink-muted">
+                    JPG, PNG, or PDF up to 10MB · Attaches directly to the transaction record
+                  </p>
+                </div>
+              </div>
+            ) : (
+              <div className="p-3.5 rounded-2xl border border-emerald-500/30 bg-emerald-500/5 flex items-center justify-between gap-3">
+                <div className="flex items-center gap-3 min-w-0">
+                  {attachedFile.previewUrl ? (
+                    <img
+                      src={attachedFile.previewUrl}
+                      alt="Receipt preview"
+                      className="w-10 h-10 rounded-xl object-cover border border-emerald-500/30 shrink-0"
+                    />
+                  ) : (
+                    <div className="w-10 h-10 rounded-xl bg-surface-base border border-surface-hairline flex items-center justify-center text-emerald-400 shrink-0">
+                      <FileText className="w-5 h-5" />
+                    </div>
+                  )}
+                  <div className="min-w-0">
+                    <p className="text-xs font-semibold text-ink-primary truncate">
+                      {attachedFile.name}
+                    </p>
+                    <p className="text-[11px] text-emerald-400 font-mono">
+                      {(attachedFile.size / 1024).toFixed(1)} KB · Attached to draft
+                    </p>
                   </div>
                 </div>
-              ))}
-            </div>
+                <button
+                  type="button"
+                  onClick={handleRemoveAttachedFile}
+                  className="p-1.5 rounded-lg text-ink-muted hover:text-rose-400 hover:bg-surface-overlay transition-colors shrink-0"
+                  title="Remove attached receipt"
+                >
+                  <X className="w-4 h-4" />
+                </button>
+              </div>
+            )}
           </div>
 
           {/* Real-time Parsed Preview Card */}
@@ -228,15 +422,26 @@ export const ChatExpenseModal: React.FC<ChatExpenseModalProps> = ({
                 initial={{ opacity: 0, y: 8 }}
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: 8 }}
-                className="p-4 rounded-2xl border-2 border-brand-coral/30 bg-brand-coral/5 space-y-3"
+                className="p-4 rounded-2xl border-2 border-emerald-500/30 bg-emerald-500/5 space-y-3"
               >
                 <div className="flex items-center justify-between">
-                  <span className="text-xs font-bold text-brand-coral flex items-center gap-1.5">
+                  <span className="text-xs font-bold text-emerald-400 flex items-center gap-1.5">
                     <Sparkles className="w-4 h-4" /> Structured Draft Detected
                   </span>
-                  <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-ledger-surplus/20 text-ledger-surplus border border-ledger-surplus/30">
-                    Confidence: {(parsed.confidence * 100).toFixed(0)}%
-                  </span>
+                  <div className="flex items-center gap-2">
+                    {isAiLoading ? (
+                      <span className="text-[10px] font-mono text-amber-500 animate-pulse">
+                        AI Analyzing...
+                      </span>
+                    ) : (
+                      <span className="text-[10px] font-mono text-ink-muted bg-surface-base px-2 py-0.5 rounded border border-surface-hairline">
+                        ⚡ {aiEngineLabel}
+                      </span>
+                    )}
+                    <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
+                      Confidence: {(parsed.confidence * 100).toFixed(0)}%
+                    </span>
+                  </div>
                 </div>
 
                 <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 pt-1 text-xs">
@@ -263,7 +468,7 @@ export const ChatExpenseModal: React.FC<ChatExpenseModalProps> = ({
 
                   <div className="p-2.5 rounded-xl bg-surface-base border border-surface-hairline">
                     <span className="text-[10px] text-ink-muted block uppercase">Split Rule</span>
-                    <span className="font-semibold text-brand-coral capitalize block">
+                    <span className="font-semibold text-emerald-400 capitalize block">
                       {parsed.suggestedSplitMethod.replace('_', ' ')}
                     </span>
                   </div>
@@ -276,7 +481,7 @@ export const ChatExpenseModal: React.FC<ChatExpenseModalProps> = ({
                   </div>
                   <div>
                     <span className="text-ink-muted mr-1">Split With:</span>
-                    <span className="font-medium text-brand-coral">{detectedBeneficiaryNames}</span>
+                    <span className="font-medium text-emerald-400">{detectedBeneficiaryNames}</span>
                   </div>
                 </div>
               </motion.div>
@@ -287,7 +492,9 @@ export const ChatExpenseModal: React.FC<ChatExpenseModalProps> = ({
         {/* Modal Footer */}
         <div className="p-6 border-t border-surface-hairline bg-surface-base flex items-center justify-between">
           <p className="text-xs text-ink-muted">
-            {parsed ? 'Click below to review & finalize allocation in Split Drawer.' : 'Type or speak an expense above to parse.'}
+            {parsed
+              ? 'Click below to finalize allocation in the Split Drawer.'
+              : 'Speak or type your real expense details above.'}
           </p>
           <div className="flex items-center gap-3">
             <button
@@ -301,7 +508,7 @@ export const ChatExpenseModal: React.FC<ChatExpenseModalProps> = ({
               type="button"
               disabled={!parsed}
               onClick={handleConfirmAndProceed}
-              className="px-5 py-2.5 rounded-xl bg-brand-coral text-surface-base font-semibold text-xs flex items-center gap-2 shadow-coral hover:brightness-105 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+              className="px-5 py-2.5 rounded-xl bg-white text-black hover:bg-neutral-200 font-semibold text-xs flex items-center gap-2 shadow-subtle active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
             >
               <span>Open in Split Engine</span>
               <ArrowRight className="w-4 h-4" />

@@ -64,12 +64,12 @@ export const ExplainBalanceModal: React.FC<ExplainBalanceModalProps> = ({
         initial={{ opacity: 0, scale: 0.95, y: 16 }}
         animate={{ opacity: 1, scale: 1, y: 0 }}
         exit={{ opacity: 0, scale: 0.95, y: 16 }}
-        className="relative w-full max-w-2xl bg-surface-raised border border-brand-coral/40 rounded-3xl shadow-2xl overflow-hidden flex flex-col max-h-[88vh]"
+        className="relative w-full max-w-2xl bg-surface-raised border border-surface-hairline rounded-3xl shadow-2xl overflow-hidden flex flex-col max-h-[88vh]"
       >
         {/* Header Ribbon */}
         <div className="p-6 bg-gradient-to-r from-surface-base via-surface-raised to-surface-base border-b border-surface-hairline flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="w-12 h-12 rounded-2xl bg-brand-coral/15 border border-brand-coral/30 flex items-center justify-center text-brand-coral">
+            <div className="w-12 h-12 rounded-2xl bg-emerald-500/15 border border-emerald-500/30 flex items-center justify-center text-emerald-400">
               <Sparkles className="w-6 h-6 stroke-[2.5]" />
             </div>
             <div>
@@ -110,7 +110,7 @@ export const ExplainBalanceModal: React.FC<ExplainBalanceModalProps> = ({
         {/* Narrative Summary Card */}
         <div className="p-5 bg-surface-base/80 border-b border-surface-hairline">
           <div className="p-4 rounded-2xl bg-surface-raised border border-surface-hairline space-y-2">
-            <div className="flex items-center gap-2 text-brand-coral font-bold text-xs uppercase tracking-wider">
+            <div className="flex items-center gap-2 text-emerald-400 font-bold text-xs uppercase tracking-wider">
               <Sparkles className="w-4 h-4" /> AI & Deterministic Lineage Narrative
             </div>
             <p className="text-xs sm:text-sm text-ink-primary leading-relaxed font-medium">

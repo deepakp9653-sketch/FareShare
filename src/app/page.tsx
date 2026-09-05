@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   INITIAL_TRIP,
   INITIAL_PARTICIPANTS,
@@ -40,6 +40,7 @@ import {
 } from '@/lib/ledger-engine';
 import { Header } from '@/components/Header';
 import { Navigation, TabType } from '@/components/Navigation';
+import { DashboardShell } from '@/components/DashboardShell';
 import { OverviewSection } from '@/components/OverviewSection';
 import { ItineraryGraph } from '@/components/ItineraryGraph';
 import { ParticipantsSection } from '@/components/ParticipantsSection';
@@ -69,11 +70,14 @@ import { DuplicateExpenseWarningModal } from '@/components/DuplicateExpenseWarni
 import { NudgeReminderModal } from '@/components/NudgeReminderModal';
 import { DebtReassignmentModal } from '@/components/DebtReassignmentModal';
 import { OfflineQueueIndicator } from '@/components/OfflineQueueIndicator';
+import { AccountSwitcherModal } from '@/components/AccountSwitcherModal';
+import { ShareTripModal } from '@/components/ShareTripModal';
+import { DEMO_USERS } from '@/lib/user-store';
 import { logEventToNeon, saveRefundToNeon, updateBookingInNeon } from '@/lib/db';
 import { motion, AnimatePresence } from 'framer-motion';
 
 export default function Home() {
-  const [viewMode, setViewMode] = useState<'landing' | 'app'>('landing');
+  const [viewMode, setViewMode] = useState<'landing' | 'app'>('app');
 
   // Multi-Trip State Management
   const [trips, setTrips] = useState<Trip[]>([INITIAL_TRIP]);
@@ -112,6 +116,61 @@ export default function Home() {
   const [isTripSwitcherOpen, setIsTripSwitcherOpen] = useState<boolean>(false);
   const [isAuthOpen, setIsAuthOpen] = useState<boolean>(false);
   const [isUpiSetupOpen, setIsUpiSetupOpen] = useState<boolean>(false);
+  const [isAccountSwitcherOpen, setIsAccountSwitcherOpen] = useState<boolean>(false);
+  const [isShareTripOpen, setIsShareTripOpen] = useState<boolean>(false);
+
+  // Hydrate persistent state on client mount (prevents page refresh from resetting to home page)
+  useEffect(() => {
+    try {
+      const saved = localStorage.getItem('group_ledger_session_v3');
+      if (saved) {
+        const data = JSON.parse(saved);
+        if (data.viewMode) setViewMode(data.viewMode);
+        if (data.activeTripId) setActiveTripId(data.activeTripId);
+        if (data.activeTab) setActiveTab(data.activeTab);
+        if (data.currentUserId) setCurrentUserId(data.currentUserId);
+        if (Array.isArray(data.trips) && data.trips.length > 0) setTrips(data.trips);
+        if (data.expensesMap) setExpensesMap(data.expensesMap);
+        if (data.bookingsMap) setBookingsMap(data.bookingsMap);
+        if (data.participantsMap) setParticipantsMap(data.participantsMap);
+        if (data.paymentsMap) setPaymentsMap(data.paymentsMap);
+      }
+    } catch (e) {
+      console.warn('Could not restore session from localStorage:', e);
+    }
+  }, []);
+
+  // Persist state changes to localStorage
+  useEffect(() => {
+    try {
+      localStorage.setItem(
+        'group_ledger_session_v3',
+        JSON.stringify({
+          viewMode,
+          activeTripId,
+          activeTab,
+          currentUserId,
+          trips,
+          expensesMap,
+          bookingsMap,
+          participantsMap,
+          paymentsMap,
+        })
+      );
+    } catch (e) {
+      console.warn('Could not save session to localStorage:', e);
+    }
+  }, [
+    viewMode,
+    activeTripId,
+    activeTab,
+    currentUserId,
+    trips,
+    expensesMap,
+    bookingsMap,
+    participantsMap,
+    paymentsMap,
+  ]);
 
   // Phase 1 New Modals State
   const [isVendorsOpen, setIsVendorsOpen] = useState<boolean>(false);
@@ -476,6 +535,23 @@ export default function Home() {
     triggerToast(`Updated UPI VPA to "${upiId}". Custom QR ready!`);
   };
 
+  const handleDirectAddParticipant = (newP: Participant) => {
+    const updatedParts = [...(participantsMap[trip.id] || []).filter((p) => p.id !== newP.id), newP];
+    setParticipantsMap((prev) => ({
+      ...prev,
+      [trip.id]: updatedParts,
+    }));
+    setBookingsMap((prev) => ({
+      ...prev,
+      [trip.id]: (prev[trip.id] || []).map((b) => ({
+        ...b,
+        participantIds: Array.from(new Set([...b.participantIds, newP.id])),
+      })),
+    }));
+    recordEvent('PARTICIPANT_ADDED', `Added participant ${newP.name} to trip roster.`, { participantId: newP.id });
+    triggerToast(`Added ${newP.name} to roster. Balances recalculated!`);
+  };
+
   const handleAddParticipant = (name: string, email: string, isOrganizer: boolean) => {
     const newP: Participant = {
       id: 'p-' + Date.now(),
@@ -736,6 +812,7 @@ export default function Home() {
       category: draft.category,
       chatSourceRaw: draft.rawText,
       receiptConfidence: draft.confidence,
+      receiptUrl: draft.receiptUrl,
     });
     setIsSplitDrawerOpen(true);
   };
@@ -1126,42 +1203,34 @@ export default function Home() {
 
   return (
     <div className="min-h-screen bg-surface-base text-ink-primary font-sans">
-      {/* Header with Balance Pill, Trip Switcher & User Switcher */}
-      <Header
+      <DashboardShell
         trip={trip}
         participants={participants}
         currentUserId={currentUserId}
-        onSelectUser={setCurrentUserId}
+        activeTab={activeTab}
+        onTabChange={setActiveTab}
         netBalances={effectiveNetBalances}
-        isSettled={isSettled}
-        onGoToLanding={() => setViewMode('landing')}
-        onOpenCreateTrip={() => setIsCreateTripOpen(true)}
-        onOpenJoinTrip={() => setIsJoinTripOpen(true)}
+        simplifiedDebts={effectiveSimplifiedDebts}
+        eventCount={events.length}
+        expensesCount={expenses.length}
+        bookingsCount={bookings.length}
+        isOffline={isOffline}
+        onToggleOffline={() => setIsOffline(!isOffline)}
         onOpenTripSwitcher={() => setIsTripSwitcherOpen(true)}
-        onOpenAuth={() => setIsAuthOpen(true)}
-        onOpenUpiSetup={() => setIsUpiSetupOpen(true)}
-        onOpenChatExpense={() => setIsChatExpenseOpen(true)}
-        onOpenNudges={() => setIsNudgeModalOpen(true)}
-        offlineIndicatorNode={
-          <OfflineQueueIndicator
-            isOffline={isOffline}
-            onToggleOffline={() => setIsOffline(!isOffline)}
-            queue={offlineQueue}
-            onSyncQueue={handleSyncOfflineQueue}
-            isSyncing={isSyncingQueue}
-          />
-        }
-        onOpenExplainBalance={() => {
-          setExplainParticipantId(currentUserId);
+        onOpenAccountSwitcher={() => setIsAccountSwitcherOpen(true)}
+        onOpenShareTrip={() => setIsShareTripOpen(true)}
+        onOpenAddExpense={() => setIsSplitDrawerOpen(true)}
+        onOpenAddBooking={() => setIsAddBookingOpen(true)}
+        onOpenChaosDemo={() => setIsChaosDemoOpen(true)}
+        onOpenWhatIf={() => setIsWhatIfOpen(true)}
+        onOpenRoomOptimizer={() => setIsRoomOptimizerOpen(true)}
+        onOpenSettlementReport={() => setIsSettlementReportOpen(true)}
+        onOpenExplainBalance={(pid) => {
+          setExplainParticipantId(pid);
           setIsExplainBalanceOpen(true);
         }}
-      />
-
-      {/* Responsive Section Navigation Bar */}
-      <Navigation activeTab={activeTab} onTabChange={setActiveTab} eventCount={events.length} />
-
-      {/* Main Animated Tab View Body */}
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 py-6 pb-24">
+        onGoToLanding={() => setViewMode('landing')}
+      >
         <AnimatePresence mode="wait">
           <motion.div
             key={activeTab + trip.id}
@@ -1265,7 +1334,7 @@ export default function Home() {
             {activeTab === 'activity' && <ActivityLogSection events={events} />}
           </motion.div>
         </AnimatePresence>
-      </main>
+      </DashboardShell>
 
       {/* Dynamic Split Engine Drawer with F17 Advisor & Draft Pre-fill */}
       <DynamicSplitDrawer
@@ -1502,6 +1571,28 @@ export default function Home() {
         onReassignDebt={handleReassignDebt}
       />
 
+      {/* Account Switcher Modal with Password Authentication */}
+      <AccountSwitcherModal
+        isOpen={isAccountSwitcherOpen}
+        onClose={() => setIsAccountSwitcherOpen(false)}
+        currentUserId={currentUserId}
+        onSwitchUser={(newUserId) => {
+          setCurrentUserId(newUserId);
+          const found = DEMO_USERS.find((u) => u.id === newUserId);
+          triggerToast(`Switched account to ${found?.name || newUserId}! Welcome to your dashboard.`);
+        }}
+      />
+
+      {/* Share Trip & Manage Member Access Modal */}
+      <ShareTripModal
+        isOpen={isShareTripOpen}
+        onClose={() => setIsShareTripOpen(false)}
+        trip={trip}
+        participants={participants}
+        currentUserId={currentUserId}
+        onAddParticipant={handleDirectAddParticipant}
+      />
+
       {/* Global Toast Notification */}
       <AnimatePresence>
         {toastMessage && (
@@ -1509,9 +1600,9 @@ export default function Home() {
             initial={{ y: 50, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
             exit={{ y: 50, opacity: 0 }}
-            className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 bg-surface-raised text-ink-primary border border-brand-coral px-5 py-3 rounded-2xl shadow-coral flex items-center gap-3 text-xs sm:text-sm font-bold"
+            className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 bg-surface-raised text-ink-primary border border-emerald-500/40 px-5 py-3 rounded-2xl shadow-emerald flex items-center gap-3 text-xs sm:text-sm font-semibold backdrop-blur-md"
           >
-            <span className="w-2.5 h-2.5 rounded-full bg-brand-coral animate-ping" />
+            <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-ping" />
             <span>{toastMessage}</span>
           </motion.div>
         )}

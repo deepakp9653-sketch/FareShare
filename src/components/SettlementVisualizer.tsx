@@ -80,55 +80,55 @@ export const SettlementVisualizer: React.FC<SettlementVisualizerProps> = ({
   return (
     <div className="space-y-6">
       {/* Header Banner */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-surface-raised p-5 rounded-2xl border border-surface-hairline shadow-paper">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-surface-raised p-5 rounded-xl border border-surface-hairline shadow-paper">
         <div>
           <div className="flex items-center gap-2">
-            <h2 className="text-xl font-serif-display font-bold text-ink-primary flex items-center gap-2">
-              <GitCommit className="w-5 h-5 text-brand-coral" /> Ledger Settlement Visualizer
+            <h2 className="text-lg font-sans font-semibold text-ink-primary flex items-center gap-2">
+              <GitCommit className="w-4 h-4 text-emerald-400" /> Ledger Settlement Graph
             </h2>
-            <span className="text-[10px] px-2.5 py-0.5 rounded-full bg-brand-gold/15 text-brand-gold font-bold uppercase tracking-wider">
-              Anime.js & Motion Powered
+            <span className="text-[10px] font-mono px-2 py-0.5 rounded uppercase font-semibold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+              Zero-Sum Verified
             </span>
           </div>
           <p className="text-xs text-ink-secondary mt-0.5">
-            Greedy $O(N \log N)$ Debt Simplification engine with dynamic UPI QR Code instant settlement.
+            Automated Debt Simplification engine with dynamic UPI QR Code instant settlement.
           </p>
         </div>
 
         {/* Control Action Buttons */}
-        <div className="flex flex-wrap items-center gap-2.5">
+        <div className="flex flex-wrap items-center gap-2">
           {onToggleCrossTripNetting && (
             <button
               onClick={onToggleCrossTripNetting}
-              className={`px-3.5 py-2 rounded-xl text-xs font-semibold border transition-all flex items-center gap-1.5 ${
+              className={`px-3 py-1.5 rounded-lg text-xs font-medium border transition-all flex items-center gap-1.5 cursor-pointer ${
                 isCrossTripNetting
-                  ? 'bg-brand-coral text-surface-base border-brand-coral font-bold shadow-coral'
-                  : 'bg-surface-base text-ink-secondary border-surface-hairline hover:text-ink-primary'
+                  ? 'bg-ink-primary text-surface-base border-ink-primary font-bold shadow-subtle'
+                  : 'bg-surface-overlay text-ink-secondary border-surface-hairline hover:text-ink-primary'
               }`}
             >
-              <Layers className="w-4 h-4" />
-              {isCrossTripNetting ? 'Squad Netting: Multi-Trip Active' : 'Consolidate Squad Trips (F21)'}
+              <Layers className="w-3.5 h-3.5" />
+              <span>{isCrossTripNetting ? 'Multi-Trip Netting Active' : 'Consolidate Squad Trips'}</span>
             </button>
           )}
 
           <button
             onClick={() => setFilterPersonal(!filterPersonal)}
-            className={`px-3.5 py-2 rounded-xl text-xs font-semibold border transition-all flex items-center gap-1.5 ${
+            className={`px-3 py-1.5 rounded-lg text-xs font-medium border transition-all flex items-center gap-1.5 cursor-pointer ${
               filterPersonal
-                ? 'bg-brand-gold text-surface-base border-brand-gold font-bold shadow-sm'
-                : 'bg-surface-base text-ink-secondary border-surface-hairline hover:text-ink-primary'
+                ? 'bg-ink-primary text-surface-base border-ink-primary font-bold shadow-subtle'
+                : 'bg-surface-overlay text-ink-secondary border-surface-hairline hover:text-ink-primary'
             }`}
           >
-            <User className="w-4 h-4" />
-            {filterPersonal ? 'Showing My Debts' : 'Personal View Filter'}
+            <User className="w-3.5 h-3.5" />
+            <span>{filterPersonal ? 'Showing My Debts' : 'Filter Personal Debts'}</span>
           </button>
 
           <button
             onClick={handleTriggerSimplify}
-            className="px-4 py-2.5 rounded-xl bg-brand-coral hover:bg-brand-coralDim text-surface-base text-xs sm:text-sm font-bold transition-all shadow-coral flex items-center gap-2"
+            className="px-3.5 py-1.5 rounded-lg bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-300 border border-emerald-500/30 text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer"
           >
-            <Zap className="w-4 h-4 stroke-[3]" />
-            {isSimplified ? 'View Raw Debts' : 'Simplify Debts (Min N-1)'}
+            <Zap className="w-3.5 h-3.5" />
+            <span>{isSimplified ? 'Raw Debts' : 'Simplify Paths'}</span>
           </button>
         </div>
       </div>
@@ -147,7 +147,7 @@ export const SettlementVisualizer: React.FC<SettlementVisualizerProps> = ({
             {[...Array(16)].map((_, idx) => (
               <div
                 key={idx}
-                className="w-3.5 h-3.5 rounded-full bg-gradient-to-t from-brand-coral via-brand-gold to-ledger-surplus shadow-coral"
+                className="w-3.5 h-3.5 rounded-full bg-gradient-to-t from-emerald-500 via-brand-gold to-ledger-surplus shadow-emerald"
               />
             ))}
           </div>
@@ -173,7 +173,7 @@ export const SettlementVisualizer: React.FC<SettlementVisualizerProps> = ({
           <div className="w-28 h-28 rounded-full bg-surface-base border border-surface-hairline flex flex-col items-center justify-center text-center p-2 shadow-inner z-10">
             <Sparkles className="w-5 h-5 text-brand-gold mb-1" />
             <span className="text-[10px] uppercase font-bold text-ink-muted tracking-wider">Settlement Hub</span>
-            <span className="font-numeric font-bold text-xs text-brand-coral">
+            <span className="font-numeric font-bold text-xs text-emerald-400">
               ₹{netBalances.reduce((acc, n) => acc + (n.netBalance > 0 ? n.netBalance : 0), 0).toFixed(0)} Total
             </span>
           </div>
@@ -196,7 +196,7 @@ export const SettlementVisualizer: React.FC<SettlementVisualizerProps> = ({
                   style={{ transform: `translate(${x}px, ${y}px)` }}
                   className={`debt-node absolute p-3 rounded-2xl bg-surface-raised border flex items-center gap-2.5 shadow-paper transition-all ${
                     isUser
-                      ? 'border-brand-coral ring-2 ring-brand-coral/30 z-20 scale-105'
+                      ? 'border-emerald-500 ring-2 ring-emerald-500/30 z-20 scale-105'
                       : 'border-surface-hairline z-10'
                   }`}
                 >
@@ -306,7 +306,7 @@ export const SettlementVisualizer: React.FC<SettlementVisualizerProps> = ({
                 return (
                   <div
                     key={idx}
-                    className="p-3.5 rounded-2xl bg-surface-base border border-surface-hairline flex items-center justify-between transition-all hover:border-brand-coral/50"
+                    className="p-3.5 rounded-2xl bg-surface-base border border-surface-hairline flex items-center justify-between transition-all hover:border-emerald-500/50"
                   >
                     <div className="flex items-center gap-2 text-xs">
                       <span className="font-semibold text-ledger-deficit">{debt.fromName}</span>
@@ -330,7 +330,7 @@ export const SettlementVisualizer: React.FC<SettlementVisualizerProps> = ({
                             })
                           }
                           title="Transfer or reassign this debt obligation (F18)"
-                          className="px-2.5 py-1.5 rounded-xl border border-surface-hairline hover:border-brand-coral text-ink-secondary hover:text-brand-coral text-xs font-semibold transition-all flex items-center gap-1"
+                          className="px-2.5 py-1.5 rounded-xl border border-surface-hairline hover:border-emerald-500 text-ink-secondary hover:text-emerald-400 text-xs font-semibold transition-all flex items-center gap-1"
                         >
                           <ArrowRightLeft className="w-3.5 h-3.5" />
                           <span className="hidden sm:inline">Reassign</span>
@@ -338,7 +338,7 @@ export const SettlementVisualizer: React.FC<SettlementVisualizerProps> = ({
                       )}
                       <button
                         onClick={() => setSelectedUpiDebt({ ...debt, payeeUpiId: upiId })}
-                        className="px-3 py-1.5 rounded-xl bg-brand-coral text-surface-base hover:bg-brand-coralDim text-xs font-bold transition-all shadow-sm flex items-center gap-1.5"
+                        className="px-3 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-semibold transition-all shadow-emerald flex items-center gap-1.5"
                       >
                         <QrCode className="w-3.5 h-3.5" /> UPI Settle
                       </button>
@@ -354,7 +354,7 @@ export const SettlementVisualizer: React.FC<SettlementVisualizerProps> = ({
                 All Debts Fully Settled!
               </p>
               <p className="text-xs text-ink-secondary">
-                The group ledger has reached zero net balance. No pending transactions.
+                The FareShare ledger has reached zero net balance. No pending transactions.
               </p>
             </div>
           )}

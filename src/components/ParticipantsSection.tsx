@@ -45,7 +45,7 @@ export const ParticipantsSection: React.FC<ParticipantsSectionProps> = ({
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-surface-raised p-5 rounded-3xl border border-surface-hairline shadow-paper">
         <div>
           <h2 className="text-xl font-serif-display font-bold text-ink-primary flex items-center gap-2">
-            <Users className="w-5 h-5 text-brand-coral" /> Travelers & Gamified Badges
+            <Users className="w-5 h-5 text-emerald-400" /> Travelers & Gamified Badges
           </h2>
           <p className="text-xs text-ink-secondary mt-0.5">
             Traveler roster with active achievement badges, UPI VPAs & room tier multipliers.
@@ -53,9 +53,9 @@ export const ParticipantsSection: React.FC<ParticipantsSectionProps> = ({
         </div>
         <button
           onClick={() => setShowAddModal(true)}
-          className="px-4 py-2.5 rounded-xl bg-brand-coral hover:bg-brand-coralDim text-surface-base text-xs sm:text-sm font-bold transition-all shadow-coral flex items-center gap-2"
+          className="px-4 py-2.5 rounded-xl bg-white text-black hover:bg-neutral-200 text-xs sm:text-sm font-semibold transition-all shadow-subtle flex items-center gap-2"
         >
-          <UserPlus className="w-4 h-4 stroke-[3]" /> Add Traveler Mid-Trip
+          <UserPlus className="w-4 h-4 stroke-[2.5]" /> Add Traveler Mid-Trip
         </button>
       </div>
 
@@ -76,7 +76,7 @@ export const ParticipantsSection: React.FC<ParticipantsSectionProps> = ({
               className={`p-5 rounded-3xl bg-surface-raised border space-y-4 transition-all shadow-paper ${
                 isInactive
                   ? 'border-surface-hairline/40 opacity-50 bg-surface-base/50'
-                  : 'border-surface-hairline hover:border-brand-coral/40'
+                  : 'border-surface-hairline hover:border-emerald-500/40'
               }`}
             >
               {/* Participant Profile Header */}
@@ -105,7 +105,7 @@ export const ParticipantsSection: React.FC<ParticipantsSectionProps> = ({
                       )}
                     </h4>
                     <p className="text-xs text-ink-muted flex items-center gap-1 mt-0.5">
-                      <QrCode className="w-3 h-3 text-brand-coral" /> {p.upiId || `${p.name.toLowerCase().replace(/\s+/g, '')}@upi`}
+                      <QrCode className="w-3 h-3 text-emerald-400" /> {p.upiId || `${p.name.toLowerCase().replace(/\s+/g, '')}@upi`}
                     </p>
                   </div>
                 </div>
@@ -127,7 +127,7 @@ export const ParticipantsSection: React.FC<ParticipantsSectionProps> = ({
                   </span>
                 )}
                 {isBigBanker && (
-                  <span className="text-[10px] px-2 py-0.5 rounded-full bg-brand-coral/15 text-brand-coral font-bold border border-brand-coral/30 flex items-center gap-1">
+                  <span className="text-[10px] px-2 py-0.5 rounded-full bg-emerald-500/15 text-emerald-400 font-bold border border-emerald-500/30 flex items-center gap-1">
                     🏆 Big Banker
                   </span>
                 )}
@@ -208,7 +208,7 @@ export const ParticipantsSection: React.FC<ParticipantsSectionProps> = ({
                   value={name}
                   onChange={(e) => setName(e.target.value)}
                   placeholder="e.g. Vikramaditya Sen"
-                  className="w-full bg-surface-base border border-surface-hairline rounded-xl px-3 py-2 text-ink-primary focus:border-brand-coral outline-none"
+                  className="w-full bg-surface-base border border-surface-hairline rounded-xl px-3 py-2 text-ink-primary focus:border-emerald-500 outline-none"
                 />
               </div>
 
@@ -218,8 +218,8 @@ export const ParticipantsSection: React.FC<ParticipantsSectionProps> = ({
                   type="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  placeholder="vikram@grouptrip.in"
-                  className="w-full bg-surface-base border border-surface-hairline rounded-xl px-3 py-2 text-ink-primary focus:border-brand-coral outline-none"
+                  placeholder="vikram@fareshare.in"
+                  className="w-full bg-surface-base border border-surface-hairline rounded-xl px-3 py-2 text-ink-primary focus:border-emerald-500 outline-none"
                 />
               </div>
 
@@ -229,7 +229,7 @@ export const ParticipantsSection: React.FC<ParticipantsSectionProps> = ({
                   id="organizerCheck"
                   checked={isOrganizer}
                   onChange={(e) => setIsOrganizer(e.target.checked)}
-                  className="rounded border-surface-hairline text-brand-coral"
+                  className="rounded border-surface-hairline text-emerald-500"
                 />
                 <label htmlFor="organizerCheck" className="text-ink-secondary cursor-pointer">
                   Grant Trip Organizer privileges
@@ -246,7 +246,7 @@ export const ParticipantsSection: React.FC<ParticipantsSectionProps> = ({
                 </button>
                 <button
                   type="submit"
-                  className="px-4 py-2 rounded-xl bg-brand-coral text-surface-base font-bold shadow-coral"
+                  className="px-4 py-2 rounded-xl bg-white text-black hover:bg-neutral-200 font-semibold shadow-subtle transition-all"
                 >
                   Add to Roster
                 </button>

@@ -67,7 +67,7 @@ export const SettlementReportModal: React.FC<SettlementReportModalProps> = ({
 
   const handleCopyText = () => {
     let summary = `━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n`;
-    summary += `GROUPTRIP LEDGER — FINAL SETTLEMENT REPORT\n`;
+    summary += `FARESHARE — FINAL SETTLEMENT REPORT\n`;
     summary += `Trip: ${trip.title} (${trip.destination})\n`;
     summary += `Dates: ${trip.startDate} to ${trip.endDate}\n`;
     summary += `Total Outlay: ₹${audit.netIncurred.toLocaleString('en-IN')}\n`;
@@ -93,7 +93,7 @@ export const SettlementReportModal: React.FC<SettlementReportModalProps> = ({
         summary += `${idx + 1}. ${d.fromName} pays ${d.toName} → ₹${d.amount.toFixed(2)} (UPI: ${d.payeeUpiId || 'N/A'})\n`;
       });
     }
-    summary += `\nGenerated via GroupTrip Ledger Event Engine.`;
+    summary += `\nGenerated via FareShare Accounting Engine.`;
 
     navigator.clipboard.writeText(summary);
     alert('Copied printable settlement report text to clipboard!');
@@ -161,16 +161,23 @@ export const SettlementReportModal: React.FC<SettlementReportModalProps> = ({
         <div className="p-8 overflow-y-auto space-y-6 flex-1 print:overflow-visible">
           {/* Document Masthead */}
           <div className="border-b-2 border-surface-hairline pb-4 flex flex-col sm:flex-row sm:items-end justify-between gap-4">
-            <div>
-              <span className="text-[11px] font-mono font-bold uppercase tracking-widest text-brand-coral">
-                GroupTrip Ledger Audit Certificate
-              </span>
-              <h1 className="text-2xl sm:text-3xl font-serif-display font-bold text-ink-primary mt-1">
-                {trip.title}
-              </h1>
-              <p className="text-xs text-ink-secondary mt-0.5">
-                Destination: {trip.destination} · Dates: {trip.startDate} to {trip.endDate} · Invite Code: {trip.inviteCode}
-              </p>
+            <div className="flex items-center gap-3.5">
+              <img
+                src="/fareshare-icon.png"
+                alt="FareShare"
+                className="w-12 h-12 rounded-2xl border border-white/10 shadow-subtle object-cover bg-zinc-950"
+              />
+              <div>
+                <span className="text-[11px] font-mono font-bold uppercase tracking-widest text-emerald-400">
+                  FareShare Audit Certificate
+                </span>
+                <h1 className="text-2xl sm:text-3xl font-serif-display font-bold text-ink-primary mt-0.5">
+                  {trip.title}
+                </h1>
+                <p className="text-xs text-ink-secondary mt-0.5">
+                  Destination: {trip.destination} · Dates: {trip.startDate} to {trip.endDate} · Invite Code: {trip.inviteCode}
+                </p>
+              </div>
             </div>
 
             <div className="text-left sm:text-right">
@@ -196,7 +203,7 @@ export const SettlementReportModal: React.FC<SettlementReportModalProps> = ({
             </div>
             <div className="p-3.5 bg-surface-base rounded-2xl border border-surface-hairline">
               <span className="text-[10px] uppercase font-bold text-ink-muted">Net Group Outlay</span>
-              <div className="font-numeric font-bold text-base text-brand-coral mt-1">
+              <div className="font-numeric font-bold text-base text-ink-primary mt-1">
                 ₹{audit.netIncurred.toLocaleString('en-IN')}
               </div>
             </div>
@@ -287,7 +294,7 @@ export const SettlementReportModal: React.FC<SettlementReportModalProps> = ({
 
         {/* Footer */}
         <div className="p-4 bg-surface-base border-t border-surface-hairline flex items-center justify-between text-xs text-ink-muted print:hidden">
-          <span>Official Event Ledger Digest · GroupTrip Ledger Engine</span>
+          <span>Official Event Ledger Digest · FareShare Engine</span>
           <button
             onClick={onClose}
             className="px-4 py-2 rounded-xl bg-surface-raised border border-surface-hairline text-ink-primary font-bold hover:bg-surface-hairline transition"

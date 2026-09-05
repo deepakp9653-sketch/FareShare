@@ -10,43 +10,47 @@ module.exports = {
     extend: {
       colors: {
         surface: {
-          base: '#FAF5FF',
-          raised: '#FFFFFF',
-          overlay: '#F3E8FF',
-          hairline: '#E9D5FF',
+          base: '#09090b', // Midday/Dub rich dark background
+          raised: '#121215', // Card background
+          overlay: '#18181b', // Hover/dropdown/item background
+          hairline: '#27272a', // Subtle 1px border
         },
         ink: {
-          primary: '#2E1065',
-          secondary: '#581C87',
-          muted: '#7E22CE',
+          primary: '#f4f4f5', // Crisp high-contrast white/zinc
+          secondary: '#a1a1aa', // Clean readable secondary
+          muted: '#71717a', // Subtle metadata text
         },
         brand: {
-          coral: '#F97316',
-          coralDim: '#EA580C',
-          indigo: '#6366F1',
-          gold: '#F59E0B',
+          emerald: '#10b981',
+          emeraldDim: '#059669',
+          coral: '#10b981', // Re-mapped to emerald to eliminate pinkish tone
+          coralDim: '#059669',
+          indigo: '#6366f1',
+          gold: '#f59e0b',
         },
         ledger: {
-          surplus: '#10B981',
-          surplusBg: '#ECFDF5',
-          deficit: '#EF4444',
-          deficitBg: '#FEF2F2',
-          neutral: '#7E22CE',
+          surplus: '#10b981', // Emerald surplus
+          surplusBg: 'rgba(16, 185, 129, 0.12)',
+          deficit: '#f43f5e', // Rose deficit indicator for balance only
+          deficitBg: 'rgba(244, 63, 94, 0.12)',
+          neutral: '#a1a1aa',
         },
         variance: {
-          over: '#F59E0B',
-          under: '#6366F1',
+          over: '#f59e0b',
+          under: '#6366f1',
         },
       },
       fontFamily: {
         sans: ['Inter', 'system-ui', 'sans-serif'],
-        display: ['Playfair Display', 'Georgia', 'serif'],
+        display: ['Inter', 'system-ui', 'sans-serif'],
         numeric: ['JetBrains Mono', 'IBM Plex Mono', 'monospace'],
       },
       boxShadow: {
-        paper: '0 4px 20px -2px rgba(46, 16, 101, 0.08), 0 2px 6px -1px rgba(46, 16, 101, 0.05)',
-        coral: '0 8px 25px -4px rgba(249, 115, 22, 0.35)',
-        indigo: '0 8px 25px -4px rgba(99, 102, 241, 0.35)',
+        paper: '0 1px 3px 0 rgba(0, 0, 0, 0.5), 0 1px 2px -1px rgba(0, 0, 0, 0.4)',
+        coral: '0 4px 14px 0 rgba(16, 185, 129, 0.2)', // Sleek emerald glow instead of pink
+        emerald: '0 4px 14px 0 rgba(16, 185, 129, 0.25)',
+        indigo: '0 4px 14px 0 rgba(99, 102, 241, 0.25)',
+        subtle: '0 1px 2px 0 rgba(0, 0, 0, 0.3)',
       },
     },
   },

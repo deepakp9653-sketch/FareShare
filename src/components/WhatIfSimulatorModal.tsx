@@ -146,9 +146,9 @@ export const WhatIfSimulatorModal: React.FC<WhatIfSimulatorModalProps> = ({
         <div className="px-6 py-3 bg-surface-base/80 border-b border-surface-hairline flex flex-wrap gap-2">
           <button
             onClick={() => setSimType('REMOVE_PARTICIPANT')}
-            className={`px-3.5 py-2 rounded-xl text-xs font-bold transition flex items-center gap-2 ${
+            className={`px-3.5 py-2 rounded-xl text-xs font-semibold transition flex items-center gap-2 ${
               simType === 'REMOVE_PARTICIPANT'
-                ? 'bg-brand-coral text-surface-base shadow-coral'
+                ? 'bg-white text-black shadow-subtle'
                 : 'bg-surface-raised text-ink-secondary hover:text-ink-primary border border-surface-hairline'
             }`}
           >
@@ -158,9 +158,9 @@ export const WhatIfSimulatorModal: React.FC<WhatIfSimulatorModalProps> = ({
 
           <button
             onClick={() => setSimType('CANCEL_BOOKING')}
-            className={`px-3.5 py-2 rounded-xl text-xs font-bold transition flex items-center gap-2 ${
+            className={`px-3.5 py-2 rounded-xl text-xs font-semibold transition flex items-center gap-2 ${
               simType === 'CANCEL_BOOKING'
-                ? 'bg-brand-coral text-surface-base shadow-coral'
+                ? 'bg-white text-black shadow-subtle'
                 : 'bg-surface-raised text-ink-secondary hover:text-ink-primary border border-surface-hairline'
             }`}
           >
@@ -170,9 +170,9 @@ export const WhatIfSimulatorModal: React.FC<WhatIfSimulatorModalProps> = ({
 
           <button
             onClick={() => setSimType('ADD_EXPENSE')}
-            className={`px-3.5 py-2 rounded-xl text-xs font-bold transition flex items-center gap-2 ${
+            className={`px-3.5 py-2 rounded-xl text-xs font-semibold transition flex items-center gap-2 ${
               simType === 'ADD_EXPENSE'
-                ? 'bg-brand-coral text-surface-base shadow-coral'
+                ? 'bg-white text-black shadow-subtle'
                 : 'bg-surface-raised text-ink-secondary hover:text-ink-primary border border-surface-hairline'
             }`}
           >
@@ -247,7 +247,7 @@ export const WhatIfSimulatorModal: React.FC<WhatIfSimulatorModalProps> = ({
                     step="5"
                     value={refundPercent}
                     onChange={(e) => setRefundPercent(Number(e.target.value))}
-                    className="w-full mt-2 accent-brand-coral"
+                    className="w-full mt-2 accent-emerald-500"
                   />
                 </div>
               )}

@@ -66,8 +66,8 @@ export const ActivityLogSection: React.FC<ActivityLogSectionProps> = ({ events }
       case 'EXPENSE_LOGGED':
       case 'EXPENSE_CORRECTED':
         return {
-          icon: <Receipt className="w-4 h-4 text-brand-coral" />,
-          color: 'bg-brand-coral/15 text-brand-coral border-brand-coral/30',
+          icon: <Receipt className="w-4 h-4 text-emerald-400" />,
+          color: 'bg-emerald-500/15 text-emerald-300 border-emerald-500/30',
         };
       case 'PAYMENT_RECORDED':
       case 'SETTLEMENT_CONFIRMED':
@@ -113,7 +113,7 @@ export const ActivityLogSection: React.FC<ActivityLogSectionProps> = ({ events }
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-surface-raised p-5 rounded-3xl border border-surface-hairline shadow-paper">
         <div>
           <h2 className="text-xl font-serif-display font-bold text-ink-primary flex items-center gap-2">
-            <Activity className="w-5 h-5 text-brand-coral" /> Event-Sourced Activity & Audit Menu
+            <Activity className="w-5 h-5 text-emerald-400" /> Event-Sourced Activity & Audit Menu
           </h2>
           <p className="text-xs text-ink-secondary mt-0.5">
             Immutable append-only ledger event stream preserving complete recalculation lineage & refunds (₹ INR).
@@ -135,7 +135,7 @@ export const ActivityLogSection: React.FC<ActivityLogSectionProps> = ({ events }
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             placeholder="Search events by type, description, or traveler name..."
-            className="w-full bg-surface-base border border-surface-hairline rounded-xl pl-9 pr-3 py-2 text-xs text-ink-primary focus:border-brand-coral outline-none"
+            className="w-full bg-surface-base border border-surface-hairline rounded-xl pl-9 pr-3 py-2 text-xs text-ink-primary focus:border-emerald-500 outline-none"
           />
         </div>
 
@@ -152,7 +152,7 @@ export const ActivityLogSection: React.FC<ActivityLogSectionProps> = ({ events }
               onClick={() => setSelectedFilter(tab.id)}
               className={`px-3 py-1.5 rounded-xl text-xs font-semibold whitespace-nowrap transition-all ${
                 selectedFilter === tab.id
-                  ? 'bg-brand-coral text-surface-base shadow-sm font-bold'
+                  ? 'bg-white text-black shadow-sm font-bold'
                   : 'bg-surface-base text-ink-secondary hover:text-ink-primary border border-surface-hairline'
               }`}
             >
@@ -179,7 +179,7 @@ export const ActivityLogSection: React.FC<ActivityLogSectionProps> = ({ events }
                 initial={{ opacity: 0, x: -10 }}
                 animate={{ opacity: 1, x: 0 }}
                 transition={{ delay: Math.min(0.3, idx * 0.03) }}
-                className="relative pl-12 p-4 rounded-2xl bg-surface-raised border border-surface-hairline shadow-paper space-y-2 hover:border-brand-coral/40 transition-all"
+                className="relative pl-12 p-4 rounded-2xl bg-surface-raised border border-surface-hairline shadow-paper space-y-2 hover:border-emerald-500/30 transition-all"
               >
                 {/* Timeline Dot */}
                 <div className="absolute left-4 top-5 -translate-x-1/2 p-2 rounded-xl bg-surface-base border border-surface-hairline shadow-sm">

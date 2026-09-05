@@ -44,7 +44,7 @@ export const TripSwitcherModal: React.FC<TripSwitcherModalProps> = ({
         {/* Header */}
         <div className="flex items-center justify-between border-b border-surface-hairline pb-4 shrink-0">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-brand-coral text-surface-base flex items-center justify-center shadow-coral">
+            <div className="w-10 h-10 rounded-xl bg-emerald-600 text-white flex items-center justify-center shadow-emerald">
               <Compass className="w-5 h-5" />
             </div>
             <div>
@@ -69,9 +69,9 @@ export const TripSwitcherModal: React.FC<TripSwitcherModalProps> = ({
               onClose();
               onOpenCreateTrip();
             }}
-            className="flex-1 py-2.5 rounded-xl bg-brand-coral hover:bg-brand-coralDim text-surface-base text-xs font-bold shadow-coral flex items-center justify-center gap-2 transition-all"
+            className="flex-1 py-2.5 rounded-xl bg-white text-black hover:bg-neutral-200 text-xs font-semibold shadow-subtle flex items-center justify-center gap-2 transition-all"
           >
-            <Plus className="w-4 h-4 stroke-[3]" />
+            <Plus className="w-4 h-4 stroke-[2.5]" />
             <span>Create New Custom Trip</span>
           </button>
 
@@ -99,8 +99,8 @@ export const TripSwitcherModal: React.FC<TripSwitcherModalProps> = ({
                 key={t.id}
                 className={`p-4.5 rounded-2xl border transition-all space-y-3 ${
                   isActive
-                    ? 'bg-surface-base border-brand-coral ring-2 ring-brand-coral/20 shadow-paper'
-                    : 'bg-surface-base border-surface-hairline hover:border-brand-coral/40'
+                    ? 'bg-surface-base border-emerald-500 ring-2 ring-emerald-500/20 shadow-paper'
+                    : 'bg-surface-base border-surface-hairline hover:border-emerald-500/40'
                 }`}
               >
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
@@ -135,7 +135,7 @@ export const TripSwitcherModal: React.FC<TripSwitcherModalProps> = ({
                     <span className="text-ink-muted">Invite Code:</span>
                     <button
                       onClick={() => handleCopyCode(t.inviteCode)}
-                      className="px-2.5 py-1 rounded-lg bg-surface-raised border border-surface-hairline text-brand-coral font-numeric font-bold hover:bg-surface-overlay flex items-center gap-1.5 transition-all"
+                      className="px-2.5 py-1 rounded-lg bg-surface-raised border border-surface-hairline text-emerald-400 font-numeric font-bold hover:bg-surface-overlay flex items-center gap-1.5 transition-all"
                       title="Click to Copy Code"
                     >
                       <span>{t.inviteCode}</span>
@@ -150,10 +150,10 @@ export const TripSwitcherModal: React.FC<TripSwitcherModalProps> = ({
                       onClose();
                     }}
                     disabled={isActive}
-                    className={`px-4 py-1.5 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 ${
+                    className={`px-4 py-1.5 rounded-xl text-xs font-semibold transition-all flex items-center gap-1.5 ${
                       isActive
                         ? 'bg-surface-overlay text-ink-muted cursor-default'
-                        : 'bg-brand-coral text-surface-base hover:bg-brand-coralDim shadow-sm'
+                        : 'bg-white text-black hover:bg-neutral-200 shadow-subtle'
                     }`}
                   >
                     <span>{isActive ? 'Current' : 'Enter Workspace'}</span>

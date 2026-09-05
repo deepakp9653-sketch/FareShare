@@ -26,10 +26,10 @@ export const FloatingDock: React.FC<FloatingDockProps> = ({
       {onOpenChaosDemo && (
         <button
           onClick={onOpenChaosDemo}
-          className="px-3.5 py-2.5 rounded-xl bg-gradient-to-r from-brand-coral to-amber-500 hover:brightness-110 text-surface-base text-xs font-bold shadow-coral flex items-center gap-1.5 transition-all animate-pulse"
+          className="px-3.5 py-2 rounded-xl bg-surface-base border border-emerald-500/40 text-emerald-400 hover:bg-emerald-500/10 text-xs font-semibold shadow-subtle flex items-center gap-1.5 transition-all"
           title="Run 7-Step Chaos Sequence"
         >
-          <Zap className="w-4 h-4 fill-current stroke-[2]" />
+          <Zap className="w-3.5 h-3.5 text-emerald-400 stroke-[2]" />
           <span className="hidden sm:inline">Chaos Demo</span>
         </button>
       )}
@@ -37,29 +37,29 @@ export const FloatingDock: React.FC<FloatingDockProps> = ({
       {onOpenChatExpense && (
         <button
           onClick={onOpenChatExpense}
-          className="px-3 py-2.5 rounded-xl bg-surface-base border border-brand-coral/40 text-brand-coral hover:bg-brand-coral hover:text-white text-xs font-bold shadow-sm flex items-center gap-1.5 transition-all"
+          className="px-3 py-2 rounded-xl bg-surface-base border border-surface-hairline hover:border-emerald-500/40 text-ink-primary hover:bg-surface-overlay text-xs font-semibold shadow-subtle flex items-center gap-1.5 transition-all"
           title="Capture Expense via Natural Chat or Receipt (F14 & F15)"
         >
-          <MessageSquareText className="w-4 h-4" />
-          <span className="hidden sm:inline">Chat / Voice</span>
+          <MessageSquareText className="w-3.5 h-3.5 text-emerald-400" />
+          <span className="hidden sm:inline">AI Voice / Chat</span>
         </button>
       )}
 
       <button
         onClick={onOpenSplitDrawer}
-        className="px-3.5 py-2.5 rounded-xl bg-brand-coral hover:bg-brand-coralDim text-surface-base text-xs font-bold shadow-coral flex items-center gap-1.5 transition-all"
+        className="px-4 py-2 rounded-xl bg-white text-black hover:bg-neutral-200 text-xs font-semibold shadow-subtle flex items-center gap-1.5 transition-all"
         title="Log New Expense with Split Rules"
       >
-        <Plus className="w-4 h-4 stroke-[3]" />
-        <span className="hidden sm:inline">Quick Expense</span>
+        <Plus className="w-4 h-4 stroke-[2.5]" />
+        <span>+ Quick Expense</span>
       </button>
 
       <button
         onClick={onOpenUpiSetup}
-        className="p-2.5 rounded-xl bg-surface-base border border-surface-hairline text-ink-primary hover:bg-surface-overlay transition-all text-xs font-bold flex items-center gap-1.5"
+        className="px-3 py-2 rounded-xl bg-surface-base border border-surface-hairline text-ink-primary hover:bg-surface-overlay transition-all text-xs font-medium flex items-center gap-1.5"
         title="My UPI ID & QR Code"
       >
-        <QrCode className="w-4 h-4 text-brand-gold" />
+        <QrCode className="w-3.5 h-3.5 text-ink-muted" />
         <span className="hidden md:inline">My UPI</span>
       </button>
     </motion.div>

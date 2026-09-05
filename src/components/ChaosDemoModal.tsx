@@ -99,7 +99,7 @@ export const CHAOS_STEPS: ChaosStep[] = [
     icon: Zap,
     actionText: 'Compress pairwise debt network from 8 tangled debts to ≤ 3 transactions',
     explanation:
-      'The greedy O(N log N) graph solver matches the largest debtors with largest creditors, collapsing the tangled web into minimal cash-flow transactions with instant UPI QR ready.',
+      'The automated graph solver matches the largest debtors with largest creditors, collapsing the tangled web into minimal cash-flow transactions with instant UPI QR ready.',
     ledgerDelta: 'Tangled debt network collapsed into optimal N-1 settlements',
   },
 ];
@@ -131,12 +131,12 @@ export const ChaosDemoModal: React.FC<ChaosDemoModalProps> = ({
         initial={{ opacity: 0, scale: 0.95, y: 16 }}
         animate={{ opacity: 1, scale: 1, y: 0 }}
         exit={{ opacity: 0, scale: 0.95, y: 16 }}
-        className="relative w-full max-w-4xl bg-surface-raised border border-brand-coral/40 rounded-3xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh]"
+        className="relative w-full max-w-4xl bg-surface-raised border border-emerald-500/30 rounded-3xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh]"
       >
         {/* Header Ribbon */}
         <div className="p-6 bg-gradient-to-r from-surface-base via-surface-raised to-surface-base border-b border-surface-hairline flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="w-12 h-12 rounded-2xl bg-brand-coral/15 border border-brand-coral/30 flex items-center justify-center text-brand-coral">
+            <div className="w-12 h-12 rounded-2xl bg-emerald-500/15 border border-emerald-500/30 flex items-center justify-center text-emerald-400">
               <Zap className="w-6 h-6 stroke-[2.5]" />
             </div>
             <div>
@@ -144,12 +144,12 @@ export const ChaosDemoModal: React.FC<ChaosDemoModalProps> = ({
                 <h3 className="text-lg sm:text-xl font-serif-display font-bold text-ink-primary">
                   Chaos Demo Mode — Dynamic Recalculation Engine
                 </h3>
-                <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-brand-coral/20 text-brand-coral border border-brand-coral/30">
+                <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-emerald-500/15 text-emerald-400 border border-emerald-500/30">
                   Judges Proof Suite
                 </span>
               </div>
               <p className="text-xs text-ink-secondary mt-0.5">
-                Proof that GroupTrip Ledger maintains mathematical consistency and zero-sum invariant under continuous chaotic changes.
+                Proof that FareShare maintains mathematical consistency and zero-sum invariant under continuous chaotic changes.
               </p>
             </div>
           </div>
@@ -172,14 +172,14 @@ export const ChaosDemoModal: React.FC<ChaosDemoModalProps> = ({
                   key={step.id}
                   className={`w-7 h-2 rounded-full transition-all duration-300 ${
                     step.id <= currentStep
-                      ? 'bg-brand-coral shadow-coral'
+                      ? 'bg-emerald-500 shadow-emerald'
                       : 'bg-surface-hairline'
                   }`}
                   title={`Step ${step.id}: ${step.title}`}
                 />
               ))}
             </div>
-            <span className="text-xs font-numeric font-bold text-brand-coral ml-2">
+            <span className="text-xs font-numeric font-bold text-emerald-400 ml-2">
               {currentStep} / {CHAOS_STEPS.length} Completed
             </span>
           </div>
@@ -197,7 +197,7 @@ export const ChaosDemoModal: React.FC<ChaosDemoModalProps> = ({
             <button
               onClick={onRunAutoSequence}
               disabled={isRunning || currentStep === CHAOS_STEPS.length}
-              className="px-4 py-2 rounded-xl bg-brand-coral hover:bg-brand-coralDim text-surface-base text-xs font-bold transition shadow-coral flex items-center gap-2 disabled:opacity-50"
+              className="px-4 py-2 rounded-xl bg-white text-black hover:bg-neutral-200 text-xs font-semibold transition shadow-subtle flex items-center gap-2 disabled:opacity-50"
             >
               {isRunning ? (
                 <>
@@ -230,7 +230,7 @@ export const ChaosDemoModal: React.FC<ChaosDemoModalProps> = ({
                   isCompleted
                     ? 'bg-emerald-500/5 border-emerald-500/30 shadow-sm'
                     : isCurrent
-                    ? 'bg-brand-coral/5 border-brand-coral/40 ring-1 ring-brand-coral/30'
+                    ? 'bg-emerald-500/5 border-emerald-500/40 ring-1 ring-emerald-500/30'
                     : 'bg-surface-base/40 border-surface-hairline/60 opacity-60'
                 }`}
               >
@@ -241,7 +241,7 @@ export const ChaosDemoModal: React.FC<ChaosDemoModalProps> = ({
                         isCompleted
                           ? 'bg-emerald-500/20 text-emerald-400 border-emerald-500/40'
                           : isCurrent
-                          ? 'bg-brand-coral/20 text-brand-coral border-brand-coral/40 animate-pulse'
+                          ? 'bg-emerald-500/20 text-emerald-400 border-emerald-500/40 animate-pulse'
                           : 'bg-surface-hairline text-ink-muted border-surface-hairline'
                       }`}
                     >
@@ -283,9 +283,9 @@ export const ChaosDemoModal: React.FC<ChaosDemoModalProps> = ({
                       <button
                         onClick={() => onExecuteStep(step.id)}
                         disabled={isRunning}
-                        className={`px-3.5 py-2 rounded-xl text-xs font-bold transition flex items-center gap-1.5 ${
+                        className={`px-3.5 py-2 rounded-xl text-xs font-semibold transition flex items-center gap-1.5 ${
                           isCurrent
-                            ? 'bg-brand-coral text-surface-base hover:bg-brand-coralDim shadow-coral'
+                            ? 'bg-emerald-600 text-white hover:bg-emerald-500 shadow-emerald'
                             : 'bg-surface-base text-ink-secondary hover:text-ink-primary border border-surface-hairline'
                         }`}
                       >

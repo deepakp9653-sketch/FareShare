@@ -40,12 +40,12 @@ export const SquadManagerModal: React.FC<SquadManagerModalProps> = ({
         initial={{ opacity: 0, scale: 0.95 }}
         animate={{ opacity: 1, scale: 1 }}
         exit={{ opacity: 0, scale: 0.95 }}
-        className="relative w-full max-w-2xl bg-surface-raised border border-brand-coral/40 rounded-3xl shadow-2xl overflow-hidden flex flex-col max-h-[88vh]"
+        className="relative w-full max-w-2xl bg-surface-raised border border-surface-hairline rounded-3xl shadow-2xl overflow-hidden flex flex-col max-h-[88vh]"
       >
         {/* Header Ribbon */}
         <div className="p-6 bg-gradient-to-r from-surface-base via-surface-raised to-surface-base border-b border-surface-hairline flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="w-12 h-12 rounded-2xl bg-brand-coral/15 border border-brand-coral/30 flex items-center justify-center text-brand-coral">
+            <div className="w-12 h-12 rounded-2xl bg-emerald-500/15 border border-emerald-500/30 flex items-center justify-center text-emerald-400">
               <Users className="w-6 h-6 stroke-[2.5]" />
             </div>
             <div>
@@ -53,7 +53,7 @@ export const SquadManagerModal: React.FC<SquadManagerModalProps> = ({
                 <h3 className="text-lg sm:text-xl font-serif-display font-bold text-ink-primary">
                   Persistent Travel Squads
                 </h3>
-                <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-brand-coral/20 text-brand-coral border border-brand-coral/30">
+                <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-emerald-500/15 text-emerald-400 border border-emerald-500/30">
                   Multi-Trip Memory
                 </span>
               </div>
@@ -75,7 +75,7 @@ export const SquadManagerModal: React.FC<SquadManagerModalProps> = ({
         <div className="p-5 bg-surface-base/70 border-b border-surface-hairline space-y-3">
           <div className="flex items-center justify-between">
             <h4 className="text-xs font-bold uppercase tracking-wider text-ink-secondary flex items-center gap-1.5">
-              <Bookmark className="w-4 h-4 text-brand-coral" /> Save Current Active Group ({currentParticipants.length} Travelers)
+              <Bookmark className="w-4 h-4 text-emerald-400" /> Save Current Active Group ({currentParticipants.length} Travelers)
             </h4>
           </div>
 
@@ -96,7 +96,7 @@ export const SquadManagerModal: React.FC<SquadManagerModalProps> = ({
             />
             <button
               onClick={handleSave}
-              className="py-2 px-4 rounded-xl bg-brand-coral hover:bg-brand-coralDim text-surface-base font-bold transition flex items-center justify-center gap-1.5 shadow-coral"
+              className="py-2 px-4 rounded-xl bg-white text-black hover:bg-neutral-200 font-semibold text-xs transition flex items-center justify-center gap-1.5 shadow-subtle"
             >
               <Plus className="w-4 h-4" /> Save Squad
             </button>

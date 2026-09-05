@@ -42,7 +42,7 @@ export const ExpensesSection: React.FC<ExpensesSectionProps> = ({
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-surface-raised p-5 rounded-2xl border border-surface-hairline shadow-paper">
         <div>
           <h2 className="text-xl font-serif-display font-bold text-ink-primary flex items-center gap-2">
-            <Receipt className="w-5 h-5 text-brand-coral" /> Expense Log & Bill Proofs
+            <Receipt className="w-5 h-5 text-emerald-400" /> Expense Log & Bill Proofs
           </h2>
           <p className="text-xs text-ink-secondary mt-0.5">
             Immutable log of all trip costs, dynamic allocations, verified receipt proofs & vendor refunds (₹ INR).
@@ -50,14 +50,14 @@ export const ExpensesSection: React.FC<ExpensesSectionProps> = ({
         </div>
         <button
           onClick={onOpenAddExpense}
-          className="px-4 py-2.5 rounded-xl bg-brand-coral hover:bg-brand-coralDim text-surface-base text-xs sm:text-sm font-bold transition-all shadow-coral flex items-center gap-2"
+          className="px-3.5 py-2 rounded-lg bg-ink-primary text-surface-base hover:opacity-90 text-xs sm:text-sm font-bold transition-all shadow-subtle flex items-center gap-2 cursor-pointer"
         >
           <Plus className="w-4 h-4 stroke-[3]" /> Log New Expense
         </button>
       </div>
 
       {/* Filter & Search Bar */}
-      <div className="flex flex-col sm:flex-row items-center gap-3 bg-surface-raised p-3 rounded-2xl border border-surface-hairline">
+      <div className="flex flex-col sm:flex-row items-center gap-3 bg-surface-raised p-2.5 rounded-xl border border-surface-hairline">
         <div className="relative flex-1 w-full">
           <Search className="w-4 h-4 text-ink-muted absolute left-3 top-1/2 -translate-y-1/2" />
           <input
@@ -65,7 +65,7 @@ export const ExpensesSection: React.FC<ExpensesSectionProps> = ({
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             placeholder="Search expenses by title..."
-            className="w-full bg-surface-base border border-surface-hairline rounded-xl pl-9 pr-3 py-2 text-xs text-ink-primary focus:border-brand-coral outline-none"
+            className="w-full bg-surface-overlay border border-surface-hairline rounded-lg pl-9 pr-3 py-1.5 text-xs text-ink-primary focus:border-zinc-500 outline-none transition-colors font-sans"
           />
         </div>
 
@@ -74,10 +74,10 @@ export const ExpensesSection: React.FC<ExpensesSectionProps> = ({
             <button
               key={cat}
               onClick={() => setSelectedCategory(cat)}
-              className={`px-3 py-1.5 rounded-xl text-xs font-semibold capitalize transition-all whitespace-nowrap ${
+              className={`px-3 py-1.5 rounded-lg text-xs font-medium capitalize transition-all whitespace-nowrap cursor-pointer ${
                 selectedCategory === cat
-                  ? 'bg-brand-coral text-surface-base shadow-sm font-bold'
-                  : 'bg-surface-base text-ink-secondary hover:text-ink-primary border border-surface-hairline'
+                  ? 'bg-ink-primary text-surface-base font-semibold shadow-subtle'
+                  : 'bg-surface-overlay text-ink-secondary hover:text-ink-primary border border-surface-hairline'
               }`}
             >
               {cat}
@@ -99,7 +99,7 @@ export const ExpensesSection: React.FC<ExpensesSectionProps> = ({
               <motion.div
                 key={exp.id}
                 layout
-                className="p-5 rounded-2xl bg-surface-raised border border-surface-hairline shadow-paper space-y-4 hover:border-brand-coral/40 transition-all"
+                className="p-5 rounded-2xl bg-surface-raised border border-surface-hairline shadow-paper space-y-4 hover:border-emerald-500/30 transition-all"
               >
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                   <div>
@@ -146,7 +146,7 @@ export const ExpensesSection: React.FC<ExpensesSectionProps> = ({
                   </div>
                 </div>
 
-                {/* Linked Booking & Bill Proof Trigger Row */}
+                {/* Receipt Image Proof Indicator */}
                 <div className="flex flex-wrap items-center justify-between gap-2 pt-1 text-xs">
                   {linkedBooking ? (
                     <span className="text-ink-muted flex items-center gap-1">
@@ -158,7 +158,7 @@ export const ExpensesSection: React.FC<ExpensesSectionProps> = ({
                   {exp.receiptUrl && (
                     <button
                       onClick={() => setViewingReceiptExpense(exp)}
-                      className="px-3 py-1 rounded-lg bg-surface-base border border-surface-hairline text-brand-coral hover:bg-brand-coral hover:text-surface-base text-xs font-semibold transition-all flex items-center gap-1.5"
+                      className="px-3 py-1 rounded-lg bg-surface-base border border-surface-hairline text-emerald-400 hover:bg-emerald-500 hover:text-white text-xs font-semibold transition-all flex items-center gap-1.5"
                     >
                       <ImageIcon className="w-3.5 h-3.5" />
                       View Bill Proof ({exp.receiptName || 'Receipt'})
@@ -189,7 +189,7 @@ export const ExpensesSection: React.FC<ExpensesSectionProps> = ({
                           }`}
                         >
                           <span className="text-ink-secondary">{p?.name || 'User'}:</span>
-                          <span className="font-numeric font-bold text-brand-coral">
+                          <span className="font-numeric font-bold text-ink-primary">
                             ₹{alloc.amountOwed.toLocaleString('en-IN', { minimumFractionDigits: 2 })}
                           </span>
 

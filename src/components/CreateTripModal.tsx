@@ -70,7 +70,7 @@ export const CreateTripModal: React.FC<CreateTripModalProps> = ({
       ...prev,
       {
         name: newTravelerName,
-        email: `${newTravelerName.toLowerCase().replace(/\s+/g, '')}@grouptrip.in`,
+        email: `${newTravelerName.toLowerCase().replace(/\s+/g, '')}@fareshare.in`,
         upiId: newTravelerUpi || `${newTravelerName.toLowerCase().replace(/\s+/g, '')}@upi`,
         roomTier: 'standard',
       },
@@ -90,7 +90,7 @@ export const CreateTripModal: React.FC<CreateTripModalProps> = ({
     onCreateTrip(
       {
         name: creatorName.trim(),
-        email: creatorEmail.trim() || `${creatorName.toLowerCase().replace(/\s+/g, '')}@grouptrip.in`,
+        email: creatorEmail.trim() || `${creatorName.toLowerCase().replace(/\s+/g, '')}@fareshare.in`,
         upiId: creatorUpi.trim() || `${creatorName.toLowerCase().replace(/\s+/g, '')}@okicici`,
       },
       {
@@ -123,7 +123,7 @@ export const CreateTripModal: React.FC<CreateTripModalProps> = ({
         {/* Modal Header */}
         <div className="flex items-center justify-between border-b border-surface-hairline pb-4">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-brand-coral text-surface-base flex items-center justify-center shadow-coral">
+            <div className="w-10 h-10 rounded-xl bg-emerald-600 text-white flex items-center justify-center shadow-emerald">
               <Compass className="w-5 h-5 stroke-[2.5]" />
             </div>
             <div>
@@ -153,8 +153,8 @@ export const CreateTripModal: React.FC<CreateTripModalProps> = ({
                 exit={{ opacity: 0, x: 10 }}
                 className="space-y-4"
               >
-                <div className="p-3.5 rounded-2xl bg-brand-coral/10 border border-brand-coral/30 text-xs text-ink-secondary space-y-1">
-                  <span className="font-bold text-brand-coral block">You are the Trip Organizer / Chief 👑</span>
+                <div className="p-3.5 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 text-xs text-ink-secondary space-y-1">
+                  <span className="font-bold text-emerald-400 block">You are the Trip Organizer / Chief 👑</span>
                   <p>Enter your details below. You will be set as the trip creator and initial admin.</p>
                 </div>
 
@@ -170,7 +170,7 @@ export const CreateTripModal: React.FC<CreateTripModalProps> = ({
                       value={creatorName}
                       onChange={(e) => setCreatorName(e.target.value)}
                       placeholder="e.g. Deepak V"
-                      className="w-full bg-surface-base border border-surface-hairline rounded-xl pl-9 pr-3 py-2.5 text-xs text-ink-primary font-medium focus:border-brand-coral outline-none"
+                      className="w-full bg-surface-base border border-surface-hairline rounded-xl pl-9 pr-3 py-2.5 text-xs text-ink-primary font-medium focus:border-emerald-500 outline-none"
                     />
                   </div>
                 </div>
@@ -182,8 +182,8 @@ export const CreateTripModal: React.FC<CreateTripModalProps> = ({
                       type="email"
                       value={creatorEmail}
                       onChange={(e) => setCreatorEmail(e.target.value)}
-                      placeholder="deepak@grouptrip.in"
-                      className="w-full bg-surface-base border border-surface-hairline rounded-xl px-3 py-2.5 text-xs text-ink-primary focus:border-brand-coral outline-none"
+                      placeholder="deepak@fareshare.in"
+                      className="w-full bg-surface-base border border-surface-hairline rounded-xl px-3 py-2.5 text-xs text-ink-primary focus:border-emerald-500 outline-none"
                     />
                   </div>
 
@@ -196,7 +196,7 @@ export const CreateTripModal: React.FC<CreateTripModalProps> = ({
                         value={creatorUpi}
                         onChange={(e) => setCreatorUpi(e.target.value)}
                         placeholder="deepak@okicici"
-                        className="w-full bg-surface-base border border-surface-hairline rounded-xl pl-9 pr-3 py-2.5 text-xs text-ink-primary font-numeric focus:border-brand-coral outline-none"
+                        className="w-full bg-surface-base border border-surface-hairline rounded-xl pl-9 pr-3 py-2.5 text-xs text-ink-primary font-numeric focus:border-emerald-500 outline-none"
                       />
                     </div>
                   </div>
@@ -221,7 +221,7 @@ export const CreateTripModal: React.FC<CreateTripModalProps> = ({
                       value={title}
                       onChange={(e) => setTitle(e.target.value)}
                       placeholder="e.g. Manali Snow Expedition 2026"
-                      className="w-full bg-surface-base border border-surface-hairline rounded-xl px-3 py-2.5 text-xs text-ink-primary focus:border-brand-coral outline-none"
+                      className="w-full bg-surface-base border border-surface-hairline rounded-xl px-3 py-2.5 text-xs text-ink-primary focus:border-emerald-500 outline-none"
                     />
                   </div>
 
@@ -233,7 +233,7 @@ export const CreateTripModal: React.FC<CreateTripModalProps> = ({
                       value={destination}
                       onChange={(e) => setDestination(e.target.value)}
                       placeholder="e.g. Manali & Solang, Himachal"
-                      className="w-full bg-surface-base border border-surface-hairline rounded-xl px-3 py-2.5 text-xs text-ink-primary focus:border-brand-coral outline-none"
+                      className="w-full bg-surface-base border border-surface-hairline rounded-xl px-3 py-2.5 text-xs text-ink-primary focus:border-emerald-500 outline-none"
                     />
                   </div>
                 </div>
@@ -246,7 +246,7 @@ export const CreateTripModal: React.FC<CreateTripModalProps> = ({
                       required
                       value={startDate}
                       onChange={(e) => setStartDate(e.target.value)}
-                      className="w-full bg-surface-base border border-surface-hairline rounded-xl px-3 py-2 text-xs text-ink-primary focus:border-brand-coral outline-none"
+                      className="w-full bg-surface-base border border-surface-hairline rounded-xl px-3 py-2 text-xs text-ink-primary focus:border-emerald-500 outline-none"
                     />
                   </div>
 
@@ -257,7 +257,7 @@ export const CreateTripModal: React.FC<CreateTripModalProps> = ({
                       required
                       value={endDate}
                       onChange={(e) => setEndDate(e.target.value)}
-                      className="w-full bg-surface-base border border-surface-hairline rounded-xl px-3 py-2 text-xs text-ink-primary focus:border-brand-coral outline-none"
+                      className="w-full bg-surface-base border border-surface-hairline rounded-xl px-3 py-2 text-xs text-ink-primary focus:border-emerald-500 outline-none"
                     />
                   </div>
 
@@ -269,7 +269,7 @@ export const CreateTripModal: React.FC<CreateTripModalProps> = ({
                       step="1000"
                       value={budgetCeiling}
                       onChange={(e) => setBudgetCeiling(parseFloat(e.target.value) || 0)}
-                      className="w-full bg-surface-base border border-surface-hairline rounded-xl px-3 py-2 text-xs font-numeric font-bold text-ink-primary focus:border-brand-coral outline-none"
+                      className="w-full bg-surface-base border border-surface-hairline rounded-xl px-3 py-2 text-xs font-numeric font-bold text-ink-primary focus:border-emerald-500 outline-none"
                     />
                   </div>
                 </div>
@@ -289,7 +289,7 @@ export const CreateTripModal: React.FC<CreateTripModalProps> = ({
                     <span className="font-semibold text-ink-primary">Organizer: {creatorName}</span>
                     <span className="text-[10px] text-ink-muted block">A unique 6-character Invite Code will be generated!</span>
                   </div>
-                  <span className="font-numeric font-bold text-brand-coral text-sm">₹{budgetCeiling.toLocaleString('en-IN')}</span>
+                  <span className="font-numeric font-bold text-emerald-400 text-sm">₹{budgetCeiling.toLocaleString('en-IN')}</span>
                 </div>
 
                 <div className="space-y-2">
@@ -344,7 +344,7 @@ export const CreateTripModal: React.FC<CreateTripModalProps> = ({
                   <button
                     type="button"
                     onClick={handleAddTraveler}
-                    className="w-full py-1.5 rounded-lg bg-surface-overlay text-brand-coral text-xs font-bold hover:bg-surface-hairline transition-all flex items-center justify-center gap-1"
+                    className="w-full py-1.5 rounded-lg bg-surface-overlay text-emerald-400 text-xs font-semibold hover:bg-surface-hairline transition-all flex items-center justify-center gap-1 border border-surface-hairline hover:border-emerald-500/30"
                   >
                     <Plus className="w-3.5 h-3.5" /> Add Member to Roster
                   </button>
@@ -375,7 +375,7 @@ export const CreateTripModal: React.FC<CreateTripModalProps> = ({
                   if (step === 2 && (!title.trim() || !destination.trim())) return;
                   setStep((s) => s + 1);
                 }}
-                className="px-6 py-2.5 rounded-xl bg-brand-coral hover:bg-brand-coralDim text-surface-base text-xs font-bold shadow-coral flex items-center gap-2"
+                className="px-6 py-2.5 rounded-xl bg-white text-black hover:bg-neutral-200 text-xs font-semibold shadow-subtle flex items-center gap-2 transition-all"
               >
                 <span>Next</span>
                 <ArrowRight className="w-4 h-4" />
@@ -383,7 +383,7 @@ export const CreateTripModal: React.FC<CreateTripModalProps> = ({
             ) : (
               <button
                 type="submit"
-                className="px-6 py-2.5 rounded-xl bg-brand-coral hover:bg-brand-coralDim text-surface-base text-xs font-bold shadow-coral flex items-center gap-2"
+                className="px-6 py-2.5 rounded-xl bg-white text-black hover:bg-neutral-200 text-xs font-semibold shadow-subtle flex items-center gap-2 transition-all"
               >
                 <CheckCircle2 className="w-4 h-4" />
                 <span>Initialize Custom Trip Ledger</span>

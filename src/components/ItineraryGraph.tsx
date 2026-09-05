@@ -71,7 +71,7 @@ export const ItineraryGraph: React.FC<ItineraryGraphProps> = ({
       case 'transport':
         return <Plane className="w-4 h-4 text-variance-under" />;
       case 'food':
-        return <UtensilsCrossed className="w-4 h-4 text-brand-coral" />;
+        return <UtensilsCrossed className="w-4 h-4 text-emerald-400" />;
       default:
         return <Compass className="w-4 h-4 text-ledger-surplus" />;
     }
@@ -90,7 +90,7 @@ export const ItineraryGraph: React.FC<ItineraryGraphProps> = ({
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-surface-raised p-5 rounded-3xl border border-surface-hairline shadow-paper">
         <div>
           <h2 className="text-xl font-serif-display font-bold text-ink-primary flex items-center gap-2">
-            <Compass className="w-5 h-5 text-brand-coral" /> Master Itinerary Graph
+            <Compass className="w-5 h-5 text-emerald-400" /> Master Itinerary Graph
           </h2>
           <p className="text-xs text-ink-secondary mt-0.5">
             Connected timeline of bookings & activities with Anime.js staggered entrance (₹ INR).
@@ -104,7 +104,7 @@ export const ItineraryGraph: React.FC<ItineraryGraphProps> = ({
               onClick={() => setSelectedCategory(cat)}
               className={`px-3.5 py-1.5 rounded-xl text-xs font-semibold capitalize transition-all ${
                 selectedCategory === cat
-                  ? 'bg-brand-coral text-surface-base shadow-coral font-bold'
+                  ? 'bg-white text-black shadow-subtle font-bold'
                   : 'bg-surface-base text-ink-secondary hover:text-ink-primary border border-surface-hairline'
               }`}
             >
@@ -192,8 +192,8 @@ export const ItineraryGraph: React.FC<ItineraryGraphProps> = ({
                         b.status === 'cancelled'
                           ? 'border-red-300 opacity-60'
                           : isExpanded
-                          ? 'border-brand-coral ring-2 ring-brand-coral/20'
-                          : 'border-surface-hairline hover:border-brand-coral/40'
+                          ? 'border-emerald-500 ring-2 ring-emerald-500/20'
+                          : 'border-surface-hairline hover:border-emerald-500/40'
                       }`}
                       onClick={() => setExpandedBookingId(isExpanded ? null : b.id)}
                     >
@@ -248,7 +248,7 @@ export const ItineraryGraph: React.FC<ItineraryGraphProps> = ({
                                   alt={p.name}
                                   title={`${p.name} (${isParticipating ? 'Participating' : 'Opted Out'})`}
                                   className={`w-7 h-7 rounded-full object-cover border-2 border-surface-raised transition-all ${
-                                    isParticipating ? 'opacity-100 ring-1 ring-brand-coral/50' : 'opacity-30 grayscale'
+                                    isParticipating ? 'opacity-100 ring-1 ring-emerald-500/50' : 'opacity-30 grayscale'
                                   }`}
                                 />
                               );
@@ -256,7 +256,7 @@ export const ItineraryGraph: React.FC<ItineraryGraphProps> = ({
                           </div>
                         </div>
 
-                        <div className="text-xs text-brand-coral font-bold flex items-center gap-1">
+                        <div className="text-xs text-emerald-400 font-bold flex items-center gap-1">
                           <span>{isExpanded ? 'Collapse' : 'Details'}</span>
                           {isExpanded ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
                         </div>

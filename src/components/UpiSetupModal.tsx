@@ -57,7 +57,7 @@ export const UpiSetupModal: React.FC<UpiSetupModalProps> = ({
         {/* Modal Header */}
         <div className="flex items-center justify-between border-b border-surface-hairline pb-4">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-brand-coral text-surface-base flex items-center justify-center shadow-coral">
+            <div className="w-10 h-10 rounded-xl bg-emerald-600 text-white flex items-center justify-center shadow-emerald">
               <QrCode className="w-5 h-5" />
             </div>
             <div>
@@ -100,7 +100,7 @@ export const UpiSetupModal: React.FC<UpiSetupModalProps> = ({
               value={upiId}
               onChange={(e) => setUpiId(e.target.value)}
               placeholder="e.g. aarav.sharma@okicici or 9876543210@paytm"
-              className="w-full bg-surface-base border border-surface-hairline rounded-xl px-3 py-2.5 font-numeric font-bold text-ink-primary focus:border-brand-coral outline-none text-sm"
+              className="w-full bg-surface-base border border-surface-hairline rounded-xl px-3 py-2.5 font-numeric font-bold text-ink-primary focus:border-emerald-500 outline-none text-sm"
             />
           </div>
 
@@ -110,7 +110,7 @@ export const UpiSetupModal: React.FC<UpiSetupModalProps> = ({
               Upload Payment UPI QR Code Image
             </label>
 
-            <div className="p-4 border-2 border-dashed border-surface-hairline hover:border-brand-coral/60 rounded-2xl bg-surface-base text-center space-y-2 cursor-pointer relative transition-all">
+            <div className="p-4 border-2 border-dashed border-surface-hairline hover:border-emerald-500/60 rounded-2xl bg-surface-base text-center space-y-2 cursor-pointer relative transition-all">
               <input
                 type="file"
                 accept="image/*"
@@ -121,13 +121,13 @@ export const UpiSetupModal: React.FC<UpiSetupModalProps> = ({
               {qrPreview ? (
                 <div className="space-y-2">
                   <img src={qrPreview} alt="UPI QR Preview" className="w-28 h-28 mx-auto object-contain rounded-xl border border-surface-hairline shadow-sm" />
-                  <span className="text-[11px] font-bold text-ledger-surplus block">Custom QR Code Loaded ✓</span>
+                  <span className="text-[11px] font-bold text-emerald-400 block">Custom QR Code Loaded ✓</span>
                 </div>
               ) : (
                 <>
                   <Upload className="w-6 h-6 text-ink-muted mx-auto" />
                   <p className="text-xs text-ink-secondary">
-                    Upload GPay / PhonePe / Paytm QR Code image, or <span className="text-brand-coral font-semibold">browse file</span>
+                    Upload GPay / PhonePe / Paytm QR Code image, or <span className="text-emerald-400 font-semibold">browse file</span>
                   </p>
                 </>
               )}
@@ -136,7 +136,7 @@ export const UpiSetupModal: React.FC<UpiSetupModalProps> = ({
 
           <button
             type="submit"
-            className="w-full py-3 rounded-xl bg-brand-coral hover:bg-brand-coralDim text-surface-base font-bold shadow-coral flex items-center justify-center gap-2 transition-all mt-2"
+            className="w-full py-3 rounded-xl bg-white text-black hover:bg-neutral-200 font-semibold text-xs shadow-subtle flex items-center justify-center gap-2 transition-all mt-2"
           >
             <CheckCircle2 className="w-4 h-4" />
             <span>Save UPI Details & Enable Instant Settle</span>

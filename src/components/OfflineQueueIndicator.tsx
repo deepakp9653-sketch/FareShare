@@ -47,9 +47,9 @@ export const OfflineQueueIndicator: React.FC<OfflineQueueIndicatorProps> = ({
           <button
             type="button"
             onClick={() => setIsExpanded(!isExpanded)}
-            className="flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-surface-base border border-surface-hairline hover:border-brand-coral/40 text-ink-primary shadow-sm transition-all"
+            className="flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-surface-base border border-surface-hairline hover:border-emerald-500/40 text-ink-primary shadow-sm transition-all"
           >
-            <Clock className="w-3.5 h-3.5 text-brand-coral" />
+            <Clock className="w-3.5 h-3.5 text-emerald-400" />
             <span>{pendingCount} Queued</span>
             {isExpanded ? <ChevronUp className="w-3 h-3 text-ink-muted" /> : <ChevronDown className="w-3 h-3 text-ink-muted" />}
           </button>
@@ -61,7 +61,7 @@ export const OfflineQueueIndicator: React.FC<OfflineQueueIndicatorProps> = ({
             type="button"
             onClick={onSyncQueue}
             disabled={isSyncing}
-            className="flex items-center gap-1 px-3 py-1 rounded-full text-xs font-semibold bg-brand-coral text-white shadow-coral hover:brightness-105 active:scale-95 transition-all disabled:opacity-50"
+            className="flex items-center gap-1 px-3 py-1 rounded-full text-xs font-semibold bg-emerald-600 hover:bg-emerald-500 text-white shadow-emerald active:scale-95 transition-all disabled:opacity-50"
           >
             <RefreshCw className={`w-3.5 h-3.5 ${isSyncing ? 'animate-spin' : ''}`} />
             <span>Sync</span>
@@ -80,7 +80,7 @@ export const OfflineQueueIndicator: React.FC<OfflineQueueIndicatorProps> = ({
           >
             <div className="flex items-center justify-between border-b border-surface-hairline pb-2">
               <span className="text-xs font-bold text-ink-primary flex items-center gap-1.5">
-                <Clock className="w-3.5 h-3.5 text-brand-coral" /> Local Outbox Queue (F19)
+                <Clock className="w-3.5 h-3.5 text-emerald-400" /> Local Outbox Queue (F19)
               </span>
               <span className="text-[10px] text-ink-muted font-mono">{pendingCount} pending</span>
             </div>
@@ -124,7 +124,7 @@ export const OfflineQueueIndicator: React.FC<OfflineQueueIndicatorProps> = ({
                   setIsExpanded(false);
                 }}
                 disabled={isSyncing}
-                className="w-full py-2 rounded-xl bg-brand-coral text-white text-xs font-semibold flex items-center justify-center gap-1.5 shadow-coral hover:brightness-105 active:scale-95 transition-all"
+                className="w-full py-2 rounded-xl bg-white text-black hover:bg-neutral-200 text-xs font-semibold flex items-center justify-center gap-1.5 shadow-subtle active:scale-95 transition-all"
               >
                 <RefreshCw className={`w-3.5 h-3.5 ${isSyncing ? 'animate-spin' : ''}`} />
                 <span>Replay & Commit to Ledger</span>

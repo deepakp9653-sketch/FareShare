@@ -33,7 +33,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
   const handleLoginSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     const user = participants.find((p) => p.id === selectedUser);
-    onLogin(selectedUser, user?.email || email || 'user@grouptrip.in');
+    onLogin(selectedUser, user?.email || email || 'user@fareshare.in');
     onClose();
   };
 
@@ -55,7 +55,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
         {/* Header */}
         <div className="flex items-center justify-between border-b border-surface-hairline pb-4">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-brand-coral text-surface-base flex items-center justify-center shadow-coral">
+            <div className="w-10 h-10 rounded-xl bg-emerald-600 text-white flex items-center justify-center shadow-emerald">
               <Lock className="w-5 h-5" />
             </div>
             <div>
@@ -80,7 +80,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
             onClick={() => setActiveTab('login')}
             className={`py-2 rounded-lg transition-all ${
               activeTab === 'login'
-                ? 'bg-brand-coral text-surface-base shadow-sm font-bold'
+                ? 'bg-white text-black shadow-subtle font-semibold'
                 : 'text-ink-secondary hover:text-ink-primary'
             }`}
           >
@@ -91,7 +91,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
             onClick={() => setActiveTab('register')}
             className={`py-2 rounded-lg transition-all ${
               activeTab === 'register'
-                ? 'bg-brand-coral text-surface-base shadow-sm font-bold'
+                ? 'bg-white text-black shadow-subtle font-semibold'
                 : 'text-ink-secondary hover:text-ink-primary'
             }`}
           >
@@ -114,7 +114,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                 <select
                   value={selectedUser}
                   onChange={(e) => setSelectedUser(e.target.value)}
-                  className="w-full bg-surface-base border border-surface-hairline rounded-xl px-3 py-2.5 text-ink-primary font-medium focus:border-brand-coral outline-none cursor-pointer"
+                  className="w-full bg-surface-base border border-surface-hairline rounded-xl px-3 py-2.5 text-ink-primary font-medium focus:border-emerald-500 outline-none cursor-pointer"
                 >
                   {participants.map((p) => (
                     <option key={p.id} value={p.id}>
@@ -134,7 +134,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     placeholder="••••••••"
-                    className="w-full bg-surface-base border border-surface-hairline rounded-xl pl-9 pr-3 py-2.5 text-ink-primary focus:border-brand-coral outline-none"
+                    className="w-full bg-surface-base border border-surface-hairline rounded-xl pl-9 pr-3 py-2.5 text-ink-primary focus:border-emerald-500 outline-none"
                   />
                 </div>
                 <span className="text-[10px] text-ink-muted mt-1 block">Demo password preset accepted for testing.</span>
@@ -142,7 +142,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
 
               <button
                 type="submit"
-                className="w-full py-3 rounded-xl bg-brand-coral hover:bg-brand-coralDim text-surface-base font-bold shadow-coral flex items-center justify-center gap-2 transition-all mt-2"
+                className="w-full py-3 rounded-xl bg-white text-black hover:bg-neutral-200 font-semibold text-xs shadow-subtle flex items-center justify-center gap-2 transition-all mt-2"
               >
                 <span>Login & Setup UPI Payment</span>
                 <ArrowRight className="w-4 h-4" />
@@ -167,7 +167,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                     value={regName}
                     onChange={(e) => setRegName(e.target.value)}
                     placeholder="e.g. Vikramaditya Sen"
-                    className="w-full bg-surface-base border border-surface-hairline rounded-xl pl-9 pr-3 py-2.5 text-ink-primary focus:border-brand-coral outline-none"
+                    className="w-full bg-surface-base border border-surface-hairline rounded-xl pl-9 pr-3 py-2.5 text-ink-primary focus:border-emerald-500 outline-none"
                   />
                 </div>
               </div>
@@ -181,8 +181,8 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                     required
                     value={regEmail}
                     onChange={(e) => setRegEmail(e.target.value)}
-                    placeholder="vikram@grouptrip.in"
-                    className="w-full bg-surface-base border border-surface-hairline rounded-xl pl-9 pr-3 py-2.5 text-ink-primary focus:border-brand-coral outline-none"
+                    placeholder="vikram@fareshare.in"
+                    className="w-full bg-surface-base border border-surface-hairline rounded-xl pl-9 pr-3 py-2.5 text-ink-primary focus:border-emerald-500 outline-none"
                   />
                 </div>
               </div>
@@ -197,14 +197,14 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                     value={regPassword}
                     onChange={(e) => setRegPassword(e.target.value)}
                     placeholder="Minimum 6 characters"
-                    className="w-full bg-surface-base border border-surface-hairline rounded-xl pl-9 pr-3 py-2.5 text-ink-primary focus:border-brand-coral outline-none"
+                    className="w-full bg-surface-base border border-surface-hairline rounded-xl pl-9 pr-3 py-2.5 text-ink-primary focus:border-emerald-500 outline-none"
                   />
                 </div>
               </div>
 
               <button
                 type="submit"
-                className="w-full py-3 rounded-xl bg-brand-coral hover:bg-brand-coralDim text-surface-base font-bold shadow-coral flex items-center justify-center gap-2 transition-all mt-2"
+                className="w-full py-3 rounded-xl bg-white text-black hover:bg-neutral-200 font-semibold text-xs shadow-subtle flex items-center justify-center gap-2 transition-all mt-2"
               >
                 <CheckCircle2 className="w-4 h-4" />
                 <span>Create Account & Setup UPI</span>

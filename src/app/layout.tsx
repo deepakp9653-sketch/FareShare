@@ -2,8 +2,13 @@ import './globals.css';
 import type { Metadata } from 'next';
 
 export const metadata: Metadata = {
-  title: 'GroupTrip Ledger — Event-Sourced Group Travel & Settlement Platform',
-  description: 'Fintech Precision × Travel Warmth. Dynamic Split Primitive Engine & Debt Simplification Visualizer.',
+  title: 'FareShare — Group Trip Ledger Platform',
+  description: 'FinTech Precision × Group Fairness. Dynamic Split Engine & Zero-Sum Settlement Platform.',
+  icons: {
+    icon: '/fareshare-icon.png',
+    shortcut: '/fareshare-icon.png',
+    apple: '/fareshare-icon.png',
+  },
 };
 
 export default function RootLayout({

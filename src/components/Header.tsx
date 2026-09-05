@@ -1,9 +1,29 @@
 'use client';
 
-import React from 'react';
+import React, { useState } from 'react';
 import { Participant, ParticipantNetBalance, Trip } from '@/lib/types';
-import { Compass, Wallet, UserCheck, Database, CheckCircle2, Home, Plus, Lock, QrCode, Copy, Layers, Key, Sparkles, MessageSquareText, Bell } from 'lucide-react';
-import { motion } from 'framer-motion';
+import {
+  Compass,
+  Wallet,
+  Database,
+  CheckCircle2,
+  Home,
+  Plus,
+  QrCode,
+  Copy,
+  Check,
+  ChevronDown,
+  Layers,
+  Key,
+  Sparkles,
+  MessageSquareText,
+  Bell,
+  Share2,
+  Users,
+  ShieldCheck,
+} from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { LiquidLogo } from './LiquidLogo';
 
 interface HeaderProps {
   trip: Trip;
@@ -18,6 +38,8 @@ interface HeaderProps {
   onOpenTripSwitcher: () => void;
   onOpenAuth: () => void;
   onOpenUpiSetup: () => void;
+  onOpenAccountSwitcher?: () => void;
+  onOpenShareTrip?: () => void;
   onOpenExplainBalance?: () => void;
   onOpenChatExpense?: () => void;
   onOpenNudges?: () => void;
@@ -28,7 +50,6 @@ export const Header: React.FC<HeaderProps> = ({
   trip,
   participants,
   currentUserId,
-  onSelectUser,
   netBalances,
   isSettled,
   onGoToLanding,
@@ -37,167 +58,165 @@ export const Header: React.FC<HeaderProps> = ({
   onOpenTripSwitcher,
   onOpenAuth,
   onOpenUpiSetup,
+  onOpenAccountSwitcher,
+  onOpenShareTrip,
   onOpenExplainBalance,
   onOpenChatExpense,
   onOpenNudges,
   offlineIndicatorNode,
 }) => {
+  const [copiedCode, setCopiedCode] = useState(false);
   const userBalance = netBalances.find((b) => b.participant.id === currentUserId);
   const currentUser = participants.find((p) => p.id === currentUserId);
   const netAmount = userBalance ? userBalance.netBalance : 0;
 
   const handleCopyCode = () => {
     navigator.clipboard.writeText(trip.inviteCode || 'GOA2026');
-    alert(`Copied Trip Invite Code: ${trip.inviteCode || 'GOA2026'}`);
+    setCopiedCode(true);
+    setTimeout(() => setCopiedCode(false), 2000);
   };
 
   return (
-    <header className="sticky top-0 z-40 bg-surface-base/90 backdrop-blur-md border-b border-surface-hairline px-4 sm:px-6 py-3">
+    <header className="sticky top-0 z-40 bg-surface-base/95 backdrop-blur-md border-b border-surface-hairline px-4 sm:px-6 py-2.5">
       <div className="max-w-7xl mx-auto flex items-center justify-between gap-4">
-        {/* Brand & Trip Selector */}
+        {/* Left: Midday-Style Trip Switcher & Verified Status */}
         <div className="flex items-center gap-3">
           <button
             onClick={onGoToLanding}
-            className="w-10 h-10 rounded-xl bg-brand-coral text-surface-base flex items-center justify-center shadow-coral hover:bg-brand-coralDim transition-all"
-            title="Return to Landing Page"
+            className="cursor-pointer hover:opacity-90 transition-opacity"
+            title="Home / Landing Overview"
           >
-            <Compass className="w-5 h-5 stroke-[2.5]" />
+            <LiquidLogo size={36} />
           </button>
 
           <div>
             <div className="flex items-center gap-2">
               <button
                 onClick={onOpenTripSwitcher}
-                className="font-serif-display font-bold text-lg tracking-tight text-ink-primary hover:text-brand-coral transition-colors flex items-center gap-1.5"
+                className="font-sans font-semibold text-sm sm:text-base text-ink-primary hover:text-white transition-colors flex items-center gap-1.5 cursor-pointer"
                 title="Switch Active Trip"
               >
                 <span>{trip.title}</span>
-                <Layers className="w-4 h-4 text-brand-gold" />
+                <ChevronDown className="w-3.5 h-3.5 text-ink-muted" />
               </button>
 
+              {/* Dub-style tactile copy invite code */}
               <button
                 onClick={handleCopyCode}
-                className="text-[11px] px-2.5 py-0.5 rounded-full bg-brand-indigo/15 text-brand-indigo font-numeric font-bold border border-brand-indigo/30 hover:bg-brand-indigo hover:text-surface-base transition-all flex items-center gap-1"
-                title="Click to Copy Trip Invite Code"
+                className="text-[11px] px-2 py-0.5 rounded-md bg-surface-overlay text-ink-secondary border border-surface-hairline hover:text-ink-primary hover:border-ink-muted transition-all flex items-center gap-1 font-mono cursor-pointer"
+                title="Copy trip invite code"
               >
-                <span>Code: {trip.inviteCode || 'GOA2026'}</span>
-                <Copy className="w-3 h-3" />
+                <span>{trip.inviteCode || 'GOA2026'}</span>
+                {copiedCode ? (
+                  <Check className="w-3 h-3 text-emerald-400" />
+                ) : (
+                  <Copy className="w-3 h-3 text-ink-muted" />
+                )}
               </button>
             </div>
 
-            <p className="text-xs text-ink-secondary flex items-center gap-2 mt-0.5">
+            <div className="flex items-center gap-2 text-[11px] text-ink-muted mt-0.5">
               <span>{trip.destination}</span>
               <span>•</span>
-              <span className="flex items-center gap-1 text-ledger-surplus font-numeric text-[11px]">
-                <Database className="w-3 h-3 inline" /> Neon DB Live (₹ INR)
+              <span className="flex items-center gap-1 text-emerald-400/90 font-mono text-[10px]">
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse inline-block" />
+                Zero-Sum Engine
               </span>
-            </p>
+            </div>
           </div>
         </div>
 
-        {/* Controls, My Trips & Persona Switcher */}
-        <div className="flex items-center gap-2 sm:gap-3">
-          <button
-            onClick={onOpenTripSwitcher}
-            className="px-3 py-1.5 rounded-xl bg-surface-raised border border-surface-hairline text-ink-primary hover:bg-surface-overlay transition-all text-xs font-bold flex items-center gap-1.5"
-            title="View All My Trips"
-          >
-            <Layers className="w-4 h-4 text-brand-gold" />
-            <span className="hidden sm:inline">My Trips</span>
-          </button>
-
-          <button
-            onClick={onOpenJoinTrip}
-            className="px-3 py-1.5 rounded-xl bg-surface-raised border border-surface-hairline text-ink-primary hover:bg-surface-overlay transition-all text-xs font-bold hidden md:flex items-center gap-1.5"
-            title="Join Trip via Invite Code"
-          >
-            <Key className="w-4 h-4 text-brand-indigo" />
-            <span>Join Code</span>
-          </button>
-
-          <button
-            onClick={onOpenCreateTrip}
-            className="px-3 py-1.5 rounded-xl bg-brand-coral text-surface-base hover:bg-brand-coralDim transition-all text-xs font-bold shadow-sm hidden sm:flex items-center gap-1"
-            title="Create New Custom Trip"
-          >
-            <Plus className="w-3.5 h-3.5 stroke-[3]" />
-            <span>New Trip</span>
-          </button>
-
-          {/* Global Balance Pill (Clickable for Explain My Balance) */}
+        {/* Right: Balance Indicator, Tools, and Account Switcher */}
+        <div className="flex items-center gap-2 sm:gap-2.5">
+          {/* Midday-style high-precision balance pill */}
           <button
             onClick={onOpenExplainBalance}
-            className={`hidden lg:flex items-center gap-2 px-3 py-1.5 rounded-full border text-xs font-semibold transition-all hover:scale-105 active:scale-95 cursor-pointer ${
+            className={`hidden sm:flex items-center gap-2 px-3 py-1.5 rounded-lg border text-xs font-medium transition-colors cursor-pointer ${
               isSettled
-                ? 'bg-ledger-surplusBg text-ledger-surplus border-ledger-surplus/40'
+                ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20'
                 : netAmount > 0
-                ? 'bg-ledger-surplusBg text-ledger-surplus border-ledger-surplus/40'
+                ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20 hover:bg-emerald-500/15'
                 : netAmount < 0
-                ? 'bg-ledger-deficitBg text-ledger-deficit border-ledger-deficit/40'
-                : 'bg-surface-raised text-ledger-neutral border-surface-hairline'
+                ? 'bg-rose-500/10 text-rose-400 border-rose-500/20 hover:bg-rose-500/15'
+                : 'bg-surface-overlay text-ink-secondary border-surface-hairline'
             }`}
-            title="Click to see full mathematical explanation of your balance"
+            title="Click to view mathematical balance breakdown"
           >
-            <Wallet className="w-4 h-4 shrink-0" />
+            <Wallet className="w-3.5 h-3.5 shrink-0" />
             {isSettled ? (
               <span>Trip Settled ✓</span>
             ) : netAmount > 0 ? (
               <span>
-                Owed <span className="font-numeric font-bold text-xs">+₹{netAmount.toFixed(0)}</span>
+                Owed <strong className="font-numeric">+₹{netAmount.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</strong>
               </span>
             ) : netAmount < 0 ? (
               <span>
-                Owe <span className="font-numeric font-bold text-xs">-₹{Math.abs(netAmount).toFixed(0)}</span>
+                Owe <strong className="font-numeric">-₹{Math.abs(netAmount).toLocaleString('en-IN', { minimumFractionDigits: 2 })}</strong>
               </span>
             ) : (
-              <span>Settled</span>
+              <span>Even Balance</span>
             )}
-            <Sparkles className="w-3 h-3 text-brand-gold ml-0.5" />
+            <Sparkles className="w-3 h-3 text-ink-muted ml-0.5" />
           </button>
 
           {/* F19 Offline Queue Indicator */}
           {offlineIndicatorNode}
 
-          {/* F14 & F15 Chat & Voice Expense Button */}
+          {/* Chat & Voice AI Button */}
           {onOpenChatExpense && (
             <button
               onClick={onOpenChatExpense}
-              className="px-3 py-1.5 rounded-xl bg-brand-coral/10 hover:bg-brand-coral hover:text-white border border-brand-coral/30 text-brand-coral transition-all text-xs font-bold flex items-center gap-1.5 shadow-sm"
-              title="Capture Expense via Natural Chat, Voice Note or Bill Receipt (F14 & F15)"
+              className="px-2.5 py-1.5 rounded-lg bg-surface-overlay border border-surface-hairline text-ink-primary hover:bg-surface-hairline transition-colors text-xs font-medium flex items-center gap-1.5 cursor-pointer"
+              title="Capture Expense via Natural Voice or Receipt"
             >
-              <MessageSquareText className="w-4 h-4" />
-              <span className="hidden md:inline">Chat / Voice</span>
+              <MessageSquareText className="w-3.5 h-3.5 text-ink-muted" />
+              <span className="hidden md:inline">Voice / Chat</span>
             </button>
           )}
 
-          {/* F20 Nudge & Reminders Button */}
+          {/* Share Trip Button */}
+          {onOpenShareTrip && (
+            <button
+              onClick={onOpenShareTrip}
+              className="px-2.5 py-1.5 rounded-lg bg-surface-overlay border border-surface-hairline text-ink-primary hover:bg-surface-hairline transition-colors text-xs font-medium flex items-center gap-1.5 cursor-pointer"
+              title="Share Trip & Manage Member Access"
+            >
+              <Share2 className="w-3.5 h-3.5 text-ink-muted" />
+              <span className="hidden sm:inline">Share</span>
+            </button>
+          )}
+
+          {/* Nudges Button */}
           {onOpenNudges && (
             <button
               onClick={onOpenNudges}
-              className="px-3 py-1.5 rounded-xl bg-surface-raised border border-surface-hairline text-ink-secondary hover:text-ink-primary hover:border-brand-coral/40 transition-all text-xs font-bold flex items-center gap-1.5"
-              title="Open Nudge & Reminder Engine / WhatsApp Settlement Digest (F20)"
+              className="p-2 rounded-lg bg-surface-overlay border border-surface-hairline text-ink-secondary hover:text-ink-primary transition-colors cursor-pointer"
+              title="Settlement Reminders & Nudges"
             >
-              <Bell className="w-4 h-4 text-brand-gold" />
-              <span className="hidden lg:inline">Nudges</span>
+              <Bell className="w-3.5 h-3.5" />
             </button>
           )}
 
-          {/* User Profile Button */}
+          {/* User Account Switcher (Password Protected) */}
           <button
-            onClick={onOpenUpiSetup}
-            className="p-2 rounded-xl bg-surface-raised border border-surface-hairline text-ink-primary hover:bg-surface-overlay transition-all text-xs font-semibold flex items-center gap-1.5"
-            title="Configure My UPI ID & QR Code"
+            onClick={onOpenAccountSwitcher || onOpenAuth}
+            className="p-1 sm:px-2.5 sm:py-1 rounded-lg bg-surface-overlay border border-surface-hairline hover:border-zinc-500 text-ink-primary transition-all text-xs font-medium flex items-center gap-2 cursor-pointer"
+            title="Switch User Account (Protected by Password)"
           >
-            <QrCode className="w-4 h-4 text-brand-coral" />
-            <span className="hidden xl:inline">{currentUser?.name.split(' ')[0]}</span>
-          </button>
-
-          <button
-            onClick={onGoToLanding}
-            className="p-2 rounded-xl bg-surface-raised border border-surface-hairline text-ink-secondary hover:text-ink-primary transition-all text-xs font-semibold flex items-center gap-1"
-            title="Landing Page"
-          >
-            <Home className="w-4 h-4" />
+            <img
+              src={
+                currentUser?.avatarUrl ||
+                'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100&h=100'
+              }
+              alt={currentUser?.name || 'User'}
+              className="w-5 h-5 rounded-full object-cover shrink-0 border border-surface-hairline"
+            />
+            <span className="hidden md:inline font-medium text-xs">
+              {currentUser?.name.split(' ')[0]}
+            </span>
+            <span className="hidden lg:inline text-[9px] px-1.5 py-0.2 rounded bg-surface-hairline text-ink-muted uppercase font-mono">
+              Switch
+            </span>
           </button>
         </div>
       </div>
