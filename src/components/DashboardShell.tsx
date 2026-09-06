@@ -36,6 +36,7 @@ import {
   Home,
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { UserAvatar } from './UserAvatar';
 
 interface DashboardShellProps {
   children: React.ReactNode;
@@ -302,10 +303,11 @@ export const DashboardShell: React.FC<DashboardShellProps> = ({
             className="w-full p-2 rounded-xl bg-surface-overlay border border-surface-hairline hover:border-zinc-500/50 transition-all flex items-center justify-between text-left group cursor-pointer"
           >
             <div className="flex items-center gap-2.5 min-w-0">
-              <img
-                src={currentUser?.avatarUrl}
-                alt={currentUser?.name}
-                className="w-7 h-7 rounded-full object-cover border border-surface-hairline shrink-0"
+              <UserAvatar
+                name={currentUser?.name}
+                id={currentUser?.id}
+                size="sm"
+                className="shrink-0"
               />
               <div className="min-w-0">
                 <span className="text-xs font-semibold text-ink-primary truncate block">
@@ -404,12 +406,12 @@ export const DashboardShell: React.FC<DashboardShellProps> = ({
             {/* Mobile Profile Avatar */}
             <button
               onClick={onOpenAccountSwitcher}
-              className="lg:hidden p-1 rounded-full border border-surface-hairline cursor-pointer"
+              className="lg:hidden p-0.5 rounded-full cursor-pointer"
             >
-              <img
-                src={currentUser?.avatarUrl}
-                alt={currentUser?.name}
-                className="w-6 h-6 rounded-full object-cover"
+              <UserAvatar
+                name={currentUser?.name}
+                id={currentUser?.id}
+                size="xs"
               />
             </button>
           </div>

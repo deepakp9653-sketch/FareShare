@@ -4,6 +4,7 @@ import React, { useState } from 'react';
 import { Participant, ParticipantNetBalance } from '@/lib/types';
 import { Users, UserPlus, Shield, UserMinus, Sliders, Mail, QrCode, Crown, Trophy, Zap, Award } from 'lucide-react';
 import { motion } from 'framer-motion';
+import { UserAvatar } from './UserAvatar';
 
 interface ParticipantsSectionProps {
   participants: Participant[];
@@ -83,10 +84,11 @@ export const ParticipantsSection: React.FC<ParticipantsSectionProps> = ({
               <div className="flex items-start justify-between">
                 <div className="flex items-center gap-3">
                   <div className="relative">
-                    <img
-                      src={p.avatarUrl}
-                      alt={p.name}
-                      className="w-12 h-12 rounded-full object-cover border-2 border-surface-hairline"
+                    <UserAvatar
+                      name={p.name}
+                      id={p.id}
+                      size="lg"
+                      className="border-2 border-surface-hairline"
                     />
                     {isBigBanker && (
                       <span className="absolute -top-1 -right-1 p-1 bg-brand-gold text-surface-base rounded-full shadow-sm" title="Big Banker (Highest Paid Upfront)">

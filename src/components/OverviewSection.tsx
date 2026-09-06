@@ -1,6 +1,7 @@
 'use client';
 
-import React from 'react';
+import React, { useState } from 'react';
+import { UserAvatar } from './UserAvatar';
 import {
   Trip,
   Booking,
@@ -116,8 +117,11 @@ export const OverviewSection: React.FC<OverviewSectionProps> = ({
   // Recent 4 expenses for live ledger preview
   const recentExpenses = expenses.slice(0, 4);
 
+  // Focus view to declutter the dashboard workspace
+  const [dashboardView, setDashboardView] = useState<'highlights' | 'ledger' | 'analytics' | 'budget' | 'all'>('highlights');
+
   return (
-    <div className="space-y-6">
+    <div className="space-y-8 pb-12">
       {/* ============================================================ */}
       {/* 1. TOP HERO BANNER WITH LIQUID SHADER AMBIENT GLASS */}
       {/* ============================================================ */}
@@ -179,7 +183,7 @@ export const OverviewSection: React.FC<OverviewSectionProps> = ({
       {/* ============================================================ */}
       {/* 2. 4-METRIC TELEMETRY RIBBON (21st.dev Spotlight Cards) */}
       {/* ============================================================ */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
         {/* Metric 1: Personal Position */}
         <SpotlightCard
           className={`p-5 flex flex-col justify-between ${
@@ -351,318 +355,363 @@ export const OverviewSection: React.FC<OverviewSectionProps> = ({
       <ReconciliationAuditCard audit={audit} />
 
       {/* ============================================================ */}
-      {/* 3. DUAL-COLUMN PRO WORKSPACE (21st.dev / OpenDesign) */}
+      {/* 3. WORKSPACE MODULES SELECTOR (DECLUTTER & FOCUS MODES) */}
       {/* ============================================================ */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-        {/* ------------------------------------------------------------ */}
-        {/* LEFT COLUMN: LIVE LEDGER & CATEGORY ALLOCATION (7 cols) */}
-        {/* ------------------------------------------------------------ */}
-        <div className="lg:col-span-7 space-y-6">
-          {/* Live Ledger Activity Feed Card */}
-          <SpotlightCard className="p-6 space-y-4 shadow-paper">
-            <div className="flex items-center justify-between border-b border-surface-hairline/70 pb-3">
-              <div className="flex items-center gap-2">
-                <Receipt className="w-4 h-4 text-emerald-400" />
-                <h3 className="font-sans font-semibold text-sm text-ink-primary">
-                  Live Expense Ledger
-                </h3>
-              </div>
-
-              <button
-                onClick={() => onNavigateTab('expenses')}
-                className="text-xs font-medium text-ink-secondary hover:text-ink-primary flex items-center gap-1 transition-colors cursor-pointer"
-              >
-                <span>View All ({expenses.length})</span>
-                <ArrowRight className="w-3 h-3" />
-              </button>
-            </div>
-
-            {/* Expense Rows */}
-            <div className="space-y-2">
-              {recentExpenses.length === 0 ? (
-                <div className="text-center py-6 text-xs text-ink-muted">
-                  No expenses logged yet. Click &quot;Log Expense&quot; to begin.
-                </div>
-              ) : (
-                recentExpenses.map((exp) => {
-                  const payer = participants.find((p) => p.id === exp.paidById);
-                  return (
-                    <div
-                      key={exp.id}
-                      className="p-3 rounded-xl bg-surface-overlay/50 border border-surface-hairline flex items-center justify-between text-xs hover:border-zinc-500/40 transition-colors"
-                    >
-                      <div className="flex items-center gap-3 min-w-0 pr-2">
-                        <img
-                          src={payer?.avatarUrl || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150'}
-                          alt={payer?.name || 'Traveler'}
-                          className="w-7 h-7 rounded-full object-cover border border-surface-hairline shrink-0"
-                        />
-                        <div className="min-w-0">
-                          <span className="font-semibold text-ink-primary truncate block">
-                            {exp.title}
-                          </span>
-                          <span className="text-[11px] text-ink-muted flex items-center gap-1.5">
-                            <span>Paid by {payer?.name.split(' ')[0] || 'Unknown'}</span>
-                            <span>•</span>
-                            <span className="capitalize">{exp.category}</span>
-                            <span>•</span>
-                            <span className="font-mono text-[10px] uppercase bg-surface-hairline px-1.5 py-0.2 rounded">
-                              {exp.splitMethod}
-                            </span>
-                          </span>
-                        </div>
-                      </div>
-
-                      <div className="text-right shrink-0">
-                        <span className="font-numeric font-bold text-sm text-ink-primary block">
-                          ₹{exp.totalAmount.toLocaleString('en-IN', { minimumFractionDigits: 2 })}
-                        </span>
-                        <span className="text-[10px] font-mono text-ink-muted">
-                          {exp.allocations?.length || participants.length} shares
-                        </span>
-                      </div>
-                    </div>
-                  );
-                })
-              )}
-            </div>
-
-            <div className="pt-2 flex items-center justify-between">
-              <LiquidGlassButton
-                variant="subtle"
-                size="sm"
-                onClick={onOpenAddExpense}
-                icon={<Plus className="w-3.5 h-3.5" />}
-                className="w-full justify-center"
-              >
-                Add New Transaction
-              </LiquidGlassButton>
-            </div>
-          </SpotlightCard>
-
-          {/* Category Spend Distribution Card */}
-          <SpotlightCard className="p-6 space-y-4 shadow-paper">
-            <div className="flex items-center justify-between border-b border-surface-hairline/70 pb-3">
-              <div className="flex items-center gap-2">
-                <PieChart className="w-4 h-4 text-ink-muted" />
-                <h3 className="font-sans font-semibold text-sm text-ink-primary">
-                  Category Spend Breakdown
-                </h3>
-              </div>
-              <span className="text-xs font-mono text-ink-muted">
-                Total: ₹{totalSpend.toLocaleString('en-IN')}
-              </span>
-            </div>
-
-            <SpendDonutChart categoryStats={variance.byCategory} totalActual={totalSpend} />
-          </SpotlightCard>
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pt-2 border-t border-surface-hairline/60">
+        <div>
+          <h2 className="text-sm font-semibold text-ink-primary">Workspace Modules</h2>
+          <p className="text-xs text-ink-muted mt-0.5">
+            Switch views to declutter cards or browse all telemetry
+          </p>
         </div>
 
-        {/* ------------------------------------------------------------ */}
-        {/* RIGHT COLUMN: DIRECT SETTLEMENT & TELEMETRY (5 cols) */}
-        {/* ------------------------------------------------------------ */}
-        <div className="lg:col-span-5 space-y-6">
-          {/* Direct UPI Settle Matrix Card */}
-          <SpotlightCard className="p-6 space-y-4 shadow-paper">
-            <div className="flex items-center justify-between border-b border-surface-hairline/70 pb-3">
-              <div className="flex items-center gap-2">
-                <Zap className="w-4 h-4 text-emerald-400" />
-                <h3 className="font-sans font-semibold text-sm text-ink-primary">
-                  Direct Settlement Paths
-                </h3>
-              </div>
-              <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-emerald-500/10 text-emerald-400">
-                Zero-Sum
-              </span>
-            </div>
-
-            {/* Simplified Debts List */}
-            <div className="space-y-2">
-              {simplifiedDebts.length === 0 ? (
-                <div className="text-center py-6 text-xs text-ink-muted">
-                  All squad accounts are fully settled!
-                </div>
-              ) : (
-                simplifiedDebts.slice(0, 3).map((debt, idx) => {
-                  const fromP = participants.find((p) => p.id === debt.fromId);
-                  const toP = participants.find((p) => p.id === debt.toId);
-
-                  return (
-                    <div
-                      key={idx}
-                      className="p-3 rounded-xl bg-surface-overlay/50 border border-surface-hairline flex items-center justify-between text-xs hover:border-zinc-500/40 transition-colors"
-                    >
-                      <div className="min-w-0 pr-2">
-                        <div className="flex items-center gap-1.5 font-medium">
-                          <span className="text-rose-400 font-semibold">{fromP?.name.split(' ')[0]}</span>
-                          <ArrowRight className="w-3 h-3 text-ink-muted" />
-                          <span className="text-emerald-400 font-semibold">{toP?.name.split(' ')[0]}</span>
-                        </div>
-                        <span className="text-[10px] font-mono text-ink-muted block mt-0.5">
-                          UPI: {toP?.upiId || 'Direct VPA'}
-                        </span>
-                      </div>
-
-                      <div className="text-right shrink-0">
-                        <span className="font-numeric font-bold text-sm text-ink-primary block">
-                          ₹{debt.amount.toLocaleString('en-IN', { minimumFractionDigits: 2 })}
-                        </span>
-                        <button
-                          onClick={() => onNavigateTab('settlement')}
-                          className="text-[10px] font-semibold text-emerald-400 hover:text-emerald-300 block"
-                        >
-                          Settle UPI →
-                        </button>
-                      </div>
-                    </div>
-                  );
-                })
-              )}
-            </div>
-
-            <LiquidGlassButton
-              variant="glass"
-              size="sm"
-              onClick={() => onNavigateTab('settlement')}
-              className="w-full justify-center"
+        <div className="flex flex-wrap items-center gap-1.5 p-1 bg-surface-raised rounded-xl border border-surface-hairline text-xs">
+          {[
+            { id: 'highlights', label: 'Highlights' },
+            { id: 'ledger', label: 'Ledger & Debts' },
+            { id: 'analytics', label: 'Charts & Vibe' },
+            { id: 'budget', label: 'Budget Caps' },
+            { id: 'all', label: 'All Modules' },
+          ].map((tab) => (
+            <button
+              key={tab.id}
+              onClick={() => setDashboardView(tab.id as any)}
+              className={`px-3 py-1.5 rounded-lg font-medium transition-all cursor-pointer ${
+                dashboardView === tab.id
+                  ? 'bg-surface-overlay text-ink-primary shadow-subtle border border-surface-hairline font-semibold'
+                  : 'text-ink-secondary hover:text-ink-primary'
+              }`}
             >
-              Open Full Settlement Graph ({simplifiedDebts.length})
-            </LiquidGlassButton>
-          </SpotlightCard>
-
-          {/* Trip Health & Velocity Index */}
-          <SpotlightCard className="p-6 shadow-paper space-y-4">
-            <div className="flex items-center justify-between border-b border-surface-hairline/70 pb-3">
-              <div className="flex items-center gap-2">
-                <Sparkles className="w-4 h-4 text-amber-400" />
-                <h3 className="font-sans font-semibold text-sm text-ink-primary">
-                  Trip Health & Pace
-                </h3>
-              </div>
-              <span className="text-[10px] uppercase font-mono font-semibold px-2 py-0.5 rounded bg-emerald-500/15 text-emerald-400">
-                Normal
-              </span>
-            </div>
-
-            <TripVibeGauge
-              settlementPercent={settlementPercent}
-              budgetCushionPercent={cushionPercent}
-              confirmedEventsCount={bookings.length}
-            />
-          </SpotlightCard>
-
-          {/* Traveler Financial Equity & Contribution */}
-          <SpotlightCard className="p-6 shadow-paper space-y-4">
-            <div className="flex items-center justify-between border-b border-surface-hairline/70 pb-3">
-              <div className="flex items-center gap-2">
-                <Trophy className="w-4 h-4 text-amber-400" />
-                <h3 className="font-sans font-semibold text-sm text-ink-primary">
-                  Traveler Equity & Fronted Share
-                </h3>
-              </div>
-              <button
-                onClick={() => onNavigateTab('participants')}
-                className="text-xs text-ink-secondary hover:text-ink-primary cursor-pointer"
-              >
-                Roster
-              </button>
-            </div>
-
-            <ParticipantBarChart netBalances={netBalances} />
-          </SpotlightCard>
+              {tab.label}
+            </button>
+          ))}
         </div>
       </div>
 
       {/* ============================================================ */}
-      {/* 4. BUDGET GUARDRAILS & CATEGORY CEILINGS */}
+      {/* 4. TRANSACTION & SETTLEMENT CARDS (Highlights, Ledger, All) */}
       {/* ============================================================ */}
-      <SpotlightCard className="p-6 shadow-paper space-y-4">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-surface-hairline/60 pb-3">
-          <div>
-            <div className="flex items-center gap-2">
-              <h3 className="font-sans font-semibold text-sm text-ink-primary">
-                Budget Guardrails &amp; Heuristic Ceilings
-              </h3>
-              <span className="text-[10px] px-2 py-0.5 rounded font-mono uppercase bg-surface-overlay text-ink-muted border border-surface-hairline">
-                Advisory Ceilings
-              </span>
-            </div>
-            <p className="text-xs text-ink-secondary mt-0.5">
-              40% Lodging · 25% Transport · 20% Activities · 15% Food.
-            </p>
+      {(dashboardView === 'highlights' || dashboardView === 'ledger' || dashboardView === 'all') && (
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+          {/* Live Ledger Activity Feed Card (7 cols) */}
+          <div className="lg:col-span-7">
+            <SpotlightCard className="p-6 space-y-4 shadow-paper">
+              <div className="flex items-center justify-between border-b border-surface-hairline/70 pb-3">
+                <div className="flex items-center gap-2">
+                  <Receipt className="w-4 h-4 text-emerald-400" />
+                  <h3 className="font-sans font-semibold text-sm text-ink-primary">
+                    Live Expense Ledger
+                  </h3>
+                </div>
+
+                <button
+                  onClick={() => onNavigateTab('expenses')}
+                  className="text-xs font-medium text-ink-secondary hover:text-ink-primary flex items-center gap-1 transition-colors cursor-pointer"
+                >
+                  <span>View All ({expenses.length})</span>
+                  <ArrowRight className="w-3 h-3" />
+                </button>
+              </div>
+
+              {/* Expense Rows */}
+              <div className="space-y-2">
+                {recentExpenses.length === 0 ? (
+                  <div className="text-center py-6 text-xs text-ink-muted">
+                    No expenses logged yet. Click &quot;Log Expense&quot; to begin.
+                  </div>
+                ) : (
+                  recentExpenses.map((exp) => {
+                    const payer = participants.find((p) => p.id === exp.paidById);
+                    return (
+                      <div
+                        key={exp.id}
+                        className="p-3 rounded-xl bg-surface-overlay/50 border border-surface-hairline flex items-center justify-between text-xs hover:border-zinc-500/40 transition-colors"
+                      >
+                        <div className="flex items-center gap-3 min-w-0 pr-2">
+                          <UserAvatar
+                            name={payer?.name}
+                            id={payer?.id}
+                            size="xs"
+                            className="shrink-0"
+                          />
+                          <div className="min-w-0">
+                            <span className="font-semibold text-ink-primary truncate block">
+                              {exp.title}
+                            </span>
+                            <span className="text-[11px] text-ink-muted flex items-center gap-1.5">
+                              <span>Paid by {payer?.name.split(' ')[0] || 'Unknown'}</span>
+                              <span>•</span>
+                              <span className="capitalize">{exp.category}</span>
+                              <span>•</span>
+                              <span className="font-mono text-[10px] uppercase bg-surface-hairline px-1.5 py-0.2 rounded">
+                                {exp.splitMethod}
+                              </span>
+                            </span>
+                          </div>
+                        </div>
+
+                        <div className="text-right shrink-0">
+                          <span className="font-numeric font-bold text-sm text-ink-primary block">
+                            ₹{exp.totalAmount.toLocaleString('en-IN', { minimumFractionDigits: 2 })}
+                          </span>
+                          <span className="text-[10px] font-mono text-ink-muted">
+                            {exp.allocations?.length || participants.length} shares
+                          </span>
+                        </div>
+                      </div>
+                    );
+                  })
+                )}
+              </div>
+
+              <div className="pt-2 flex items-center justify-between">
+                <LiquidGlassButton
+                  variant="subtle"
+                  size="sm"
+                  onClick={onOpenAddExpense}
+                  icon={<Plus className="w-3.5 h-3.5" />}
+                  className="w-full justify-center"
+                >
+                  Add New Transaction
+                </LiquidGlassButton>
+              </div>
+            </SpotlightCard>
           </div>
 
-          {onOpenExplainBalance && (
-            <button
-              onClick={() => onOpenExplainBalance(currentUserId)}
-              className="px-3 py-1.5 rounded-lg bg-surface-overlay hover:bg-surface-hairline border border-surface-hairline text-ink-primary text-xs font-medium transition-colors flex items-center gap-1.5 cursor-pointer"
-            >
-              <Sparkles className="w-3.5 h-3.5 text-amber-400" />
-              <span>Explain My Balance</span>
-            </button>
-          )}
-        </div>
+          {/* Direct Settlement Paths Card (5 cols) */}
+          <div className="lg:col-span-5">
+            <SpotlightCard className="p-6 space-y-4 shadow-paper">
+              <div className="flex items-center justify-between border-b border-surface-hairline/70 pb-3">
+                <div className="flex items-center gap-2">
+                  <Zap className="w-4 h-4 text-emerald-400" />
+                  <h3 className="font-sans font-semibold text-sm text-ink-primary">
+                    Direct Settlement Paths
+                  </h3>
+                </div>
+                <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-emerald-500/10 text-emerald-400">
+                  Zero-Sum
+                </span>
+              </div>
 
-        {/* Category Budget Cards */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
-          {[
-            { cat: 'lodging', label: 'Lodging & Stays', ratio: 0.4 },
-            { cat: 'transport', label: 'Transit & Flights', ratio: 0.25 },
-            { cat: 'activity', label: 'Activities & Tours', ratio: 0.2 },
-            { cat: 'food', label: 'Dining & Provisions', ratio: 0.15 },
-          ].map((item) => {
-            const targetBudget = budget * item.ratio;
-            const actualSpend = variance.byCategory[item.cat]?.actual || 0;
-            const pctUsed = targetBudget > 0 ? Math.round((actualSpend / targetBudget) * 100) : 0;
-            const isBreached = actualSpend > targetBudget * 1.15;
+              {/* Simplified Debts List */}
+              <div className="space-y-2">
+                {simplifiedDebts.length === 0 ? (
+                  <div className="text-center py-6 text-xs text-ink-muted">
+                    All squad accounts are fully settled!
+                  </div>
+                ) : (
+                  simplifiedDebts.slice(0, 3).map((debt, idx) => {
+                    const fromP = participants.find((p) => p.id === debt.fromId);
+                    const toP = participants.find((p) => p.id === debt.toId);
 
-            return (
-              <SpotlightCard
-                key={item.cat}
-                className={`p-4 transition-all ${
-                  isBreached
-                    ? 'bg-rose-500/10 border-rose-500/30'
-                    : 'bg-surface-overlay/40 border-surface-hairline'
-                }`}
+                    return (
+                      <div
+                        key={idx}
+                        className="p-3 rounded-xl bg-surface-overlay/50 border border-surface-hairline flex items-center justify-between text-xs hover:border-zinc-500/40 transition-colors"
+                      >
+                        <div className="min-w-0 pr-2">
+                          <div className="flex items-center gap-1.5 font-medium">
+                            <span className="text-rose-400 font-semibold">{fromP?.name.split(' ')[0]}</span>
+                            <ArrowRight className="w-3 h-3 text-ink-muted" />
+                            <span className="text-emerald-400 font-semibold">{toP?.name.split(' ')[0]}</span>
+                          </div>
+                          <span className="text-[10px] font-mono text-ink-muted block mt-0.5">
+                            UPI: {toP?.upiId || 'Direct VPA'}
+                          </span>
+                        </div>
+
+                        <div className="text-right shrink-0">
+                          <span className="font-numeric font-bold text-sm text-ink-primary block">
+                            ₹{debt.amount.toLocaleString('en-IN', { minimumFractionDigits: 2 })}
+                          </span>
+                          <button
+                            onClick={() => onNavigateTab('settlement')}
+                            className="text-[10px] font-semibold text-emerald-400 hover:text-emerald-300 block"
+                          >
+                            Settle UPI →
+                          </button>
+                        </div>
+                      </div>
+                    );
+                  })
+                )}
+              </div>
+
+              <LiquidGlassButton
+                variant="glass"
+                size="sm"
+                onClick={() => onNavigateTab('settlement')}
+                className="w-full justify-center"
               >
-                <div className="flex items-center justify-between text-xs mb-1">
-                  <span className="font-semibold text-ink-primary">{item.label}</span>
-                  <span className="font-mono text-ink-muted text-[11px]">
-                    {Math.round(item.ratio * 100)}% Target
-                  </span>
-                </div>
-
-                <div className="flex items-baseline justify-between mt-2">
-                  <span className="font-numeric font-bold text-base text-ink-primary">
-                    ₹{actualSpend.toLocaleString('en-IN')}
-                  </span>
-                  <span className="text-[11px] text-ink-muted font-mono">
-                    / ₹{targetBudget.toLocaleString('en-IN', { maximumFractionDigits: 0 })}
-                  </span>
-                </div>
-
-                <div className="h-1 w-full bg-surface-base rounded-full overflow-hidden mt-2.5">
-                  <div
-                    className={`h-full transition-all duration-500 ${
-                      isBreached ? 'bg-rose-400' : 'bg-emerald-400'
-                    }`}
-                    style={{ width: `${Math.min(100, pctUsed)}%` }}
-                  />
-                </div>
-
-                <div className="flex items-center justify-between text-[10px] text-ink-muted mt-2">
-                  <span>{pctUsed}% allocated</span>
-                  {isBreached && (
-                    <span className="font-semibold text-rose-400 flex items-center gap-1">
-                      <AlertTriangle className="w-3 h-3" /> Exceeded
-                    </span>
-                  )}
-                </div>
-              </SpotlightCard>
-            );
-          })}
+                Open Full Settlement Graph ({simplifiedDebts.length})
+              </LiquidGlassButton>
+            </SpotlightCard>
+          </div>
         </div>
-      </SpotlightCard>
+      )}
+
+      {/* ============================================================ */}
+      {/* 5. VISUAL ANALYTICS & HEALTH GAUGES (Analytics, All) */}
+      {/* ============================================================ */}
+      {(dashboardView === 'analytics' || dashboardView === 'budget' || dashboardView === 'all') && (
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+          {/* Category Spend Breakdown (7 cols) */}
+          <div className="lg:col-span-7">
+            <SpotlightCard className="p-6 space-y-4 shadow-paper">
+              <div className="flex items-center justify-between border-b border-surface-hairline/70 pb-3">
+                <div className="flex items-center gap-2">
+                  <PieChart className="w-4 h-4 text-ink-muted" />
+                  <h3 className="font-sans font-semibold text-sm text-ink-primary">
+                    Category Spend Breakdown
+                  </h3>
+                </div>
+                <span className="text-xs font-mono text-ink-muted">
+                  Total: ₹{totalSpend.toLocaleString('en-IN')}
+                </span>
+              </div>
+
+              <SpendDonutChart categoryStats={variance.byCategory} totalActual={totalSpend} />
+            </SpotlightCard>
+          </div>
+
+          {/* Trip Health & Participant Equity (5 cols) */}
+          <div className="lg:col-span-5 space-y-6">
+            {/* Trip Health & Velocity Index */}
+            <SpotlightCard className="p-6 shadow-paper space-y-4">
+              <div className="flex items-center justify-between border-b border-surface-hairline/70 pb-3">
+                <div className="flex items-center gap-2">
+                  <Sparkles className="w-4 h-4 text-amber-400" />
+                  <h3 className="font-sans font-semibold text-sm text-ink-primary">
+                    Trip Health & Pace
+                  </h3>
+                </div>
+                <span className="text-[10px] uppercase font-mono font-semibold px-2 py-0.5 rounded bg-emerald-500/15 text-emerald-400">
+                  Normal
+                </span>
+              </div>
+
+              <TripVibeGauge
+                settlementPercent={settlementPercent}
+                budgetCushionPercent={cushionPercent}
+                confirmedEventsCount={bookings.length}
+              />
+            </SpotlightCard>
+
+            {/* Traveler Financial Equity & Contribution */}
+            <SpotlightCard className="p-6 shadow-paper space-y-4">
+              <div className="flex items-center justify-between border-b border-surface-hairline/70 pb-3">
+                <div className="flex items-center gap-2">
+                  <Trophy className="w-4 h-4 text-amber-400" />
+                  <h3 className="font-sans font-semibold text-sm text-ink-primary">
+                    Traveler Equity & Fronted Share
+                  </h3>
+                </div>
+                <button
+                  onClick={() => onNavigateTab('participants')}
+                  className="text-xs text-ink-secondary hover:text-ink-primary cursor-pointer"
+                >
+                  Roster
+                </button>
+              </div>
+
+              <ParticipantBarChart netBalances={netBalances} />
+            </SpotlightCard>
+          </div>
+        </div>
+      )}
+
+      {/* ============================================================ */}
+      {/* 6. BUDGET GUARDRAILS & HEURISTIC CEILINGS (Highlights, Budget, All) */}
+      {/* ============================================================ */}
+      {(dashboardView === 'highlights' || dashboardView === 'budget' || dashboardView === 'all') && (
+        <SpotlightCard className="p-6 shadow-paper space-y-5">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-surface-hairline/60 pb-3">
+            <div>
+              <div className="flex items-center gap-2">
+                <h3 className="font-sans font-semibold text-sm text-ink-primary">
+                  Budget Guardrails &amp; Heuristic Ceilings
+                </h3>
+                <span className="text-[10px] px-2 py-0.5 rounded font-mono uppercase bg-surface-overlay text-ink-muted border border-surface-hairline">
+                  Advisory Ceilings
+                </span>
+              </div>
+              <p className="text-xs text-ink-secondary mt-0.5">
+                40% Lodging · 25% Transport · 20% Activities · 15% Food.
+              </p>
+            </div>
+
+            {onOpenExplainBalance && (
+              <button
+                onClick={() => onOpenExplainBalance(currentUserId)}
+                className="px-3 py-1.5 rounded-lg bg-surface-overlay hover:bg-surface-hairline border border-surface-hairline text-ink-primary text-xs font-medium transition-colors flex items-center gap-1.5 cursor-pointer"
+              >
+                <Sparkles className="w-3.5 h-3.5 text-amber-400" />
+                <span>Explain My Balance</span>
+              </button>
+            )}
+          </div>
+
+          {/* Category Budget Cards */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            {[
+              { cat: 'lodging', label: 'Lodging & Stays', ratio: 0.4 },
+              { cat: 'transport', label: 'Transit & Flights', ratio: 0.25 },
+              { cat: 'activity', label: 'Activities & Tours', ratio: 0.2 },
+              { cat: 'food', label: 'Dining & Provisions', ratio: 0.15 },
+            ].map((item) => {
+              const targetBudget = budget * item.ratio;
+              const actualSpend = variance.byCategory[item.cat]?.actual || 0;
+              const pctUsed = targetBudget > 0 ? Math.round((actualSpend / targetBudget) * 100) : 0;
+              const isBreached = actualSpend > targetBudget * 1.15;
+
+              return (
+                <SpotlightCard
+                  key={item.cat}
+                  className={`p-4 transition-all ${
+                    isBreached
+                      ? 'bg-rose-500/10 border-rose-500/30'
+                      : 'bg-surface-overlay/40 border-surface-hairline'
+                  }`}
+                >
+                  <div className="flex items-center justify-between text-xs mb-1">
+                    <span className="font-semibold text-ink-primary">{item.label}</span>
+                    <span className="font-mono text-ink-muted text-[11px]">
+                      {Math.round(item.ratio * 100)}% Target
+                    </span>
+                  </div>
+
+                  <div className="flex items-baseline justify-between mt-2">
+                    <span className="font-numeric font-bold text-base text-ink-primary">
+                      ₹{actualSpend.toLocaleString('en-IN')}
+                    </span>
+                    <span className="text-[11px] text-ink-muted font-mono">
+                      / ₹{targetBudget.toLocaleString('en-IN', { maximumFractionDigits: 0 })}
+                    </span>
+                  </div>
+
+                  <div className="h-1.5 w-full bg-surface-base rounded-full overflow-hidden mt-3">
+                    <div
+                      className={`h-full transition-all duration-500 ${
+                        isBreached ? 'bg-rose-400' : 'bg-emerald-400'
+                      }`}
+                      style={{ width: `${Math.min(100, pctUsed)}%` }}
+                    />
+                  </div>
+
+                  <div className="flex items-center justify-between text-[10px] text-ink-muted mt-2.5">
+                    <span>{pctUsed}% allocated</span>
+                    {isBreached && (
+                      <span className="font-semibold text-rose-400 flex items-center gap-1">
+                        <AlertTriangle className="w-3 h-3" /> Exceeded
+                      </span>
+                    )}
+                  </div>
+                </SpotlightCard>
+              );
+            })}
+          </div>
+        </SpotlightCard>
+      )}
     </div>
   );
 };

@@ -5,6 +5,7 @@ import { Participant, SplitMethod, Booking, BookingCategory, Expense } from '@/l
 import { calculateSplits, suggestSplitMethod } from '@/lib/ledger-engine';
 import { X, Calculator, ShieldAlert, CheckCircle2, DollarSign, Upload, FileText, Image as ImageIcon, Sparkles, Lightbulb } from 'lucide-react';
 import { motion } from 'framer-motion';
+import { UserAvatar } from './UserAvatar';
 
 interface DynamicSplitDrawerProps {
   isOpen: boolean;
@@ -375,10 +376,10 @@ export const DynamicSplitDrawer: React.FC<DynamicSplitDrawerProps> = ({
                     className="p-3 rounded-xl bg-surface-base border border-surface-hairline flex items-center justify-between"
                   >
                     <div className="flex items-center gap-3">
-                      <img
-                        src={participant.avatarUrl}
-                        alt={participant.name}
-                        className="w-8 h-8 rounded-full object-cover border border-surface-hairline"
+                      <UserAvatar
+                        name={participant.name}
+                        id={participant.id}
+                        size="xs"
                       />
                       <div>
                         <p className="text-xs font-semibold text-ink-primary">{participant.name}</p>

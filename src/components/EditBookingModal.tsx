@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Booking, BookingCategory, Participant } from '@/lib/types';
 import { X, Edit3, Save, Users } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { UserAvatar } from './UserAvatar';
 
 interface EditBookingModalProps {
   isOpen: boolean;
@@ -182,7 +183,7 @@ export const EditBookingModal: React.FC<EditBookingModalProps> = ({
                           : 'border-surface-border bg-surface-elevated text-ink-muted hover:border-ink-muted'
                       }`}
                     >
-                      <img src={p.avatarUrl} alt={p.name} className="w-5 h-5 rounded-full object-cover" />
+                      <UserAvatar name={p.name} id={p.id} size="xs" />
                       <span className="truncate">{p.name}</span>
                     </button>
                   );

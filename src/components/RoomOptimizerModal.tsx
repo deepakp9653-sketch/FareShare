@@ -15,6 +15,7 @@ import {
   Trash2,
 } from 'lucide-react';
 import { motion } from 'framer-motion';
+import { UserAvatar } from './UserAvatar';
 
 interface RoomDef {
   name: string;
@@ -181,10 +182,10 @@ export const RoomOptimizerModal: React.FC<RoomOptimizerModalProps> = ({
                         className="p-2 bg-surface-raised rounded-xl border border-surface-hairline flex items-center justify-between text-xs"
                       >
                         <div className="flex items-center gap-2">
-                          <img
-                            src={p.avatarUrl}
-                            alt={p.name}
-                            className="w-5 h-5 rounded-full object-cover"
+                          <UserAvatar
+                            name={p.name}
+                            id={p.id}
+                            size="xs"
                           />
                           <span className="font-semibold text-ink-primary">{p.name}</span>
                         </div>

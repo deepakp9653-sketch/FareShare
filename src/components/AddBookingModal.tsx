@@ -4,6 +4,7 @@ import React, { useState } from 'react';
 import { BookingCategory, Participant } from '@/lib/types';
 import { X, Calendar, DollarSign, Tag, MapPin } from 'lucide-react';
 import { motion } from 'framer-motion';
+import { UserAvatar } from './UserAvatar';
 
 interface AddBookingModalProps {
   isOpen: boolean;
@@ -153,7 +154,7 @@ export const AddBookingModal: React.FC<AddBookingModalProps> = ({
                         : 'bg-surface-base border-surface-hairline text-ink-muted opacity-50'
                     }`}
                   >
-                    <img src={p.avatarUrl} alt={p.name} className="w-5 h-5 rounded-full object-cover" />
+                    <UserAvatar name={p.name} id={p.id} size="xs" />
                     <span>{p.name}</span>
                   </button>
                 );

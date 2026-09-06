@@ -24,6 +24,7 @@ import {
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { LiquidLogo } from './LiquidLogo';
+import { UserAvatar } from './UserAvatar';
 
 interface HeaderProps {
   trip: Trip;
@@ -203,13 +204,11 @@ export const Header: React.FC<HeaderProps> = ({
             className="p-1 sm:px-2.5 sm:py-1 rounded-lg bg-surface-overlay border border-surface-hairline hover:border-zinc-500 text-ink-primary transition-all text-xs font-medium flex items-center gap-2 cursor-pointer"
             title="Switch User Account (Protected by Password)"
           >
-            <img
-              src={
-                currentUser?.avatarUrl ||
-                'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100&h=100'
-              }
-              alt={currentUser?.name || 'User'}
-              className="w-5 h-5 rounded-full object-cover shrink-0 border border-surface-hairline"
+            <UserAvatar
+              name={currentUser?.name}
+              id={currentUser?.id}
+              size="xs"
+              className="shrink-0"
             />
             <span className="hidden md:inline font-medium text-xs">
               {currentUser?.name.split(' ')[0]}

@@ -3,6 +3,7 @@
 import React from 'react';
 import { ParticipantNetBalance } from '@/lib/types';
 import { motion } from 'framer-motion';
+import { UserAvatar } from './UserAvatar';
 
 interface ParticipantBarChartProps {
   netBalances: ParticipantNetBalance[];
@@ -24,10 +25,10 @@ export const ParticipantBarChart: React.FC<ParticipantBarChartProps> = ({ netBal
           >
             <div className="flex items-center justify-between text-xs">
               <div className="flex items-center gap-2">
-                <img
-                  src={nb.participant.avatarUrl}
-                  alt={nb.participant.name}
-                  className="w-5 h-5 rounded-full object-cover border border-surface-hairline"
+                <UserAvatar
+                  name={nb.participant.name}
+                  id={nb.participant.id}
+                  size="xs"
                 />
                 <span className="font-semibold text-ink-primary">{nb.participant.name}</span>
                 {nb.participant.isOrganizer && (

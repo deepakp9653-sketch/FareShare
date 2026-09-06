@@ -16,6 +16,7 @@ import {
   Shield,
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { UserAvatar } from './UserAvatar';
 
 interface AccountSwitcherModalProps {
   isOpen: boolean;
@@ -145,12 +146,12 @@ export const AccountSwitcherModal: React.FC<AccountSwitcherModalProps> = ({
         </div>
 
         {/* Current Active Account Pill */}
-        <div className="p-3 rounded-2xl bg-surface-base border border-surface-hairline flex items-center justify-between">
+        <div className="p-3.5 rounded-2xl bg-surface-base border border-surface-hairline flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <img
-              src={currentUser.avatar}
-              alt={currentUser.name}
-              className="w-9 h-9 rounded-full object-cover border border-surface-hairline"
+            <UserAvatar
+              name={currentUser.name}
+              id={currentUser.id}
+              size="sm"
             />
             <div>
               <div className="flex items-center gap-2">
@@ -169,10 +170,10 @@ export const AccountSwitcherModal: React.FC<AccountSwitcherModalProps> = ({
 
         {/* Account Selector Cards */}
         <div>
-          <label className="block text-xs font-bold text-ink-primary mb-2">
+          <label className="block text-xs font-bold text-ink-primary mb-2.5">
             Select Account to Log In
           </label>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 max-h-48 overflow-y-auto pr-1">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 max-h-56 overflow-y-auto pr-1">
             {users.map((u) => {
               const isSelected = u.id === selectedUserId;
               const isCurrent = u.id === currentUserId;
@@ -184,22 +185,22 @@ export const AccountSwitcherModal: React.FC<AccountSwitcherModalProps> = ({
                     setSelectedUserId(u.id);
                     setErrorMsg('');
                   }}
-                  className={`p-2.5 rounded-xl border text-left transition-all flex items-center gap-2.5 cursor-pointer ${
+                  className={`p-3 rounded-xl border text-left transition-all flex items-center gap-3 cursor-pointer ${
                     isSelected
-                      ? 'border-ink-primary bg-surface-overlay ring-1 ring-ink-primary shadow-sm'
+                      ? 'border-emerald-500 bg-surface-overlay ring-1 ring-emerald-500/40 shadow-sm'
                       : 'border-surface-hairline bg-surface-base hover:bg-surface-overlay'
                   }`}
                 >
-                  <img
-                    src={u.avatar}
-                    alt={u.name}
-                    className="w-8 h-8 rounded-full object-cover shrink-0"
+                  <UserAvatar
+                    name={u.name}
+                    id={u.id}
+                    size="xs"
                   />
                   <div className="min-w-0 flex-1">
                     <div className="flex items-center justify-between">
                       <span className="text-xs font-bold text-ink-primary truncate">{u.name}</span>
                       {isCurrent && (
-                        <span className="text-[9px] text-emerald-500 font-bold">• Active</span>
+                        <span className="text-[9px] text-emerald-400 font-bold">• Active</span>
                       )}
                     </div>
                     <p className="text-[10px] text-ink-muted truncate">{u.email}</p>

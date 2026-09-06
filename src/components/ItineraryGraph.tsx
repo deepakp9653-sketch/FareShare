@@ -6,6 +6,7 @@ import { checkItineraryFeasibility } from '@/lib/ledger-engine';
 import { Plane, Hotel, Compass, UtensilsCrossed, ChevronDown, ChevronUp, Clock, MapPin, Tag, AlertTriangle, CheckCircle2, ShieldAlert } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { animate, stagger } from 'animejs';
+import { UserAvatar } from './UserAvatar';
 
 interface ItineraryGraphProps {
   bookings: Booking[];
@@ -242,15 +243,19 @@ export const ItineraryGraph: React.FC<ItineraryGraphProps> = ({
                             {participants.map((p) => {
                               const isParticipating = b.participantIds.includes(p.id);
                               return (
-                                <img
+                                <div
                                   key={p.id}
-                                  src={p.avatarUrl}
-                                  alt={p.name}
                                   title={`${p.name} (${isParticipating ? 'Participating' : 'Opted Out'})`}
-                                  className={`w-7 h-7 rounded-full object-cover border-2 border-surface-raised transition-all ${
-                                    isParticipating ? 'opacity-100 ring-1 ring-emerald-500/50' : 'opacity-30 grayscale'
+                                  className={`rounded-full transition-all ${
+                                    isParticipating ? 'opacity-100 ring-2 ring-emerald-500/50' : 'opacity-30 grayscale'
                                   }`}
-                                />
+                                >
+                                  <UserAvatar
+                                    name={p.name}
+                                    id={p.id}
+                                    size="xs"
+                                  />
+                                </div>
                               );
                             })}
                           </div>

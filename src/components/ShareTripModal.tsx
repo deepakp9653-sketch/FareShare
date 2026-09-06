@@ -18,6 +18,7 @@ import {
   Link,
 } from 'lucide-react';
 import { motion } from 'framer-motion';
+import { UserAvatar } from './UserAvatar';
 
 interface ShareTripModalProps {
   isOpen: boolean;
@@ -186,7 +187,7 @@ export const ShareTripModal: React.FC<ShareTripModalProps> = ({
                     onClick={() => setSelectedUserEmail(u.email)}
                     className="text-[11px] px-2.5 py-1 rounded-lg bg-surface-base border border-surface-hairline text-ink-primary hover:border-ink-primary transition-all flex items-center gap-1.5 font-medium"
                   >
-                    <img src={u.avatar} alt={u.name} className="w-4 h-4 rounded-full" />
+                    <UserAvatar name={u.name} id={u.id} size="xs" />
                     <span>{u.name}</span>
                   </button>
                 ))}
@@ -229,10 +230,10 @@ export const ShareTripModal: React.FC<ShareTripModalProps> = ({
                 className="flex items-center justify-between p-2 rounded-xl bg-surface-base border border-surface-hairline text-xs"
               >
                 <div className="flex items-center gap-2.5">
-                  <img
-                    src={p.avatarUrl}
-                    alt={p.name}
-                    className="w-7 h-7 rounded-full object-cover"
+                  <UserAvatar
+                    name={p.name}
+                    id={p.id}
+                    size="sm"
                   />
                   <div>
                     <span className="font-bold text-ink-primary">{p.name}</span>

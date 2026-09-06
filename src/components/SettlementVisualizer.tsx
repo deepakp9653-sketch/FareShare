@@ -6,6 +6,7 @@ import { GitCommit, Sparkles, ArrowRight, CheckCircle2, QrCode, User, Zap, Shiel
 import { motion } from 'framer-motion';
 import { animate, stagger } from 'animejs';
 import { UpiQrModal } from './UpiQrModal';
+import { UserAvatar } from './UserAvatar';
 
 interface SettlementVisualizerProps {
   participants: Participant[];
@@ -200,10 +201,10 @@ export const SettlementVisualizer: React.FC<SettlementVisualizerProps> = ({
                       : 'border-surface-hairline z-10'
                   }`}
                 >
-                  <img
-                    src={nb.participant.avatarUrl}
-                    alt={nb.participant.name}
-                    className="w-9 h-9 rounded-full object-cover border border-surface-hairline"
+                  <UserAvatar
+                    name={nb.participant.name}
+                    id={nb.participant.id}
+                    size="sm"
                   />
                   <div>
                     <p className="text-xs font-bold text-ink-primary">{nb.participant.name}</p>

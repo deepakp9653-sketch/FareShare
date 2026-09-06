@@ -4,6 +4,7 @@ import React, { useState } from 'react';
 import { Expense, Participant, Booking, RefundEvent } from '@/lib/types';
 import { Receipt, Plus, Search, Calendar, FileText, ExternalLink, X, CheckCircle2, Image as ImageIcon, AlertCircle, ShieldAlert, Check } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { UserAvatar } from './UserAvatar';
 
 interface ExpensesSectionProps {
   expenses: Expense[];
@@ -132,14 +133,12 @@ export const ExpensesSection: React.FC<ExpensesSectionProps> = ({
                     </div>
                     <p className="text-xs text-ink-muted flex items-center sm:justify-end gap-1 mt-0.5">
                       Paid by{' '}
-                      <span className="font-semibold text-ink-primary flex items-center gap-1">
-                        {payer?.avatarUrl && (
-                          <img
-                            src={payer.avatarUrl}
-                            alt={payer.name}
-                            className="w-4 h-4 rounded-full inline object-cover"
-                          />
-                        )}
+                      <span className="font-semibold text-ink-primary flex items-center gap-1.5">
+                        <UserAvatar
+                          name={payer?.name}
+                          id={payer?.id}
+                          size="xs"
+                        />
                         {payer?.name || 'Unknown'}
                       </span>
                     </p>

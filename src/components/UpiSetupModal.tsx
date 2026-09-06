@@ -4,6 +4,7 @@ import React, { useState } from 'react';
 import { Participant } from '@/lib/types';
 import { X, QrCode, Upload, CheckCircle2, ArrowRight, Image as ImageIcon, ShieldCheck } from 'lucide-react';
 import { motion } from 'framer-motion';
+import { UserAvatar } from './UserAvatar';
 
 interface UpiSetupModalProps {
   isOpen: boolean;
@@ -78,10 +79,10 @@ export const UpiSetupModal: React.FC<UpiSetupModalProps> = ({
         <form onSubmit={handleSubmit} className="space-y-4 text-xs">
           {/* User Profile Summary */}
           <div className="p-3 rounded-2xl bg-surface-base border border-surface-hairline flex items-center gap-3">
-            <img
-              src={currentUser.avatarUrl}
-              alt={currentUser.name}
-              className="w-10 h-10 rounded-full object-cover border border-surface-hairline"
+            <UserAvatar
+              name={currentUser.name}
+              id={currentUser.id}
+              size="md"
             />
             <div>
               <p className="font-serif-display font-bold text-sm text-ink-primary">{currentUser.name}</p>
