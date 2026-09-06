@@ -205,3 +205,53 @@ export async function updateBookingInNeon(
     return false;
   }
 }
+
+export async function findTripByInviteCodeInNeon(inviteCode: string) {
+  try {
+    const cleanCode = inviteCode.trim().toUpperCase();
+    const rows = await sql`
+      SELECT * FROM trips 
+      WHERE UPPER(invite_code) = ${cleanCode} 
+      LIMIT 1;
+    `;
+    if (rows.length === 0) return null;
+    const trip = rows[0];
+    const participants = await sql`SELECT * FROM participants WHERE trip_id = ${trip.id};`;
+    const bookings = await sql`SELECT * FROM bookings WHERE trip_id = ${trip.id};`;
+    const expenses = await sql`SELECT * FROM expenses WHERE trip_id = ${trip.id};`;
+    const events = await sql`SELECT * FROM events WHERE trip_id = ${trip.id} ORDER BY sequence_num ASC;`;
+    return { trip, participants, bookings, expenses, events };
+  } catch (error) {
+    console.error('Neon DB findTripByInviteCode error:', error);
+    return null;
+  }
+}
+
+export async function addParticipantToTripInNeon(tripId: string, participant: any) {
+  try {
+    await sql`
+      INSERT INTO participants (id, trip_id, name, email, avatar_url, is_organizer, status, upi_id, weight, room_tier)
+      VALUES (
+        ${participant.id},
+        ${tripId},
+        ${participant.name},
+        ${participant.email},
+        ${participant.avatarUrl || null},
+        ${participant.isOrganizer || false},
+        ${participant.status || 'active'},
+        ${participant.upiId || null},
+        ${participant.weight || 1},
+        ${participant.roomTier || 'standard'}
+      )
+      ON CONFLICT (id) DO UPDATE SET
+        name = EXCLUDED.name,
+        email = EXCLUDED.email,
+        avatar_url = EXCLUDED.avatar_url,
+        upi_id = EXCLUDED.upi_id;
+    `;
+    return true;
+  } catch (error) {
+    console.error('Neon DB addParticipantToTrip error:', error);
+    return false;
+  }
+}

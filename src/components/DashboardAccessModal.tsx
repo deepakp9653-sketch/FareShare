@@ -8,7 +8,7 @@ import { LiquidGlassButton } from './LiquidGlassButton';
 interface DashboardAccessModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onEnterInviteCode: (code: string) => boolean | void;
+  onEnterInviteCode: (code: string) => Promise<boolean | void> | boolean | void;
   onOpenCreateTrip: () => void;
   onOpenDemoTrip: () => void;
 }
@@ -22,10 +22,11 @@ export const DashboardAccessModal: React.FC<DashboardAccessModalProps> = ({
 }) => {
   const [code, setCode] = useState('');
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
+  const [isSearching, setIsSearching] = useState(false);
 
   if (!isOpen) return null;
 
-  const handleSubmitCode = (e: React.FormEvent) => {
+  const handleSubmitCode = async (e: React.FormEvent) => {
     e.preventDefault();
     setErrorMsg(null);
     const cleanCode = code.trim().toUpperCase();
@@ -34,12 +35,19 @@ export const DashboardAccessModal: React.FC<DashboardAccessModalProps> = ({
       return;
     }
 
-    const res = onEnterInviteCode(cleanCode);
-    if (res === false) {
-      setErrorMsg('Trip invite code not found. Please verify with your organizer or try "GOA2026".');
-    } else {
-      setCode('');
-      onClose();
+    setIsSearching(true);
+    try {
+      const res = await onEnterInviteCode(cleanCode);
+      if (res === false) {
+        setErrorMsg('Trip invite code not found. Please verify with your organizer or try "GOA2026".');
+      } else {
+        setCode('');
+        onClose();
+      }
+    } catch (err: any) {
+      setErrorMsg(err.message || 'Error checking trip invite code.');
+    } finally {
+      setIsSearching(false);
     }
   };
 
@@ -99,10 +107,24 @@ export const DashboardAccessModal: React.FC<DashboardAccessModalProps> = ({
               </div>
               <button
                 type="submit"
-                className="px-4 py-2.5 rounded-xl bg-white text-black hover:bg-neutral-200 text-xs font-bold transition-all shadow-subtle shrink-0 cursor-pointer flex items-center gap-1.5"
+                disabled={isSearching}
+                className={`px-4 py-2.5 rounded-xl text-xs font-bold transition-all shadow-subtle shrink-0 flex items-center gap-1.5 ${
+                  isSearching
+                    ? 'bg-neutral-800 text-neutral-400 cursor-not-allowed'
+                    : 'bg-white text-black hover:bg-neutral-200 cursor-pointer'
+                }`}
               >
-                <span>Enter</span>
-                <ArrowRight className="w-3.5 h-3.5 stroke-[2.5]" />
+                {isSearching ? (
+                  <>
+                    <span className="w-3 h-3 border-2 border-neutral-400 border-t-white rounded-full animate-spin" />
+                    <span>Checking...</span>
+                  </>
+                ) : (
+                  <>
+                    <span>Enter</span>
+                    <ArrowRight className="w-3.5 h-3.5 stroke-[2.5]" />
+                  </>
+                )}
               </button>
             </div>
 

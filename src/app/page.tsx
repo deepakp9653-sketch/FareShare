@@ -143,6 +143,22 @@ export default function Home() {
     }
   }, []);
 
+  // Sync cloud trips from Neon DB on app initialization
+  useEffect(() => {
+    fetch('/api/trips')
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.success && Array.isArray(data.trips) && data.trips.length > 0) {
+          setTrips((prev) => {
+            const existingIds = new Set(prev.map((t) => t.id));
+            const newTrips = data.trips.filter((t: Trip) => !existingIds.has(t.id));
+            return [...prev, ...newTrips];
+          });
+        }
+      })
+      .catch((err) => console.warn('Could not sync cloud trips on load:', err));
+  }, []);
+
   // Persist state changes to localStorage
   useEffect(() => {
     try {
@@ -444,15 +460,81 @@ export default function Home() {
     triggerToast(`Created trip "${newTrip.title}"! Share code: ${inviteCode}`);
   };
 
-  // Join Trip via Invite Code
-  const handleJoinTrip = (
+  // Join Trip via Invite Code (Database Connected)
+  const handleJoinTrip = async (
     inviteCode: string,
     travelerName: string,
     travelerEmail: string,
     upiId: string,
     avatarUrl?: string
-  ): boolean => {
-    const targetTrip = trips.find((t) => t.inviteCode.toUpperCase() === inviteCode.toUpperCase());
+  ): Promise<boolean> => {
+    const cleanCode = inviteCode.trim().toUpperCase();
+
+    // 1. Call server API to join trip in Neon DB
+    try {
+      const res = await fetch('/api/trips/join', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          inviteCode: cleanCode,
+          name: travelerName,
+          email: travelerEmail,
+          upiId,
+          avatarUrl,
+        }),
+      });
+
+      const json = await res.json();
+      if (json.success && json.trip) {
+        const joinedTrip: Trip = json.trip;
+        const currentPart = json.currentParticipant;
+        const allParts: Participant[] = json.participants || [];
+
+        // Update local state with joined trip and participants
+        setTrips((prev) => {
+          const exists = prev.some((t) => t.id === joinedTrip.id);
+          return exists ? prev.map((t) => (t.id === joinedTrip.id ? joinedTrip : t)) : [joinedTrip, ...prev];
+        });
+
+        setParticipantsMap((prev) => ({
+          ...prev,
+          [joinedTrip.id]: allParts,
+        }));
+
+        if (json.bookings && json.bookings.length > 0) {
+          setBookingsMap((prev) => ({
+            ...prev,
+            [joinedTrip.id]: json.bookings,
+          }));
+        }
+
+        if (json.expenses && json.expenses.length > 0) {
+          setExpensesMap((prev) => ({
+            ...prev,
+            [joinedTrip.id]: json.expenses,
+          }));
+        }
+
+        if (json.events && json.events.length > 0) {
+          setEventsMap((prev) => ({
+            ...prev,
+            [joinedTrip.id]: json.events,
+          }));
+        }
+
+        setActiveTripId(joinedTrip.id);
+        setCurrentUserId(currentPart?.id || allParts[allParts.length - 1]?.id || 'p-1');
+        setViewMode('app');
+        setActiveTab('overview');
+        triggerToast(`Welcome to ${joinedTrip.title}, ${travelerName}! Shares updated.`);
+        return true;
+      }
+    } catch (err) {
+      console.warn('Join trip server call failed, trying local fallback:', err);
+    }
+
+    // 2. Local fallback if offline or already cached
+    const targetTrip = trips.find((t) => t.inviteCode?.toUpperCase() === cleanCode);
     if (!targetTrip) return false;
 
     const newPartId = 'p-joined-' + Date.now();
@@ -490,9 +572,9 @@ export default function Home() {
     setViewMode('app');
     setActiveTab('overview');
 
-    recordEvent('TRIP_JOINED_VIA_CODE', `${travelerName} joined trip via Invite Code "${inviteCode}".`, {
+    recordEvent('TRIP_JOINED_VIA_CODE', `${travelerName} joined trip via Invite Code "${cleanCode}".`, {
       participantId: newPartId,
-      inviteCode,
+      inviteCode: cleanCode,
     });
 
     triggerToast(`Welcome to ${targetTrip.title}, ${travelerName}! Shares updated.`);
@@ -1240,13 +1322,43 @@ export default function Home() {
         <DashboardAccessModal
           isOpen={isDashboardAccessOpen}
           onClose={() => setIsDashboardAccessOpen(false)}
-          onEnterInviteCode={(code) => {
-            const targetTrip = trips.find((t) => t.inviteCode.toUpperCase() === code.toUpperCase());
+          onEnterInviteCode={async (code) => {
+            const cleanCode = code.trim().toUpperCase();
+
+            // 1. Check local memory state
+            const targetTrip = trips.find((t) => t.inviteCode?.toUpperCase() === cleanCode);
             if (targetTrip) {
               setActiveTripId(targetTrip.id);
               setViewMode('app');
               return true;
             }
+
+            // 2. Fetch directly from Neon PostgreSQL Database
+            try {
+              const res = await fetch(`/api/trips?inviteCode=${cleanCode}`);
+              const json = await res.json();
+              if (json.success && json.trip) {
+                const fetchedTrip: Trip = json.trip;
+                const allParts: Participant[] = json.participants || [];
+
+                setTrips((prev) => [fetchedTrip, ...prev.filter((t) => t.id !== fetchedTrip.id)]);
+                setParticipantsMap((prev) => ({ ...prev, [fetchedTrip.id]: allParts }));
+                if (json.bookings) setBookingsMap((prev) => ({ ...prev, [fetchedTrip.id]: json.bookings }));
+                if (json.expenses) setExpensesMap((prev) => ({ ...prev, [fetchedTrip.id]: json.expenses }));
+                if (json.events) setEventsMap((prev) => ({ ...prev, [fetchedTrip.id]: json.events }));
+
+                setActiveTripId(fetchedTrip.id);
+                if (allParts.length > 0) {
+                  setCurrentUserId(allParts[0].id);
+                }
+                setViewMode('app');
+                triggerToast(`Loaded trip "${fetchedTrip.title}" from database!`);
+                return true;
+              }
+            } catch (err) {
+              console.warn('Database trip lookup failed:', err);
+            }
+
             return false;
           }}
           onOpenCreateTrip={() => {

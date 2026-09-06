@@ -7,7 +7,7 @@ import { motion } from 'framer-motion';
 interface JoinTripModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onJoinTrip: (inviteCode: string, travelerName: string, travelerEmail: string, upiId: string) => boolean;
+  onJoinTrip: (inviteCode: string, travelerName: string, travelerEmail: string, upiId: string) => Promise<boolean> | boolean;
 }
 
 export const JoinTripModal: React.FC<JoinTripModalProps> = ({
@@ -20,29 +20,37 @@ export const JoinTripModal: React.FC<JoinTripModalProps> = ({
   const [email, setEmail] = useState('');
   const [upiId, setUpiId] = useState('');
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   if (!isOpen) return null;
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setErrorMessage(null);
     if (!inviteCode.trim() || !name.trim()) return;
 
-    const success = onJoinTrip(
-      inviteCode.trim().toUpperCase(),
-      name.trim(),
-      email.trim() || `${name.toLowerCase().replace(/\s+/g, '')}@fareshare.in`,
-      upiId.trim() || `${name.toLowerCase().replace(/\s+/g, '')}@upi`
-    );
+    setIsSubmitting(true);
+    try {
+      const success = await onJoinTrip(
+        inviteCode.trim().toUpperCase(),
+        name.trim(),
+        email.trim() || `${name.toLowerCase().replace(/\s+/g, '')}@fareshare.in`,
+        upiId.trim() || `${name.toLowerCase().replace(/\s+/g, '')}@upi`
+      );
 
-    if (success) {
-      setInviteCode('');
-      setName('');
-      setEmail('');
-      setUpiId('');
-      onClose();
-    } else {
-      setErrorMessage('Invalid 6-character Trip Invite Code. Please verify with your organizer.');
+      if (success) {
+        setInviteCode('');
+        setName('');
+        setEmail('');
+        setUpiId('');
+        onClose();
+      } else {
+        setErrorMessage('Invalid 6-character Trip Invite Code. Please verify with your organizer.');
+      }
+    } catch (err: any) {
+      setErrorMessage(err.message || 'Failed to join trip. Please try again.');
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -142,10 +150,24 @@ export const JoinTripModal: React.FC<JoinTripModalProps> = ({
 
           <button
             type="submit"
-            className="w-full py-3 rounded-xl bg-white text-black hover:bg-neutral-200 font-semibold text-xs shadow-subtle flex items-center justify-center gap-2 transition-all mt-2"
+            disabled={isSubmitting}
+            className={`w-full py-3 rounded-xl font-semibold text-xs shadow-subtle flex items-center justify-center gap-2 transition-all mt-2 ${
+              isSubmitting
+                ? 'bg-neutral-800 text-neutral-400 cursor-not-allowed'
+                : 'bg-white text-black hover:bg-neutral-200 cursor-pointer'
+            }`}
           >
-            <CheckCircle2 className="w-4 h-4" />
-            <span>Join Trip Roster & Launch Ledger</span>
+            {isSubmitting ? (
+              <>
+                <span className="w-3.5 h-3.5 border-2 border-neutral-400 border-t-white rounded-full animate-spin" />
+                <span>Connecting to Squad Ledger...</span>
+              </>
+            ) : (
+              <>
+                <CheckCircle2 className="w-4 h-4" />
+                <span>Join Trip Roster & Launch Ledger</span>
+              </>
+            )}
           </button>
         </form>
       </motion.div>
