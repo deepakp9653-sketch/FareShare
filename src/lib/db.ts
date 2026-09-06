@@ -274,7 +274,13 @@ export async function findTripByInviteCodeInNeon(inviteCode: string) {
     const bookings = await sql`SELECT * FROM bookings WHERE trip_id = ${trip.id};`;
     const expenses = await fetchTripExpensesWithAllocations(trip.id);
     const events = await sql`SELECT * FROM events WHERE trip_id = ${trip.id} ORDER BY sequence_num ASC;`;
-    return { trip, participants, bookings, expenses, events };
+    let payments: any[] = [];
+    try {
+      payments = await sql`SELECT * FROM payments WHERE trip_id = ${trip.id} ORDER BY created_at ASC;`;
+    } catch {
+      payments = [];
+    }
+    return { trip, participants, bookings, expenses, events, payments };
   } catch (error) {
     console.error('Neon DB findTripByInviteCode error:', error);
     return null;

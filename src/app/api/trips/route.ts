@@ -119,12 +119,23 @@ export async function GET(req: Request) {
         };
       });
 
+      const formattedPayments = (data.payments || []).map((p: any) => ({
+        id: p.id,
+        tripId: p.trip_id || p.tripId,
+        payerId: p.payer_id || p.payerId,
+        payeeId: p.payee_id || p.payeeId,
+        amount: Number(p.amount || 0),
+        note: p.note || undefined,
+        createdAt: p.created_at || p.createdAt,
+      }));
+
       return NextResponse.json({
         success: true,
         trip: formattedTrip,
         participants: formattedParticipants,
         bookings: formattedBookings,
         expenses: formattedExpenses,
+        payments: formattedPayments,
         events: formattedEvents,
       });
     }
@@ -140,6 +151,12 @@ export async function GET(req: Request) {
       const bookings = await sql`SELECT * FROM bookings WHERE trip_id = ${tripId};`;
       const expenses = await fetchTripExpensesWithAllocations(tripId);
       const rawEvents = await sql`SELECT * FROM events WHERE trip_id = ${tripId} ORDER BY sequence_num ASC;`;
+      let rawPayments: any[] = [];
+      try {
+        rawPayments = await sql`SELECT * FROM payments WHERE trip_id = ${tripId} ORDER BY created_at ASC;`;
+      } catch {
+        rawPayments = [];
+      }
 
       const formattedTrip = {
         id: rawTrip.id,
@@ -245,12 +262,23 @@ export async function GET(req: Request) {
         };
       });
 
+      const formattedPayments = (rawPayments || []).map((p: any) => ({
+        id: p.id,
+        tripId: p.trip_id || p.tripId,
+        payerId: p.payer_id || p.payerId,
+        payeeId: p.payee_id || p.payeeId,
+        amount: Number(p.amount || 0),
+        note: p.note || undefined,
+        createdAt: p.created_at || p.createdAt,
+      }));
+
       return NextResponse.json({
         success: true,
         trip: formattedTrip,
         participants: formattedParticipants,
         bookings: formattedBookings,
         expenses: formattedExpenses,
+        payments: formattedPayments,
         events: formattedEvents,
       });
     }
