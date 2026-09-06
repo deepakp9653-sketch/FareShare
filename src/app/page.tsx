@@ -161,7 +161,28 @@ export default function Home() {
         }
         if (data.participantsMap) setParticipantsMap(data.participantsMap);
         if (data.paymentsMap) setPaymentsMap(data.paymentsMap);
-        if (data.eventsMap) setEventsMap(data.eventsMap);
+        if (data.eventsMap) {
+          const sanitizedEventsMap: Record<string, LedgerEvent[]> = {};
+          Object.keys(data.eventsMap).forEach((tid) => {
+            sanitizedEventsMap[tid] = (data.eventsMap[tid] || []).map((e: any, idx: number) => {
+              const eventType = e.eventType || e.event_type || 'LEDGER_EVENT';
+              const payload = e.payload || e.payload_json || {};
+              const description = e.description || payload.description || payload.reason || `${eventType.replace(/_/g, ' ')} recorded`;
+              return {
+                id: e.id || `evt-${Date.now()}-${idx}`,
+                tripId: e.tripId || e.trip_id || tid,
+                eventType,
+                actorId: e.actorId || e.actor_id || 'system',
+                actorName: e.actorName || e.actor_name || 'Traveler',
+                timestamp: e.timestamp || e.created_at || new Date().toISOString(),
+                description,
+                payload,
+                sequenceNum: Number(e.sequenceNum ?? e.sequence_num ?? idx + 1),
+              };
+            });
+          });
+          setEventsMap(sanitizedEventsMap);
+        }
 
         // Keep in app dashboard if previously in app or invite code present in URL or storage
         if (dedicatedMode === 'app' || data.viewMode === 'app' || urlTrip) {
@@ -198,7 +219,25 @@ export default function Home() {
                 }));
                 setExpensesMap((prev) => ({ ...prev, [json.trip.id]: safeExpenses }));
               }
-              if (json.events) setEventsMap((prev) => ({ ...prev, [json.trip.id]: json.events }));
+              if (json.events) {
+                const safeEvents = (json.events || []).map((e: any, idx: number) => {
+                  const eventType = e.eventType || e.event_type || 'LEDGER_EVENT';
+                  const payload = e.payload || e.payload_json || {};
+                  const description = e.description || payload.description || payload.reason || `${eventType.replace(/_/g, ' ')} recorded`;
+                  return {
+                    id: e.id || `evt-${Date.now()}-${idx}`,
+                    tripId: e.tripId || e.trip_id || json.trip.id,
+                    eventType,
+                    actorId: e.actorId || e.actor_id || 'system',
+                    actorName: e.actorName || e.actor_name || 'Traveler',
+                    timestamp: e.timestamp || e.created_at || new Date().toISOString(),
+                    description,
+                    payload,
+                    sequenceNum: Number(e.sequenceNum ?? e.sequence_num ?? idx + 1),
+                  };
+                });
+                setEventsMap((prev) => ({ ...prev, [json.trip.id]: safeEvents }));
+              }
               setActiveTripId(json.trip.id);
               if (json.participants && json.participants.length > 0) {
                 setCurrentUserId(json.participants[0].id);

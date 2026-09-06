@@ -33,7 +33,7 @@ export const ActivityLogSection: React.FC<ActivityLogSectionProps> = ({ events, 
   const [expandedPayloadId, setExpandedPayloadId] = useState<string | null>(null);
   const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
 
-  const getEventBadge = (type: string) => {
+  const getEventBadge = (type?: string) => {
     switch (type) {
       case 'TRIP_CREATED':
         return {
@@ -87,25 +87,32 @@ export const ActivityLogSection: React.FC<ActivityLogSectionProps> = ({ events, 
     }
   };
 
-  const filteredEvents = events.filter((evt) => {
+  const filteredEvents = (events || []).filter((evt) => {
+    if (!evt) return false;
+    const rawEvt = evt as any;
+    const eventType = String(evt.eventType || rawEvt.event_type || 'LEDGER_EVENT');
+    const description = String(evt.description || rawEvt.payload?.description || rawEvt.payload_json?.description || '');
+    const actorName = String(evt.actorName || rawEvt.actor_name || rawEvt.actor_id || evt.actorId || 'Traveler');
+
+    const searchLower = (searchTerm || '').toLowerCase();
     const matchesSearch =
-      evt.eventType.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      evt.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      evt.actorName.toLowerCase().includes(searchTerm.toLowerCase());
+      eventType.toLowerCase().includes(searchLower) ||
+      description.toLowerCase().includes(searchLower) ||
+      actorName.toLowerCase().includes(searchLower);
 
     if (!matchesSearch) return false;
 
     if (selectedFilter === 'refunds') {
-      return ['BOOKING_CANCELLED', 'REFUND_CREDITED'].includes(evt.eventType);
+      return ['BOOKING_CANCELLED', 'REFUND_CREDITED'].includes(eventType);
     }
     if (selectedFilter === 'expenses') {
-      return ['EXPENSE_LOGGED', 'EXPENSE_CORRECTED', 'PAYMENT_RECORDED', 'SETTLEMENT_CONFIRMED'].includes(evt.eventType);
+      return ['EXPENSE_LOGGED', 'EXPENSE_CORRECTED', 'PAYMENT_RECORDED', 'SETTLEMENT_CONFIRMED'].includes(eventType);
     }
     if (selectedFilter === 'bookings') {
-      return ['BOOKING_CREATED', 'BOOKING_MODIFIED', 'BOOKING_CANCELLED'].includes(evt.eventType);
+      return ['BOOKING_CREATED', 'BOOKING_MODIFIED', 'BOOKING_CANCELLED'].includes(eventType);
     }
     if (selectedFilter === 'roster') {
-      return ['PARTICIPANT_ADDED', 'PARTICIPANT_REMOVED', 'TRIP_JOINED_VIA_CODE'].includes(evt.eventType);
+      return ['PARTICIPANT_ADDED', 'PARTICIPANT_REMOVED', 'TRIP_JOINED_VIA_CODE'].includes(eventType);
     }
 
     return true;
@@ -126,7 +133,7 @@ export const ActivityLogSection: React.FC<ActivityLogSectionProps> = ({ events, 
 
         <span className="text-xs px-3.5 py-1.5 rounded-xl bg-surface-base text-ink-primary border border-surface-hairline font-bold font-numeric flex items-center gap-2">
           <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-          <span>Total Events Logged: {events.length}</span>
+          <span>Total Events Logged: {(events || []).length}</span>
         </span>
       </div>
 
@@ -174,7 +181,13 @@ export const ActivityLogSection: React.FC<ActivityLogSectionProps> = ({ events, 
           </div>
         ) : (
           filteredEvents.map((evt, idx) => {
-            const badge = getEventBadge(evt.eventType);
+            const rawEvt = evt as any;
+            const eventType = String(evt.eventType || rawEvt.event_type || 'LEDGER_EVENT');
+            const description = String(evt.description || rawEvt.payload?.description || rawEvt.payload_json?.description || `${eventType.replace(/_/g, ' ')} recorded`);
+            const actorName = String(evt.actorName || rawEvt.actor_name || rawEvt.actor_id || evt.actorId || 'Traveler');
+            const sequenceNum = evt.sequenceNum ?? rawEvt.sequence_num ?? (idx + 1);
+            const timestamp = evt.timestamp || rawEvt.created_at || new Date().toISOString();
+            const badge = getEventBadge(eventType);
             const isPayloadExpanded = expandedPayloadId === evt.id;
 
             return (
@@ -193,17 +206,17 @@ export const ActivityLogSection: React.FC<ActivityLogSectionProps> = ({ events, 
                 <div className="flex flex-wrap items-center justify-between gap-2 text-xs">
                   <div className="flex flex-wrap items-center gap-2">
                     <span className="font-numeric font-bold text-brand-gold bg-brand-gold/15 px-2 py-0.5 rounded text-[11px] border border-brand-gold/30">
-                      Seq #{evt.sequenceNum}
+                      Seq #{sequenceNum}
                     </span>
                     <span className={`font-bold px-2.5 py-0.5 rounded-full border text-[11px] uppercase tracking-wider ${badge.color}`}>
-                      {evt.eventType.replace(/_/g, ' ')}
+                      {eventType.replace(/_/g, ' ')}
                     </span>
                   </div>
 
                   <span className="text-ink-muted text-[11px] font-mono flex items-center gap-1.5">
                     <Clock className="w-3 h-3 text-emerald-400 shrink-0" />
                     <span>
-                      {new Date(evt.timestamp).toLocaleString('en-IN', {
+                      {new Date(timestamp).toLocaleString('en-IN', {
                         day: 'numeric',
                         month: 'short',
                         year: 'numeric',
@@ -216,12 +229,12 @@ export const ActivityLogSection: React.FC<ActivityLogSectionProps> = ({ events, 
                   </span>
                 </div>
 
-                <p className="text-xs text-ink-primary font-medium leading-relaxed">{evt.description}</p>
+                <p className="text-xs text-ink-primary font-medium leading-relaxed">{description}</p>
 
                 <div className="flex flex-wrap items-center justify-between gap-2 text-[11px] text-ink-muted pt-1 border-t border-surface-hairline/60">
                   <div className="flex items-center gap-1">
                     <span>Logged By:</span>
-                    <span className="font-semibold text-ink-primary">{evt.actorName}</span>
+                    <span className="font-semibold text-ink-primary">{actorName}</span>
                   </div>
 
                   <div className="flex items-center gap-3">

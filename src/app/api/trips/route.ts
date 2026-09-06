@@ -101,13 +101,31 @@ export async function GET(req: Request) {
         };
       });
 
+      const formattedEvents = (data.events || []).map((e: any) => {
+        const actor = formattedParticipants.find((p: any) => p.id === (e.actorId || e.actor_id));
+        const payload = e.payload || e.payload_json || {};
+        const eventType = e.eventType || e.event_type || 'LEDGER_EVENT';
+        const description = e.description || payload.description || payload.reason || `${eventType.replace(/_/g, ' ')} recorded`;
+        return {
+          id: e.id,
+          tripId: e.tripId || e.trip_id,
+          eventType,
+          actorId: e.actorId || e.actor_id || 'system',
+          actorName: e.actorName || actor?.name || 'Traveler',
+          timestamp: e.timestamp || e.created_at || new Date().toISOString(),
+          description,
+          payload,
+          sequenceNum: Number(e.sequenceNum ?? e.sequence_num ?? 1),
+        };
+      });
+
       return NextResponse.json({
         success: true,
         trip: formattedTrip,
         participants: formattedParticipants,
         bookings: formattedBookings,
         expenses: formattedExpenses,
-        events: data.events || [],
+        events: formattedEvents,
       });
     }
 
@@ -121,6 +139,7 @@ export async function GET(req: Request) {
       const participants = await sql`SELECT * FROM participants WHERE trip_id = ${tripId};`;
       const bookings = await sql`SELECT * FROM bookings WHERE trip_id = ${tripId};`;
       const expenses = await fetchTripExpensesWithAllocations(tripId);
+      const rawEvents = await sql`SELECT * FROM events WHERE trip_id = ${tripId} ORDER BY sequence_num ASC;`;
 
       const formattedTrip = {
         id: rawTrip.id,
@@ -208,12 +227,31 @@ export async function GET(req: Request) {
         };
       });
 
+      const formattedEvents = (rawEvents || []).map((e: any) => {
+        const actor = formattedParticipants.find((p: any) => p.id === (e.actorId || e.actor_id));
+        const payload = e.payload || e.payload_json || {};
+        const eventType = e.eventType || e.event_type || 'LEDGER_EVENT';
+        const description = e.description || payload.description || payload.reason || `${eventType.replace(/_/g, ' ')} recorded`;
+        return {
+          id: e.id,
+          tripId: e.tripId || e.trip_id,
+          eventType,
+          actorId: e.actorId || e.actor_id || 'system',
+          actorName: e.actorName || actor?.name || 'Traveler',
+          timestamp: e.timestamp || e.created_at || new Date().toISOString(),
+          description,
+          payload,
+          sequenceNum: Number(e.sequenceNum ?? e.sequence_num ?? 1),
+        };
+      });
+
       return NextResponse.json({
         success: true,
         trip: formattedTrip,
         participants: formattedParticipants,
         bookings: formattedBookings,
         expenses: formattedExpenses,
+        events: formattedEvents,
       });
     }
 
