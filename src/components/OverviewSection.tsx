@@ -431,6 +431,7 @@ export const OverviewSection: React.FC<OverviewSectionProps> = ({
                           <UserAvatar
                             name={payer?.name}
                             id={payer?.id}
+                            avatarUrl={payer?.avatarUrl}
                             size="xs"
                             className="shrink-0"
                           />
@@ -438,13 +439,19 @@ export const OverviewSection: React.FC<OverviewSectionProps> = ({
                             <span className="font-semibold text-ink-primary truncate block">
                               {exp.title}
                             </span>
-                            <span className="text-[11px] text-ink-muted flex items-center gap-1.5">
+                            <span className="text-[11px] text-ink-muted flex items-center gap-1.5 flex-wrap">
                               <span>Paid by {payer?.name.split(' ')[0] || 'Unknown'}</span>
                               <span>•</span>
                               <span className="capitalize">{exp.category}</span>
                               <span>•</span>
-                              <span className="font-mono text-[10px] uppercase bg-surface-hairline px-1.5 py-0.2 rounded">
-                                {exp.splitMethod}
+                              <span className="font-mono text-[10px] text-emerald-400/90">
+                                {new Date(exp.createdAt).toLocaleString('en-IN', {
+                                  month: 'short',
+                                  day: 'numeric',
+                                  hour: '2-digit',
+                                  minute: '2-digit',
+                                  hour12: true,
+                                })}
                               </span>
                             </span>
                           </div>

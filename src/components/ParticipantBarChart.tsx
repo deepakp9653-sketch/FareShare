@@ -28,6 +28,7 @@ export const ParticipantBarChart: React.FC<ParticipantBarChartProps> = ({ netBal
                 <UserAvatar
                   name={nb.participant.name}
                   id={nb.participant.id}
+                  avatarUrl={nb.participant.avatarUrl}
                   size="xs"
                 />
                 <span className="font-semibold text-ink-primary">{nb.participant.name}</span>

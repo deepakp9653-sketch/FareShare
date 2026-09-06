@@ -183,7 +183,7 @@ export const EditBookingModal: React.FC<EditBookingModalProps> = ({
                           : 'border-surface-border bg-surface-elevated text-ink-muted hover:border-ink-muted'
                       }`}
                     >
-                      <UserAvatar name={p.name} id={p.id} size="xs" />
+                      <UserAvatar name={p.name} id={p.id} avatarUrl={p.avatarUrl} size="xs" />
                       <span className="truncate">{p.name}</span>
                     </button>
                   );

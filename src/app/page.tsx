@@ -16,6 +16,7 @@ import {
   Participant,
   Booking,
   Expense,
+  ExpenseAllocation,
   Payment,
   LedgerEvent,
   SplitMethod,
@@ -72,8 +73,9 @@ import { DebtReassignmentModal } from '@/components/DebtReassignmentModal';
 import { OfflineQueueIndicator } from '@/components/OfflineQueueIndicator';
 import { AccountSwitcherModal } from '@/components/AccountSwitcherModal';
 import { ShareTripModal } from '@/components/ShareTripModal';
+import { DashboardAccessModal } from '@/components/DashboardAccessModal';
 import { DEMO_USERS } from '@/lib/user-store';
-import { logEventToNeon, saveRefundToNeon, updateBookingInNeon } from '@/lib/db';
+import { logEventToNeon, saveRefundToNeon, updateBookingInNeon, saveBookingToNeon } from '@/lib/db';
 import { motion, AnimatePresence } from 'framer-motion';
 
 export default function Home() {
@@ -118,11 +120,12 @@ export default function Home() {
   const [isUpiSetupOpen, setIsUpiSetupOpen] = useState<boolean>(false);
   const [isAccountSwitcherOpen, setIsAccountSwitcherOpen] = useState<boolean>(false);
   const [isShareTripOpen, setIsShareTripOpen] = useState<boolean>(false);
+  const [isDashboardAccessOpen, setIsDashboardAccessOpen] = useState<boolean>(false);
 
   // Hydrate persistent state on client mount (trips and settings)
   useEffect(() => {
     try {
-      const saved = localStorage.getItem('group_ledger_session_v3');
+      const saved = localStorage.getItem('group_ledger_session_v4');
       if (saved) {
         const data = JSON.parse(saved);
         if (data.activeTripId) setActiveTripId(data.activeTripId);
@@ -133,6 +136,7 @@ export default function Home() {
         if (data.bookingsMap) setBookingsMap(data.bookingsMap);
         if (data.participantsMap) setParticipantsMap(data.participantsMap);
         if (data.paymentsMap) setPaymentsMap(data.paymentsMap);
+        if (data.eventsMap) setEventsMap(data.eventsMap);
       }
     } catch (e) {
       console.warn('Could not restore session from localStorage:', e);
@@ -143,7 +147,7 @@ export default function Home() {
   useEffect(() => {
     try {
       localStorage.setItem(
-        'group_ledger_session_v3',
+        'group_ledger_session_v4',
         JSON.stringify({
           activeTripId,
           activeTab,
@@ -153,6 +157,7 @@ export default function Home() {
           bookingsMap,
           participantsMap,
           paymentsMap,
+          eventsMap,
         })
       );
     } catch (e) {
@@ -167,6 +172,7 @@ export default function Home() {
     bookingsMap,
     participantsMap,
     paymentsMap,
+    eventsMap,
   ]);
 
   // Phase 1 New Modals State
@@ -321,7 +327,17 @@ export default function Home() {
       [trip.id]: [newEvt, ...(prev[trip.id] || [])],
     }));
 
-    logEventToNeon(trip.id, eventType, currentUserId, payload);
+    // Secure server-side event logging to Neon DB
+    fetch('/api/events', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        tripId: trip.id,
+        eventType,
+        actorId: currentUserId,
+        payload,
+      }),
+    }).catch((err) => console.warn('Neon DB event persistence background sync:', err));
   };
 
   // Creator-First Trip Creation
@@ -330,6 +346,7 @@ export default function Home() {
       name: string;
       email: string;
       upiId: string;
+      avatarUrl?: string;
     },
     tripData: {
       title: string;
@@ -343,6 +360,7 @@ export default function Home() {
       email: string;
       upiId: string;
       roomTier: 'suite' | 'standard' | 'economy';
+      avatarUrl?: string;
     }>
   ) => {
     const newTripId = 'trip-' + Date.now();
@@ -370,7 +388,7 @@ export default function Home() {
       tripId: newTripId,
       name: creator.name,
       email: creator.email,
-      avatarUrl: `https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80`,
+      avatarUrl: creator.avatarUrl?.trim() || '',
       isOrganizer: true,
       status: 'active',
       upiId: creator.upiId,
@@ -383,7 +401,7 @@ export default function Home() {
       tripId: newTripId,
       name: p.name,
       email: p.email,
-      avatarUrl: `https://images.unsplash.com/photo-${1500000000000 + idx * 10000}?w=150&auto=format&fit=crop&q=80`,
+      avatarUrl: p.avatarUrl?.trim() || '',
       isOrganizer: false,
       status: 'active',
       upiId: p.upiId,
@@ -413,6 +431,13 @@ export default function Home() {
     };
     setEventsMap((prev) => ({ ...prev, [newTripId]: [initEvt] }));
 
+    // Secure server-side trip and participant persistence to Neon PostgreSQL DB
+    fetch('/api/trips', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ trip: newTrip, participants: allParts }),
+    }).catch((err) => console.warn('Neon DB trip persistence background sync:', err));
+
     setCurrentUserId(creatorId);
     setViewMode('app');
     setActiveTab('overview');
@@ -424,7 +449,8 @@ export default function Home() {
     inviteCode: string,
     travelerName: string,
     travelerEmail: string,
-    upiId: string
+    upiId: string,
+    avatarUrl?: string
   ): boolean => {
     const targetTrip = trips.find((t) => t.inviteCode.toUpperCase() === inviteCode.toUpperCase());
     if (!targetTrip) return false;
@@ -435,7 +461,7 @@ export default function Home() {
       tripId: targetTrip.id,
       name: travelerName,
       email: travelerEmail,
-      avatarUrl: `https://images.unsplash.com/photo-${1500000000000 + Math.floor(Math.random() * 100000)}?w=150&auto=format&fit=crop&q=80`,
+      avatarUrl: avatarUrl?.trim() || '',
       isOrganizer: false,
       status: 'active',
       upiId,
@@ -490,7 +516,7 @@ export default function Home() {
       tripId: trip.id,
       name,
       email,
-      avatarUrl: `https://images.unsplash.com/photo-${1500000000000 + Math.floor(Math.random() * 100000)}?w=150&auto=format&fit=crop&q=80`,
+      avatarUrl: '',
       isOrganizer: false,
       status: 'active',
       upiId: `${name.toLowerCase().replace(/\s+/g, '')}@upi`,
@@ -549,13 +575,13 @@ export default function Home() {
     triggerToast(`Added ${newP.name} to roster. Balances recalculated!`);
   };
 
-  const handleAddParticipant = (name: string, email: string, isOrganizer: boolean) => {
+  const handleAddParticipant = (name: string, email: string, isOrganizer: boolean, avatarUrl?: string) => {
     const newP: Participant = {
       id: 'p-' + Date.now(),
       tripId: trip.id,
       name,
       email,
-      avatarUrl: `https://images.unsplash.com/photo-${1500000000000 + Math.floor(Math.random() * 100000)}?w=150&auto=format&fit=crop&q=80`,
+      avatarUrl: avatarUrl?.trim() || '',
       isOrganizer,
       status: 'active',
       upiId: `${name.toLowerCase().replace(/\s+/g, '')}@upi`,
@@ -613,6 +639,8 @@ export default function Home() {
     totalAmount: number;
     splitMethod: SplitMethod;
     paidById: string;
+    paidBySplits?: { participantId: string; amount: number }[];
+    allocations?: ExpenseAllocation[];
     bookingId?: string;
     category: BookingCategory;
     subsidyAmount?: number;
@@ -648,9 +676,11 @@ export default function Home() {
     }
 
     const activeParts = participants.filter((p) => p.status === 'active');
-    const allocations = calculateSplits(data.totalAmount, data.splitMethod, activeParts, {
-      subsidyAmount: data.subsidyAmount,
-    });
+    const allocations = (data.splitMethod === 'manual' && data.allocations && data.allocations.length > 0)
+      ? data.allocations
+      : calculateSplits(data.totalAmount, data.splitMethod, activeParts, {
+          subsidyAmount: data.subsidyAmount,
+        });
 
     const newExpense: Expense = {
       id: 'e-' + Date.now(),
@@ -661,6 +691,7 @@ export default function Home() {
       currency: 'INR',
       splitMethod: data.splitMethod,
       paidById: data.paidById,
+      paidBySplits: data.paidBySplits,
       category: data.category,
       createdAt: new Date().toISOString(),
       allocations,
@@ -685,6 +716,13 @@ export default function Home() {
         ),
       }));
     }
+
+    // Secure server-side expense and allocations persistence to Neon PostgreSQL DB
+    fetch('/api/expenses', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ expense: newExpense }),
+    }).catch((err) => console.warn('Neon DB expense persistence error:', err));
 
     recordEvent(
       'EXPENSE_LOGGED',
@@ -736,6 +774,13 @@ export default function Home() {
             ...prev,
             [trip.id]: [newExpense, ...(prev[trip.id] || [])],
           }));
+
+          // Secure server-side expense persistence to Neon PostgreSQL DB
+          fetch('/api/expenses', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ expense: newExpense }),
+          }).catch((err) => console.warn('Neon DB offline expense sync error:', err));
 
           recordEvent(
             'OFFLINE_COMMAND_SYNCED',
@@ -814,6 +859,14 @@ export default function Home() {
     setIsSplitDrawerOpen(true);
   };
 
+  const handleDeleteEvent = (eventId: string) => {
+    setEventsMap((prev) => ({
+      ...prev,
+      [trip.id]: (prev[trip.id] || []).filter((e) => e.id !== eventId),
+    }));
+    triggerToast('Audit event removed from activity log.');
+  };
+
   const handleAddBooking = (data: {
     category: BookingCategory;
     title: string;
@@ -840,6 +893,7 @@ export default function Home() {
       ...prev,
       [trip.id]: [...(prev[trip.id] || []), newBooking],
     }));
+    saveBookingToNeon(newBooking).catch((err) => console.warn('Neon DB booking sync:', err));
     recordEvent('BOOKING_CREATED', `Added booking "${data.title}" to itinerary.`, { bookingId: newBooking.id });
     triggerToast(`Added booking "${data.title}" to itinerary graph.`);
   };
@@ -1178,9 +1232,31 @@ export default function Home() {
     return (
       <>
         <LandingPage
-          onEnterApp={() => setViewMode('app')}
+          onEnterApp={() => setIsDashboardAccessOpen(true)}
           onOpenCreateTrip={() => setIsCreateTripOpen(true)}
           onOpenJoinTrip={() => setIsJoinTripOpen(true)}
+        />
+
+        <DashboardAccessModal
+          isOpen={isDashboardAccessOpen}
+          onClose={() => setIsDashboardAccessOpen(false)}
+          onEnterInviteCode={(code) => {
+            const targetTrip = trips.find((t) => t.inviteCode.toUpperCase() === code.toUpperCase());
+            if (targetTrip) {
+              setActiveTripId(targetTrip.id);
+              setViewMode('app');
+              return true;
+            }
+            return false;
+          }}
+          onOpenCreateTrip={() => {
+            setIsDashboardAccessOpen(false);
+            setIsCreateTripOpen(true);
+          }}
+          onOpenDemoTrip={() => {
+            setActiveTripId(INITIAL_TRIP.id);
+            setViewMode('app');
+          }}
         />
 
         <CreateTripModal
@@ -1328,7 +1404,9 @@ export default function Home() {
               />
             )}
 
-            {activeTab === 'activity' && <ActivityLogSection events={events} />}
+            {activeTab === 'activity' && (
+              <ActivityLogSection events={events} onDeleteEvent={handleDeleteEvent} />
+            )}
           </motion.div>
         </AnimatePresence>
       </DashboardShell>

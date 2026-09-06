@@ -34,6 +34,10 @@ import {
   Wifi,
   WifiOff,
   Home,
+  Calculator,
+  FileCheck,
+  Layers,
+  MoreHorizontal,
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { UserAvatar } from './UserAvatar';
@@ -306,6 +310,7 @@ export const DashboardShell: React.FC<DashboardShellProps> = ({
               <UserAvatar
                 name={currentUser?.name}
                 id={currentUser?.id}
+                avatarUrl={currentUser?.avatarUrl}
                 size="sm"
                 className="shrink-0"
               />
@@ -411,50 +416,194 @@ export const DashboardShell: React.FC<DashboardShellProps> = ({
               <UserAvatar
                 name={currentUser?.name}
                 id={currentUser?.id}
+                avatarUrl={currentUser?.avatarUrl}
                 size="xs"
               />
             </button>
           </div>
         </header>
 
-        {/* Mobile Navigation Drawer */}
+        {/* Mobile Navigation & Tool Drawer */}
         <AnimatePresence>
           {isMobileMenuOpen && (
             <motion.div
               initial={{ height: 0, opacity: 0 }}
               animate={{ height: 'auto', opacity: 1 }}
               exit={{ height: 0, opacity: 0 }}
-              className="lg:hidden bg-surface-raised border-b border-surface-hairline px-4 py-3 space-y-2 z-20 overflow-hidden"
+              className="lg:hidden bg-surface-raised border-b border-surface-hairline px-4 py-4 space-y-4 z-40 max-h-[80vh] overflow-y-auto"
             >
-              <div className="grid grid-cols-2 gap-2">
-                {navItems.map((item) => (
+              {/* Trip & Member Header in Mobile Drawer */}
+              <div className="flex items-center justify-between pb-3 border-b border-surface-hairline">
+                <div className="flex items-center gap-2.5">
+                  <UserAvatar
+                    name={currentUser?.name}
+                    id={currentUser?.id}
+                    avatarUrl={currentUser?.avatarUrl}
+                    size="sm"
+                  />
+                  <div>
+                    <span className="text-xs font-bold text-ink-primary block">{currentUser?.name}</span>
+                    <span className="text-[10px] text-ink-muted font-mono">{trip.title} ({trip.inviteCode})</span>
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-1.5">
                   <button
-                    key={item.id}
                     onClick={() => {
-                      onTabChange(item.id);
                       setIsMobileMenuOpen(false);
+                      onOpenAccountSwitcher();
                     }}
-                    className={`p-2.5 rounded-lg text-xs font-medium flex items-center justify-between ${
-                      activeTab === item.id
-                        ? 'bg-ink-primary text-surface-base font-bold'
-                        : 'bg-surface-overlay text-ink-secondary'
-                    }`}
+                    className="px-2.5 py-1 rounded-lg bg-surface-overlay text-[11px] font-semibold text-ink-secondary hover:text-ink-primary border border-surface-hairline"
                   >
-                    <span>{item.label}</span>
-                    {item.count !== undefined && <span className="font-mono">{item.count}</span>}
+                    Switch User
                   </button>
-                ))}
+                  <button
+                    onClick={() => {
+                      setIsMobileMenuOpen(false);
+                      onOpenTripSwitcher();
+                    }}
+                    className="px-2.5 py-1 rounded-lg bg-surface-overlay text-[11px] font-semibold text-emerald-400 border border-surface-hairline"
+                  >
+                    Trips
+                  </button>
+                </div>
+              </div>
+
+              {/* Fast Action Buttons */}
+              <div className="grid grid-cols-2 gap-2">
+                <button
+                  onClick={() => {
+                    setIsMobileMenuOpen(false);
+                    onOpenAddExpense();
+                  }}
+                  className="p-2.5 rounded-xl bg-white text-black font-bold text-xs flex items-center justify-center gap-2 shadow-subtle cursor-pointer hover:bg-neutral-200 transition-all"
+                >
+                  <Plus className="w-4 h-4 stroke-[3]" />
+                  <span>Log Expense</span>
+                </button>
+
+                <button
+                  onClick={() => {
+                    setIsMobileMenuOpen(false);
+                    onOpenAddBooking();
+                  }}
+                  className="p-2.5 rounded-xl bg-surface-overlay border border-surface-hairline font-semibold text-xs text-ink-primary flex items-center justify-center gap-2 hover:bg-surface-hairline transition-all cursor-pointer"
+                >
+                  <Calendar className="w-4 h-4 text-accent-cyan" />
+                  <span>New Booking</span>
+                </button>
+              </div>
+
+              {/* Navigation Tabs Grid */}
+              <div className="space-y-1.5">
+                <span className="text-[10px] font-mono uppercase tracking-widest text-ink-muted block px-1">
+                  Workspace Sections
+                </span>
+                <div className="grid grid-cols-2 gap-2">
+                  {navItems.map((item) => (
+                    <button
+                      key={item.id}
+                      onClick={() => {
+                        onTabChange(item.id);
+                        setIsMobileMenuOpen(false);
+                      }}
+                      className={`p-2.5 rounded-xl text-xs font-medium flex items-center justify-between transition-all ${
+                        activeTab === item.id
+                          ? 'bg-ink-primary text-surface-base font-bold shadow-subtle'
+                          : 'bg-surface-overlay text-ink-secondary hover:text-ink-primary border border-surface-hairline/60'
+                      }`}
+                    >
+                      <span>{item.label}</span>
+                      {item.count !== undefined && <span className="font-mono text-[10px] opacity-80">{item.count}</span>}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Precision Ledger Tools (100% Mobile Access) */}
+              <div className="space-y-1.5 pt-2 border-t border-surface-hairline">
+                <span className="text-[10px] font-mono uppercase tracking-widest text-ink-muted block px-1">
+                  Precision Ledger Tools
+                </span>
+                <div className="grid grid-cols-2 gap-2">
+                  {onOpenWhatIf && (
+                    <button
+                      onClick={() => {
+                        setIsMobileMenuOpen(false);
+                        onOpenWhatIf();
+                      }}
+                      className="p-2.5 rounded-xl bg-surface-overlay border border-surface-hairline text-left text-xs hover:border-emerald-500/40 transition-all flex items-center gap-2 cursor-pointer"
+                    >
+                      <Sparkles className="w-3.5 h-3.5 text-brand-gold shrink-0" />
+                      <span className="truncate">What-If Simulator</span>
+                    </button>
+                  )}
+
+                  {onOpenRoomOptimizer && (
+                    <button
+                      onClick={() => {
+                        setIsMobileMenuOpen(false);
+                        onOpenRoomOptimizer();
+                      }}
+                      className="p-2.5 rounded-xl bg-surface-overlay border border-surface-hairline text-left text-xs hover:border-accent-cyan/40 transition-all flex items-center gap-2 cursor-pointer"
+                    >
+                      <Building2 className="w-3.5 h-3.5 text-accent-cyan shrink-0" />
+                      <span className="truncate">Room Allocator</span>
+                    </button>
+                  )}
+
+                  {onOpenSettlementReport && (
+                    <button
+                      onClick={() => {
+                        setIsMobileMenuOpen(false);
+                        onOpenSettlementReport();
+                      }}
+                      className="p-2.5 rounded-xl bg-surface-overlay border border-surface-hairline text-left text-xs hover:border-emerald-500/40 transition-all flex items-center gap-2 cursor-pointer"
+                    >
+                      <FileCheck className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
+                      <span className="truncate">Settlement Audit PDF</span>
+                    </button>
+                  )}
+
+                  {onOpenChaosDemo && (
+                    <button
+                      onClick={() => {
+                        setIsMobileMenuOpen(false);
+                        onOpenChaosDemo();
+                      }}
+                      className="p-2.5 rounded-xl bg-surface-overlay border border-surface-hairline text-left text-xs hover:border-rose-500/40 transition-all flex items-center gap-2 cursor-pointer"
+                    >
+                      <Zap className="w-3.5 h-3.5 text-rose-400 shrink-0" />
+                      <span className="truncate">Chaos Demo Suite</span>
+                    </button>
+                  )}
+                </div>
+              </div>
+
+              {/* Utility Row: Offline mode and return home */}
+              <div className="flex items-center justify-between pt-2 border-t border-surface-hairline text-xs">
+                <button
+                  onClick={onToggleOffline}
+                  className={`flex items-center gap-2 px-3 py-1.5 rounded-lg border text-[11px] font-medium transition-all ${
+                    isOffline
+                      ? 'border-amber-500/40 bg-amber-500/10 text-amber-300'
+                      : 'border-surface-hairline bg-surface-overlay text-ink-muted'
+                  }`}
+                >
+                  {isOffline ? <WifiOff className="w-3.5 h-3.5 text-amber-400" /> : <Wifi className="w-3.5 h-3.5 text-emerald-400" />}
+                  <span>{isOffline ? 'Offline Mode Active' : 'Online Sync Active'}</span>
+                </button>
 
                 {onGoToLanding && (
                   <button
                     onClick={() => {
-                      onGoToLanding();
                       setIsMobileMenuOpen(false);
+                      onGoToLanding();
                     }}
-                    className="p-2.5 rounded-lg text-xs font-medium flex items-center justify-center gap-2 bg-surface-overlay text-emerald-400 col-span-2 hover:bg-surface-hairline transition-colors cursor-pointer"
+                    className="flex items-center gap-1.5 text-ink-muted hover:text-ink-primary font-medium transition-colors"
                   >
                     <Home className="w-3.5 h-3.5" />
-                    <span>Return to Homepage</span>
+                    <span>Home</span>
                   </button>
                 )}
               </div>
@@ -463,9 +612,61 @@ export const DashboardShell: React.FC<DashboardShellProps> = ({
         </AnimatePresence>
 
         {/* Main Canvas Scroll Area */}
-        <main className="flex-1 p-4 sm:p-8 max-w-7xl w-full mx-auto space-y-6">
+        <main className="flex-1 p-4 sm:p-8 max-w-7xl w-full mx-auto space-y-6 pb-24 lg:pb-8">
           {children}
         </main>
+
+        {/* Mobile Sticky Bottom Action Bar (100% Mobile Reachability) */}
+        <nav className="lg:hidden fixed bottom-0 left-0 right-0 z-40 bg-surface-base/95 backdrop-blur-xl border-t border-surface-hairline px-3 py-2 flex items-center justify-around shadow-2xl">
+          <button
+            onClick={() => onTabChange('overview')}
+            className={`flex flex-col items-center gap-1 py-1 px-2.5 rounded-lg transition-colors cursor-pointer ${
+              activeTab === 'overview' ? 'text-emerald-400 font-bold' : 'text-ink-muted hover:text-ink-primary'
+            }`}
+          >
+            <LayoutDashboard className="w-4 h-4" />
+            <span className="text-[10px]">Overview</span>
+          </button>
+
+          <button
+            onClick={() => onTabChange('expenses')}
+            className={`flex flex-col items-center gap-1 py-1 px-2.5 rounded-lg transition-colors cursor-pointer ${
+              activeTab === 'expenses' ? 'text-emerald-400 font-bold' : 'text-ink-muted hover:text-ink-primary'
+            }`}
+          >
+            <Receipt className="w-4 h-4" />
+            <span className="text-[10px]">Ledger</span>
+          </button>
+
+          {/* Centered Elevated Quick Log Button */}
+          <button
+            onClick={onOpenAddExpense}
+            className="p-3 -mt-5 rounded-full bg-emerald-500 text-black font-bold shadow-lg shadow-emerald-500/30 hover:bg-emerald-400 transition-transform active:scale-95 cursor-pointer flex items-center justify-center border-2 border-surface-base"
+            title="Log New Expense"
+          >
+            <Plus className="w-5 h-5 stroke-[3]" />
+          </button>
+
+          <button
+            onClick={() => onTabChange('settlement')}
+            className={`flex flex-col items-center gap-1 py-1 px-2.5 rounded-lg transition-colors cursor-pointer ${
+              activeTab === 'settlement' ? 'text-emerald-400 font-bold' : 'text-ink-muted hover:text-ink-primary'
+            }`}
+          >
+            <GitCommit className="w-4 h-4" />
+            <span className="text-[10px]">Settle</span>
+          </button>
+
+          <button
+            onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+            className={`flex flex-col items-center gap-1 py-1 px-2.5 rounded-lg transition-colors cursor-pointer ${
+              isMobileMenuOpen ? 'text-emerald-400 font-bold' : 'text-ink-muted hover:text-ink-primary'
+            }`}
+          >
+            <MoreHorizontal className="w-4 h-4" />
+            <span className="text-[10px]">More</span>
+          </button>
+        </nav>
       </div>
     </div>
   );

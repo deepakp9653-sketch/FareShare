@@ -137,8 +137,18 @@ export const SettlementVisualizer: React.FC<SettlementVisualizerProps> = ({
       {/* Main Interactive Debt Graph Container */}
       <div
         ref={graphContainerRef}
-        className="relative bg-surface-raised border border-surface-hairline p-6 rounded-3xl space-y-6 shadow-paper overflow-hidden min-h-[420px] flex flex-col justify-between"
+        className="relative bg-[#06080e]/85 border border-neutral-800/80 p-6 sm:p-8 rounded-3xl space-y-6 shadow-2xl overflow-hidden min-h-[560px] flex flex-col justify-between backdrop-blur-xl"
       >
+        {/* Dot Grid Matrix Background from Homepage */}
+        <div className="absolute inset-0 z-0 w-full h-full bg-[radial-gradient(#10b98130_1px,transparent_1px)] [background-size:22px_22px] pointer-events-none opacity-80" />
+
+        {/* Ambient Emerald Halo Glow */}
+        <div className="absolute inset-0 m-auto w-80 h-80 rounded-full bg-emerald-500/20 blur-3xl pointer-events-none" />
+
+        {/* Concentric Subtle Orbit Rings */}
+        <div className="absolute inset-0 m-auto w-[360px] h-[360px] rounded-full border border-emerald-500/15 pointer-events-none" />
+        <div className="absolute inset-0 m-auto w-[500px] h-[500px] rounded-full border border-emerald-500/10 pointer-events-none" />
+
         {/* Celebration Particles Overlay */}
         {isSettled && (
           <div
@@ -155,9 +165,9 @@ export const SettlementVisualizer: React.FC<SettlementVisualizerProps> = ({
         )}
 
         {/* Top Status Indicator */}
-        <div className="flex items-center justify-between text-xs border-b border-surface-hairline/60 pb-4">
+        <div className="relative z-10 flex items-center justify-between text-xs border-b border-neutral-800/80 pb-4">
           <div className="flex items-center gap-2">
-            <span className="w-2.5 h-2.5 rounded-full bg-ledger-surplus animate-pulse" />
+            <span className="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse shadow-sm" />
             <span className="font-semibold text-ink-primary">
               {isSimplified ? 'Compressed Graph (Greedy Netting Active)' : 'Raw Pairwise Debts Network'}
             </span>
@@ -169,22 +179,59 @@ export const SettlementVisualizer: React.FC<SettlementVisualizerProps> = ({
         </div>
 
         {/* Circular Interactive Node Layout */}
-        <div className="relative my-8 py-4 flex items-center justify-center">
-          {/* Central Pulsing Anchor */}
-          <div className="w-28 h-28 rounded-full bg-surface-base border border-surface-hairline flex flex-col items-center justify-center text-center p-2 shadow-inner z-10">
-            <Sparkles className="w-5 h-5 text-brand-gold mb-1" />
-            <span className="text-[10px] uppercase font-bold text-ink-muted tracking-wider">Settlement Hub</span>
-            <span className="font-numeric font-bold text-xs text-emerald-400">
-              ₹{netBalances.reduce((acc, n) => acc + (n.netBalance > 0 ? n.netBalance : 0), 0).toFixed(0)} Total
-            </span>
-          </div>
+        <div className="relative z-10 my-4 sm:my-8 py-6 sm:py-12 flex items-center justify-center min-h-[340px] sm:min-h-[440px] w-full overflow-hidden">
+          <div className="relative w-[520px] h-[390px] shrink-0 flex items-center justify-center scale-[0.62] xs:scale-[0.78] sm:scale-100 origin-center transition-transform">
+            {/* Subtle Vector Flow Lines from Center to Nodes */}
+            <svg className="absolute inset-0 w-full h-full pointer-events-none z-0" viewBox="-300 -220 600 440">
+              {netBalances.map((nb, idx) => {
+                const totalNodes = netBalances.length;
+                const angle = (idx / totalNodes) * 2 * Math.PI - Math.PI / 2;
+                const radius = 175;
+                const x = Math.cos(angle) * radius;
+                const y = Math.sin(angle) * radius;
+                const isCreditor = nb.netBalance > 0;
+                return (
+                  <g key={`line-${nb.participant.id}`}>
+                    <line
+                      x1={0}
+                      y1={0}
+                      x2={x}
+                      y2={y}
+                      stroke={isCreditor ? 'rgba(16, 185, 129, 0.4)' : 'rgba(244, 63, 94, 0.3)'}
+                      strokeWidth="1.5"
+                      strokeDasharray={isCreditor ? 'none' : '4 4'}
+                    />
+                    <circle
+                      cx={x * 0.45}
+                      cy={y * 0.45}
+                      r="2.5"
+                      fill={isCreditor ? '#10b981' : '#f43f5e'}
+                      opacity="0.8"
+                    />
+                  </g>
+                );
+              })}
+            </svg>
 
-          {/* Participant Nodes Positioned in Ring */}
-          <div className="absolute inset-0 flex items-center justify-center">
+            {/* Central Pulsing Anchor */}
+            <div className="relative z-10 flex items-center justify-center">
+              <div className="absolute w-36 h-36 rounded-full border border-emerald-500/25 animate-pulse pointer-events-none" />
+              <div className="w-28 h-28 rounded-full bg-[#090e1c]/90 border border-emerald-500/40 flex flex-col items-center justify-center text-center p-3 shadow-2xl backdrop-blur-md">
+                <Sparkles className="w-4 h-4 text-brand-gold mb-1" />
+                <span className="text-[9px] uppercase font-bold text-neutral-400 tracking-wider">Settlement Hub</span>
+                <span className="font-numeric font-extrabold text-xs text-emerald-400 mt-0.5">
+                  ₹{netBalances.reduce((acc, n) => acc + (n.netBalance > 0 ? n.netBalance : 0), 0).toLocaleString('en-IN', { maximumFractionDigits: 0 })}
+                </span>
+                <span className="text-[8px] font-mono text-neutral-400">Total Volume</span>
+              </div>
+            </div>
+
+            {/* Participant Nodes Positioned in Ring */}
+            <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
             {netBalances.map((nb, idx) => {
               const totalNodes = netBalances.length;
               const angle = (idx / totalNodes) * 2 * Math.PI - Math.PI / 2;
-              const radius = 140;
+              const radius = 175;
               const x = Math.cos(angle) * radius;
               const y = Math.sin(angle) * radius;
 
@@ -195,36 +242,47 @@ export const SettlementVisualizer: React.FC<SettlementVisualizerProps> = ({
                   key={nb.participant.id}
                   layout
                   style={{ transform: `translate(${x}px, ${y}px)` }}
-                  className={`debt-node absolute p-3 rounded-2xl bg-surface-raised border flex items-center gap-2.5 shadow-paper transition-all ${
+                  className={`debt-node pointer-events-auto absolute px-3.5 py-2.5 rounded-2xl bg-[#0d121f]/95 border flex items-center gap-3 shadow-xl transition-all duration-300 hover:scale-105 backdrop-blur-md ${
                     isUser
-                      ? 'border-emerald-500 ring-2 ring-emerald-500/30 z-20 scale-105'
-                      : 'border-surface-hairline z-10'
+                      ? 'border-emerald-500 ring-2 ring-emerald-500/40 z-20 scale-105 shadow-emerald-500/20'
+                      : 'border-neutral-800 hover:border-neutral-700 z-10'
                   }`}
                 >
-                  <UserAvatar
-                    name={nb.participant.name}
-                    id={nb.participant.id}
-                    size="sm"
-                  />
-                  <div>
-                    <p className="text-xs font-bold text-ink-primary">{nb.participant.name}</p>
-                    <span
-                      className={`font-numeric text-[11px] font-bold ${
-                        nb.netBalance > 0
-                          ? 'text-ledger-surplus'
-                          : nb.netBalance < 0
-                          ? 'text-ledger-deficit'
-                          : 'text-ledger-neutral'
-                      }`}
-                    >
-                      {nb.netBalance > 0 ? `+₹${nb.netBalance.toFixed(2)}` : nb.netBalance < 0 ? `-₹${Math.abs(nb.netBalance).toFixed(2)}` : '₹0.00'}
-                    </span>
+                  <div className="relative shrink-0">
+                    <UserAvatar
+                      name={nb.participant.name}
+                      id={nb.participant.id}
+                      avatarUrl={nb.participant.avatarUrl}
+                      size="sm"
+                    />
+                    {nb.participant.isOrganizer && (
+                      <span className="absolute -bottom-1 -right-1 w-3.5 h-3.5 rounded-full bg-amber-500 border-2 border-neutral-900 flex items-center justify-center text-[8px] text-black font-bold">
+                        ★
+                      </span>
+                    )}
+                  </div>
+                  <div className="min-w-0">
+                    <p className="text-xs font-semibold text-white truncate max-w-[120px]">{nb.participant.name}</p>
+                    <div className="mt-0.5">
+                      <span
+                        className={`font-numeric text-[11px] font-bold px-2 py-0.5 rounded-full border inline-block ${
+                          nb.netBalance > 0
+                            ? 'bg-emerald-500/15 text-emerald-400 border-emerald-500/30'
+                            : nb.netBalance < 0
+                            ? 'bg-rose-500/15 text-rose-400 border-rose-500/30'
+                            : 'bg-neutral-800 text-neutral-400 border-neutral-700'
+                        }`}
+                      >
+                        {nb.netBalance > 0 ? `+₹${nb.netBalance.toFixed(2)}` : nb.netBalance < 0 ? `-₹${Math.abs(nb.netBalance).toFixed(2)}` : '₹0.00'}
+                      </span>
+                    </div>
                   </div>
                 </motion.div>
               );
             })}
           </div>
         </div>
+      </div>
 
         {/* Two-Sided Verification Alerts (F3) */}
         {payments.some((p) => p.status === 'pending') && (
@@ -292,9 +350,9 @@ export const SettlementVisualizer: React.FC<SettlementVisualizerProps> = ({
         )}
 
         {/* Bottom Action Cards: Minimal Settlement Execution Paths */}
-        <div className="pt-4 border-t border-surface-hairline space-y-3">
-          <h4 className="text-xs font-semibold uppercase tracking-wider text-ink-muted flex items-center justify-between">
-            <span>Simplified Settlement Execution Paths (₹ INR)</span>
+        <div className="relative z-10 pt-4 border-t border-neutral-800/80 space-y-3">
+          <h4 className="text-xs font-semibold uppercase tracking-wider text-neutral-400 flex flex-col sm:flex-row sm:items-center justify-between gap-1">
+            <span className="text-neutral-300">Simplified Settlement Execution Paths (₹ INR)</span>
             <span className="text-brand-gold font-numeric">Click "UPI Settle" for instant QR Code</span>
           </h4>
 
@@ -307,16 +365,16 @@ export const SettlementVisualizer: React.FC<SettlementVisualizerProps> = ({
                 return (
                   <div
                     key={idx}
-                    className="p-3.5 rounded-2xl bg-surface-base border border-surface-hairline flex items-center justify-between transition-all hover:border-emerald-500/50"
+                    className="p-3.5 rounded-2xl bg-[#0d121f]/90 border border-neutral-800/90 flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 transition-all hover:border-emerald-500/50 backdrop-blur-md shadow-lg"
                   >
                     <div className="flex items-center gap-2 text-xs">
-                      <span className="font-semibold text-ledger-deficit">{debt.fromName}</span>
+                      <span className="font-semibold text-rose-400">{debt.fromName}</span>
                       <ArrowRight className="w-4 h-4 text-brand-gold" />
-                      <span className="font-semibold text-ledger-surplus">{debt.toName}</span>
+                      <span className="font-semibold text-emerald-400">{debt.toName}</span>
                     </div>
 
-                    <div className="flex items-center gap-2">
-                      <span className="font-numeric font-bold text-sm text-ink-primary mr-1">
+                    <div className="flex flex-wrap items-center justify-between sm:justify-end gap-2 w-full sm:w-auto">
+                      <span className="font-numeric font-bold text-sm text-white mr-1">
                         ₹{debt.amount.toLocaleString('en-IN', { minimumFractionDigits: 2 })}
                       </span>
                       {onOpenReassignDebt && (

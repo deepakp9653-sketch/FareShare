@@ -18,6 +18,8 @@ interface DynamicSplitDrawerProps {
     totalAmount: number;
     splitMethod: SplitMethod;
     paidById: string;
+    paidBySplits?: { participantId: string; amount: number }[];
+    allocations?: { participantId: string; amountOwed: number }[];
     bookingId?: string;
     category: BookingCategory;
     subsidyAmount?: number;
@@ -44,6 +46,13 @@ export const DynamicSplitDrawer: React.FC<DynamicSplitDrawerProps> = ({
   const [category, setCategory] = useState<BookingCategory>('general');
   const [subsidyAmount, setSubsidyAmount] = useState<number>(3000);
 
+  // Multiple Payers State
+  const [isMultiplePayers, setIsMultiplePayers] = useState<boolean>(false);
+  const [payerShares, setPayerShares] = useState<Record<string, number>>({});
+
+  // Manual Split State
+  const [manualAllocations, setManualAllocations] = useState<Record<string, number>>({});
+
   // File upload state for Bill Spending Proof
   const [receiptFile, setReceiptFile] = useState<File | null>(null);
   const [receiptPreview, setReceiptPreview] = useState<string | null>(null);
@@ -67,14 +76,27 @@ export const DynamicSplitDrawer: React.FC<DynamicSplitDrawerProps> = ({
     if (participants.length > 0) {
       const initLineItems: Record<string, number> = {};
       const initWeights: Record<string, number> = {};
-      const equalShare = totalAmount / participants.length;
+      const initManual: Record<string, number> = {};
+      const equalShare = Number((totalAmount / participants.length).toFixed(2));
 
-      participants.forEach((p) => {
-        initLineItems[p.id] = Number(equalShare.toFixed(2));
+      participants.forEach((p, idx) => {
+        initLineItems[p.id] = equalShare;
         initWeights[p.id] = p.weight || 1;
+        // Last one absorbs roundoff
+        if (idx === participants.length - 1) {
+          const sumPrior = equalShare * (participants.length - 1);
+          initManual[p.id] = Number((totalAmount - sumPrior).toFixed(2));
+        } else {
+          initManual[p.id] = equalShare;
+        }
       });
       setLineItems(initLineItems);
       setWeights(initWeights);
+      setManualAllocations(initManual);
+
+      // Default single payer in payerShares
+      const defaultPayerId = paidById || participants[0]?.id;
+      setPayerShares({ [defaultPayerId]: totalAmount });
     }
   }, [participants, totalAmount]);
 
@@ -100,21 +122,37 @@ export const DynamicSplitDrawer: React.FC<DynamicSplitDrawerProps> = ({
     weights,
     lineItems: splitMethod === 'line_item' ? lineItems : undefined,
     subsidyAmount: splitMethod === 'organizer_subsidy' ? subsidyAmount : undefined,
+    manualAllocations: splitMethod === 'manual' ? manualAllocations : undefined,
   });
 
   const totalAllocated = calculatedAllocations.reduce((sum, a) => sum + a.amountOwed, 0);
   const totalWithSubsidy = totalAllocated + (splitMethod === 'organizer_subsidy' ? subsidyAmount : 0);
-  const isReconciled = Math.abs(totalWithSubsidy - totalAmount) <= 0.5;
+  const isAllocationsReconciled = Math.abs(totalWithSubsidy - totalAmount) <= 0.5;
+
+  const totalPaidSum = isMultiplePayers
+    ? Object.values(payerShares).reduce((sum, v) => sum + (v || 0), 0)
+    : totalAmount;
+  const isPayersBalanced = !isMultiplePayers || Math.abs(totalPaidSum - totalAmount) <= 0.5;
+
+  const isReconciled = isAllocationsReconciled && isPayersBalanced;
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!title.trim() || totalAmount <= 0) return;
+    if (!title.trim() || totalAmount <= 0 || !isReconciled) return;
+
+    const paidBySplits = isMultiplePayers
+      ? Object.entries(payerShares)
+          .filter(([, amt]) => amt > 0)
+          .map(([participantId, amount]) => ({ participantId, amount: Number(amount.toFixed(2)) }))
+      : undefined;
 
     onSubmitExpense({
       title,
       totalAmount,
       splitMethod,
-      paidById,
+      paidById: isMultiplePayers ? (paidBySplits?.[0]?.participantId || paidById) : paidById,
+      paidBySplits,
+      allocations: splitMethod === 'manual' ? calculatedAllocations : undefined,
       bookingId: bookingId || undefined,
       category,
       subsidyAmount: splitMethod === 'organizer_subsidy' ? subsidyAmount : undefined,
@@ -136,9 +174,9 @@ export const DynamicSplitDrawer: React.FC<DynamicSplitDrawerProps> = ({
         className="bg-surface-raised border-l border-surface-hairline w-full max-w-xl h-full flex flex-col shadow-2xl overflow-hidden"
       >
         {/* Drawer Header */}
-        <div className="p-6 border-b border-surface-hairline flex items-center justify-between bg-surface-base">
+        <div className="p-4 sm:p-6 border-b border-surface-hairline flex items-center justify-between bg-surface-base">
           <div>
-            <h3 className="text-xl font-serif-display font-bold text-ink-primary flex items-center gap-2">
+            <h3 className="text-lg sm:text-xl font-serif-display font-bold text-ink-primary flex items-center gap-2">
               <Calculator className="w-5 h-5 text-emerald-400" /> Dynamic Split Engine
             </h3>
             <p className="text-xs text-ink-secondary mt-0.5">
@@ -154,7 +192,7 @@ export const DynamicSplitDrawer: React.FC<DynamicSplitDrawerProps> = ({
         </div>
 
         {/* Form Body */}
-        <form onSubmit={handleSubmit} className="flex-1 overflow-y-auto p-6 space-y-6">
+        <form onSubmit={handleSubmit} className="flex-1 overflow-y-auto p-4 sm:p-6 space-y-5 sm:space-y-6">
           {/* Chat / Voice Origin Banner if parsed */}
           {initialDraft?.chatSourceRaw && (
             <div className="p-3 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 text-xs text-ink-secondary flex items-center justify-between">
@@ -230,19 +268,109 @@ export const DynamicSplitDrawer: React.FC<DynamicSplitDrawerProps> = ({
                 />
               </div>
 
-              <div>
-                <label className="block text-xs text-ink-muted mb-1">Paid By (Payer)</label>
-                <select
-                  value={paidById}
-                  onChange={(e) => setPaidById(e.target.value)}
-                  className="w-full bg-surface-base border border-surface-hairline rounded-xl px-3 py-2.5 text-xs text-ink-primary focus:border-emerald-500 outline-none cursor-pointer"
-                >
-                  {participants.map((p) => (
-                    <option key={p.id} value={p.id}>
-                      {p.name} {p.isOrganizer ? '(Organizer)' : ''}
-                    </option>
-                  ))}
-                </select>
+              <div className="sm:col-span-2">
+                <div className="flex items-center justify-between mb-1.5">
+                  <label className="block text-xs font-semibold text-ink-muted uppercase tracking-wider">
+                    Paid By (Who Incurred Outlay)
+                  </label>
+                  <button
+                    type="button"
+                    onClick={() => setIsMultiplePayers(!isMultiplePayers)}
+                    className="text-[11px] font-bold text-emerald-400 hover:text-emerald-300 underline cursor-pointer transition-colors"
+                  >
+                    {isMultiplePayers ? '← Switch to Single Payer' : '+ Multiple Payers (Split Payment)'}
+                  </button>
+                </div>
+
+                {!isMultiplePayers ? (
+                  <select
+                    value={paidById}
+                    onChange={(e) => {
+                      setPaidById(e.target.value);
+                      setPayerShares({ [e.target.value]: totalAmount });
+                    }}
+                    className="w-full bg-surface-base border border-surface-hairline rounded-xl px-3 py-2.5 text-xs text-ink-primary focus:border-emerald-500 outline-none cursor-pointer"
+                  >
+                    {participants.map((p) => (
+                      <option key={p.id} value={p.id}>
+                        {p.name} {p.isOrganizer ? '(Organizer)' : ''}
+                      </option>
+                    ))}
+                  </select>
+                ) : (
+                  <div className="p-3.5 bg-surface-base border border-surface-hairline rounded-2xl space-y-3">
+                    <div className="flex items-center justify-between text-xs">
+                      <span className="text-ink-secondary">Payer Contribution Outlay (₹):</span>
+                      <span className={`font-numeric font-bold px-2 py-0.5 rounded-md text-[11px] ${
+                        isPayersBalanced ? 'bg-emerald-500/15 text-emerald-400 border border-emerald-500/30' : 'bg-amber-500/15 text-amber-400 border border-amber-500/30'
+                      }`}>
+                        Total Paid: ₹{totalPaidSum.toFixed(2)} / ₹{totalAmount.toFixed(2)}
+                      </span>
+                    </div>
+
+                    <div className="space-y-2 max-h-44 overflow-y-auto pr-1">
+                      {participants.map((p) => (
+                        <div key={p.id} className="flex items-center justify-between gap-3 p-2 rounded-xl bg-surface-raised border border-surface-hairline">
+                          <div className="flex items-center gap-2 min-w-0">
+                            <UserAvatar name={p.name} id={p.id} avatarUrl={p.avatarUrl} size="xs" />
+                            <span className="text-xs font-semibold text-ink-primary truncate">{p.name}</span>
+                          </div>
+                          <div className="flex items-center gap-1.5 shrink-0">
+                            <span className="text-ink-muted text-xs font-numeric font-bold">₹</span>
+                            <input
+                              type="number"
+                              step="1"
+                              min="0"
+                              value={payerShares[p.id] !== undefined ? payerShares[p.id] : 0}
+                              onChange={(e) => {
+                                const val = parseFloat(e.target.value) || 0;
+                                setPayerShares((prev) => ({ ...prev, [p.id]: val }));
+                              }}
+                              className="w-28 bg-surface-base border border-surface-hairline focus:border-emerald-500 rounded-lg px-2 py-1 text-xs text-right font-numeric font-bold text-ink-primary outline-none"
+                            />
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+
+                    <div className="flex items-center justify-between pt-2 border-t border-surface-hairline text-xs">
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const share = Number((totalAmount / activeParticipants.length).toFixed(2));
+                          const newPayers: Record<string, number> = {};
+                          let currentSum = 0;
+                          activeParticipants.forEach((p, idx) => {
+                            if (idx === activeParticipants.length - 1) {
+                              newPayers[p.id] = Number((totalAmount - currentSum).toFixed(2));
+                            } else {
+                              newPayers[p.id] = share;
+                              currentSum += share;
+                            }
+                          });
+                          setPayerShares(newPayers);
+                        }}
+                        className="text-[11px] text-accent-cyan hover:underline font-semibold cursor-pointer"
+                      >
+                        Split Paid Equally
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const targetId = paidById || activeParticipants[0]?.id;
+                          const otherSum = Object.entries(payerShares)
+                            .filter(([id]) => id !== targetId)
+                            .reduce((sum, [, amt]) => sum + amt, 0);
+                          const remainder = Math.max(0, totalAmount - otherSum);
+                          setPayerShares((prev) => ({ ...prev, [targetId]: Number(remainder.toFixed(2)) }));
+                        }}
+                        className="text-[11px] text-emerald-400 hover:underline font-semibold cursor-pointer"
+                      >
+                        Auto-Fill Remainder
+                      </button>
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
 
@@ -313,7 +441,7 @@ export const DynamicSplitDrawer: React.FC<DynamicSplitDrawerProps> = ({
             </div>
           </div>
 
-          {/* 5 Split Strategy Selector */}
+          {/* 6 Split Strategy Selector */}
           <div className="space-y-3 pt-4 border-t border-surface-hairline">
             <label className="block text-xs font-semibold text-ink-muted uppercase tracking-wider">
               Split Strategy Primitive
@@ -326,12 +454,23 @@ export const DynamicSplitDrawer: React.FC<DynamicSplitDrawerProps> = ({
                 { id: 'room_tier', label: 'Room-Tier' },
                 { id: 'line_item', label: 'Line-Item' },
                 { id: 'organizer_subsidy', label: 'Organizer Subsidy' },
+                { id: 'manual', label: 'Manual Split' },
               ].map((strat) => (
                 <button
                   type="button"
                   key={strat.id}
-                  onClick={() => setSplitMethod(strat.id as SplitMethod)}
-                  className={`p-2.5 rounded-xl text-xs font-semibold border text-center transition-all ${
+                  onClick={() => {
+                    setSplitMethod(strat.id as SplitMethod);
+                    if (strat.id === 'manual') {
+                      // Initialize manual allocations from current allocations
+                      const manualMap: Record<string, number> = {};
+                      calculatedAllocations.forEach((a) => {
+                        manualMap[a.participantId] = a.amountOwed;
+                      });
+                      setManualAllocations(manualMap);
+                    }
+                  }}
+                  className={`p-2.5 rounded-xl text-xs font-semibold border text-center transition-all cursor-pointer ${
                     splitMethod === strat.id
                       ? 'bg-white text-black border-white shadow-subtle font-bold'
                       : 'bg-surface-base text-ink-secondary border-surface-hairline hover:text-ink-primary'
@@ -356,13 +495,41 @@ export const DynamicSplitDrawer: React.FC<DynamicSplitDrawerProps> = ({
                 </div>
               </div>
             )}
+
+            {splitMethod === 'manual' && (
+              <div className="p-3 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-xs flex items-center justify-between">
+                <span className="text-emerald-400 font-medium">
+                  Manual allocation active. Enter exact custom share per traveler below.
+                </span>
+                <button
+                  type="button"
+                  onClick={() => {
+                    const equalShare = Number((totalAmount / activeParticipants.length).toFixed(2));
+                    const resetMap: Record<string, number> = {};
+                    let running = 0;
+                    activeParticipants.forEach((p, idx) => {
+                      if (idx === activeParticipants.length - 1) {
+                        resetMap[p.id] = Number((totalAmount - running).toFixed(2));
+                      } else {
+                        resetMap[p.id] = equalShare;
+                        running += equalShare;
+                      }
+                    });
+                    setManualAllocations(resetMap);
+                  }}
+                  className="text-[11px] font-bold text-white hover:underline cursor-pointer ml-2"
+                >
+                  Distribute Evenly
+                </button>
+              </div>
+            )}
           </div>
 
           {/* Live Allocation Table */}
           <div className="space-y-3 pt-4 border-t border-surface-hairline">
             <div className="flex items-center justify-between text-xs font-semibold text-ink-muted uppercase tracking-wider">
               <span>Participant Allocation Breakdown</span>
-              <span>Calculated Share (₹)</span>
+              <span>{splitMethod === 'manual' ? 'Custom Share (₹)' : 'Calculated Share (₹)'}</span>
             </div>
 
             <div className="space-y-2">
@@ -379,6 +546,7 @@ export const DynamicSplitDrawer: React.FC<DynamicSplitDrawerProps> = ({
                       <UserAvatar
                         name={participant.name}
                         id={participant.id}
+                        avatarUrl={participant.avatarUrl}
                         size="xs"
                       />
                       <div>
@@ -391,9 +559,29 @@ export const DynamicSplitDrawer: React.FC<DynamicSplitDrawerProps> = ({
                       </div>
                     </div>
 
-                    <div className="font-numeric font-bold text-sm text-ink-primary">
-                      ₹{alloc.amountOwed.toLocaleString('en-IN', { minimumFractionDigits: 2 })}
-                    </div>
+                    {splitMethod === 'manual' ? (
+                      <div className="flex items-center gap-1.5">
+                        <span className="text-ink-muted font-numeric text-xs font-bold">₹</span>
+                        <input
+                          type="number"
+                          step="1"
+                          min="0"
+                          value={manualAllocations[alloc.participantId] !== undefined ? manualAllocations[alloc.participantId] : alloc.amountOwed}
+                          onChange={(e) => {
+                            const val = parseFloat(e.target.value) || 0;
+                            setManualAllocations((prev) => ({
+                              ...prev,
+                              [alloc.participantId]: val,
+                            }));
+                          }}
+                          className="w-28 bg-surface-raised border border-surface-hairline focus:border-emerald-500 rounded-lg px-2.5 py-1 text-right font-numeric font-bold text-xs text-ink-primary outline-none"
+                        />
+                      </div>
+                    ) : (
+                      <div className="font-numeric font-bold text-sm text-ink-primary">
+                        ₹{alloc.amountOwed.toLocaleString('en-IN', { minimumFractionDigits: 2 })}
+                      </div>
+                    )}
                   </div>
                 );
               })}
@@ -404,7 +592,7 @@ export const DynamicSplitDrawer: React.FC<DynamicSplitDrawerProps> = ({
         {/* Real-Time Reconciliation Bar Pinned at Bottom */}
         <div className="p-4 border-t border-surface-hairline bg-surface-base space-y-3">
           <div
-            className={`p-3 rounded-xl border flex items-center justify-between text-xs transition-all ${
+            className={`p-3 rounded-xl border flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-xs transition-all ${
               isReconciled
                 ? 'bg-ledger-surplusBg text-ledger-surplus border-ledger-surplus/40'
                 : 'bg-ledger-deficitBg text-ledger-deficit border-ledger-deficit/40'
@@ -418,10 +606,19 @@ export const DynamicSplitDrawer: React.FC<DynamicSplitDrawerProps> = ({
               )}
               <span className="font-medium">
                 Reconciliation Bar: Allocated <span className="font-numeric font-bold">₹{totalWithSubsidy.toFixed(2)}</span> / ₹{totalAmount.toFixed(2)}
+                {isMultiplePayers && (
+                  <span className="ml-2 text-[11px] text-ink-secondary">
+                    (Paid: ₹{totalPaidSum.toFixed(2)})
+                  </span>
+                )}
               </span>
             </div>
             <span className="font-bold uppercase tracking-wider text-[10px]">
-              {isReconciled ? 'Balanced 100%' : 'Unbalanced'}
+              {isReconciled
+                ? 'BALANCED 100%'
+                : !isAllocationsReconciled
+                ? `Diff: ₹${Math.abs(totalAmount - totalWithSubsidy).toFixed(2)}`
+                : `Payers Diff: ₹${Math.abs(totalAmount - totalPaidSum).toFixed(2)}`}
             </span>
           </div>
 

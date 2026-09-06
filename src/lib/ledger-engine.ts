@@ -33,6 +33,7 @@ export function calculateSplits(
     weights?: Record<string, number>;
     lineItems?: Record<string, number>;
     subsidyAmount?: number;
+    manualAllocations?: Record<string, number>;
   }
 ): ExpenseAllocation[] {
   if (participants.length === 0 || totalAmount <= 0) {
@@ -49,6 +50,18 @@ export function calculateSplits(
   const result: ExpenseAllocation[] = [];
 
   switch (splitMethod) {
+    case 'manual': {
+      const manualMap = customInputs?.manualAllocations || {};
+      const equalShare = Number((totalAmount / participants.length).toFixed(2));
+      participants.forEach((p) => {
+        const val = manualMap[p.id] !== undefined ? manualMap[p.id] : equalShare;
+        result.push({
+          participantId: p.id,
+          amountOwed: Number(val.toFixed(2)),
+        });
+      });
+      break;
+    }
     case 'equal':
     case 'organizer_subsidy': {
       const share = Math.floor((allocatableAmount / participants.length) * 100) / 100;
@@ -168,6 +181,11 @@ export function recalculateExpenseAllocations(
   if (activeParts.length === 0) return expenses;
 
   return expenses.map((e) => {
+    // If manual split and allocations exist, preserve them
+    if (e.splitMethod === 'manual' && e.allocations && e.allocations.length > 0) {
+      return e;
+    }
+
     // Determine target active participants for this expense
     let targetParticipants = activeParts;
     if (e.bookingId) {
@@ -208,18 +226,29 @@ export function computeNetBalances(
     map[p.id] = { totalPaid: 0, totalOwed: 0 };
   });
 
-  // Fold Expenses: Payer gets credit for claimable total amount (net of organizer subsidy), allocated participants get debit
+  // Fold Expenses: Payer(s) get credit for outlay, allocated participants get debit
   dynamicExpenses.forEach((e) => {
-    if (!map[e.paidById]) {
-      map[e.paidById] = { totalPaid: 0, totalOwed: 0 };
-    }
-    
-    // If the organizer provided a subsidy, the claimable outlay for reimbursement is totalAmount - subsidyAmount
-    const claimablePaid = e.subsidyAmount && e.subsidyAmount > 0
-      ? Math.max(0, e.totalAmount - e.subsidyAmount)
-      : e.totalAmount;
+    if (e.paidBySplits && e.paidBySplits.length > 0) {
+      // Multiple payers case: credit each contributing participant
+      e.paidBySplits.forEach((split) => {
+        if (!map[split.participantId]) {
+          map[split.participantId] = { totalPaid: 0, totalOwed: 0 };
+        }
+        map[split.participantId].totalPaid += split.amount;
+      });
+    } else {
+      // Single payer case
+      if (!map[e.paidById]) {
+        map[e.paidById] = { totalPaid: 0, totalOwed: 0 };
+      }
+      
+      // If the organizer provided a subsidy, the claimable outlay for reimbursement is totalAmount - subsidyAmount
+      const claimablePaid = e.subsidyAmount && e.subsidyAmount > 0
+        ? Math.max(0, e.totalAmount - e.subsidyAmount)
+        : e.totalAmount;
 
-    map[e.paidById].totalPaid += claimablePaid;
+      map[e.paidById].totalPaid += claimablePaid;
+    }
 
     e.allocations.forEach((alloc) => {
       if (!map[alloc.participantId]) {

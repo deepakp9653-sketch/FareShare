@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react';
 import { Expense, Participant, Booking, RefundEvent } from '@/lib/types';
-import { Receipt, Plus, Search, Calendar, FileText, ExternalLink, X, CheckCircle2, Image as ImageIcon, AlertCircle, ShieldAlert, Check } from 'lucide-react';
+import { Receipt, Plus, Search, Calendar, FileText, ExternalLink, X, CheckCircle2, Image as ImageIcon, AlertCircle, ShieldAlert, Check, Clock } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { UserAvatar } from './UserAvatar';
 
@@ -111,6 +111,19 @@ export const ExpensesSection: React.FC<ExpensesSectionProps> = ({
                       <span className="text-xs px-2 py-0.5 rounded bg-surface-overlay text-ink-secondary font-mono">
                         {exp.splitMethod.replace('_', ' ')}
                       </span>
+                      <span className="text-[11px] px-2.5 py-0.5 rounded-full bg-surface-hairline text-ink-muted font-mono flex items-center gap-1.5 border border-surface-hairline">
+                        <Clock className="w-3 h-3 text-emerald-400 shrink-0" />
+                        <span>
+                          {new Date(exp.createdAt).toLocaleString('en-IN', {
+                            day: 'numeric',
+                            month: 'short',
+                            year: 'numeric',
+                            hour: '2-digit',
+                            minute: '2-digit',
+                            hour12: true,
+                          })}
+                        </span>
+                      </span>
                       {totalRefundedAmount > 0 && (
                         <span className="text-[10px] px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-300 font-bold border border-emerald-500/30 flex items-center gap-1">
                           <CheckCircle2 className="w-3 h-3 text-emerald-400" /> Vendor Refund Credited (-₹{totalRefundedAmount.toLocaleString('en-IN')})
@@ -137,6 +150,7 @@ export const ExpensesSection: React.FC<ExpensesSectionProps> = ({
                         <UserAvatar
                           name={payer?.name}
                           id={payer?.id}
+                          avatarUrl={payer?.avatarUrl}
                           size="xs"
                         />
                         {payer?.name || 'Unknown'}

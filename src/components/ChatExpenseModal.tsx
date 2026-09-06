@@ -51,6 +51,7 @@ export const ChatExpenseModal: React.FC<ChatExpenseModalProps> = ({
   const fileInputRef = useRef<HTMLInputElement>(null);
   const recognitionRef = useRef<any>(null);
   const debounceTimerRef = useRef<NodeJS.Timeout | null>(null);
+  const baseTextRef = useRef<string>('');
 
   // Live parse whenever input text changes: instant local regex + async AI enhancement
   useEffect(() => {
@@ -156,6 +157,8 @@ export const ChatExpenseModal: React.FC<ChatExpenseModalProps> = ({
       recognition.interimResults = true;
       recognition.lang = 'en-IN';
 
+      baseTextRef.current = inputText;
+
       recognition.onstart = () => {
         setIsRecording(true);
         setRecordingSeconds(0);
@@ -163,16 +166,14 @@ export const ChatExpenseModal: React.FC<ChatExpenseModalProps> = ({
       };
 
       recognition.onresult = (event: any) => {
-        let transcript = '';
-        for (let i = event.resultIndex; i < event.results.length; ++i) {
-          transcript += event.results[i][0].transcript;
+        let sessionTranscript = '';
+        for (let i = 0; i < event.results.length; ++i) {
+          sessionTranscript += event.results[i][0].transcript;
         }
-        if (transcript.trim()) {
-          setInputText((prev) => {
-            const trimmed = prev.trim();
-            return trimmed ? `${trimmed} ${transcript.trim()}` : transcript.trim();
-          });
-        }
+        const base = baseTextRef.current.trim();
+        const current = sessionTranscript.trim();
+        const combined = base ? `${base} ${current}` : current;
+        setInputText(combined);
       };
 
       recognition.onerror = (event: any) => {
@@ -338,8 +339,11 @@ export const ChatExpenseModal: React.FC<ChatExpenseModalProps> = ({
               />
               {inputText && (
                 <button
-                  onClick={() => setInputText('')}
-                  className="absolute right-3 top-3 text-ink-muted hover:text-ink-primary text-xs bg-surface-overlay px-2 py-1 rounded-lg transition-colors"
+                  onClick={() => {
+                    setInputText('');
+                    baseTextRef.current = '';
+                  }}
+                  className="absolute right-3 top-3 text-ink-muted hover:text-ink-primary text-xs bg-surface-overlay px-2 py-1 rounded-lg transition-colors cursor-pointer"
                 >
                   Clear
                 </button>

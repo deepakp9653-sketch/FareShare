@@ -82,6 +82,7 @@ export const UpiSetupModal: React.FC<UpiSetupModalProps> = ({
             <UserAvatar
               name={currentUser.name}
               id={currentUser.id}
+              avatarUrl={currentUser.avatarUrl}
               size="md"
             />
             <div>
@@ -100,7 +101,7 @@ export const UpiSetupModal: React.FC<UpiSetupModalProps> = ({
               required
               value={upiId}
               onChange={(e) => setUpiId(e.target.value)}
-              placeholder="e.g. aarav.sharma@okicici or 9876543210@paytm"
+              placeholder="e.g. srushti.sharma@okicici or 9876543210@paytm"
               className="w-full bg-surface-base border border-surface-hairline rounded-xl px-3 py-2.5 font-numeric font-bold text-ink-primary focus:border-emerald-500 outline-none text-sm"
             />
           </div>

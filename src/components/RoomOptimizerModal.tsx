@@ -185,6 +185,7 @@ export const RoomOptimizerModal: React.FC<RoomOptimizerModalProps> = ({
                           <UserAvatar
                             name={p.name}
                             id={p.id}
+                            avatarUrl={p.avatarUrl}
                             size="xs"
                           />
                           <span className="font-semibold text-ink-primary">{p.name}</span>

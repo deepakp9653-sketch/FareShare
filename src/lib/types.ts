@@ -1,6 +1,6 @@
 // FareShare Core Domain Types
 
-export type SplitMethod = 'equal' | 'weighted' | 'line_item' | 'room_tier' | 'organizer_subsidy';
+export type SplitMethod = 'equal' | 'weighted' | 'line_item' | 'room_tier' | 'organizer_subsidy' | 'manual';
 
 export type BookingCategory = 'transport' | 'lodging' | 'activity' | 'food' | 'other' | 'general';
 
@@ -133,6 +133,7 @@ export interface Expense {
   currency: string;
   splitMethod: SplitMethod;
   paidById: string;
+  paidBySplits?: { participantId: string; amount: number }[];
   category: BookingCategory;
   createdAt: string;
   allocations: ExpenseAllocation[];

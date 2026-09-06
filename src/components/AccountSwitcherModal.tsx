@@ -151,6 +151,7 @@ export const AccountSwitcherModal: React.FC<AccountSwitcherModalProps> = ({
             <UserAvatar
               name={currentUser.name}
               id={currentUser.id}
+              avatarUrl={currentUser.avatar}
               size="sm"
             />
             <div>
@@ -194,6 +195,7 @@ export const AccountSwitcherModal: React.FC<AccountSwitcherModalProps> = ({
                   <UserAvatar
                     name={u.name}
                     id={u.id}
+                    avatarUrl={u.avatar}
                     size="xs"
                   />
                   <div className="min-w-0 flex-1">

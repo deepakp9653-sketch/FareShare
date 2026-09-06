@@ -25,6 +25,7 @@ import { LiquidLogo } from './LiquidLogo';
 import { LiquidShaderGradient } from './LiquidShaderGradient';
 import { SpotlightCard } from './SpotlightCard';
 import { LiquidGlassButton } from './LiquidGlassButton';
+import Earth from './ui/globe';
 
 interface LandingPageProps {
   onEnterApp: () => void;
@@ -75,130 +76,92 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onEnterApp, onOpenCrea
         </div>
       </header>
 
-      {/* Hero Section with Liquid Glass Shader Canvas */}
-      <section className="relative px-6 pt-16 pb-24 max-w-7xl mx-auto overflow-hidden">
-        {/* Luminous Ambient Liquid Shader Gradient Layer */}
-        <div className="absolute inset-0 opacity-80 pointer-events-none">
+      {/* Hero Section with Full-Width Liquid Glass Shader Canvas */}
+      <section className="relative w-full overflow-hidden border-b border-surface-hairline/40">
+        {/* Luminous Ambient Liquid Shader Gradient Layer - Full Bleed */}
+        <div className="absolute inset-0 w-full h-full opacity-85 pointer-events-none">
           <LiquidShaderGradient />
         </div>
 
-        <div className="relative z-10 grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
-          <div className="lg:col-span-7 space-y-6">
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-md bg-surface-overlay border border-surface-hairline text-xs font-mono text-emerald-400">
-              <ShieldCheck className="w-3.5 h-3.5 text-emerald-400" />
-              <span>Zero-Sum Double-Entry Settlement</span>
-            </div>
-
-            <h1 className="font-sans font-extrabold text-4xl sm:text-5xl lg:text-6xl tracking-tight text-ink-primary leading-[1.12]">
-              Group trip finances without the <span className="text-zinc-400">spreadsheets.</span>
-            </h1>
-
-            <p className="text-base sm:text-lg text-ink-secondary leading-relaxed max-w-2xl font-normal">
-              Connect your itinerary with an immutable financial ledger. Invite squad members with a 6-character code (e.g. <code className="text-emerald-400 font-mono font-semibold bg-surface-overlay border border-surface-hairline px-2 py-0.5 rounded">GOA2026</code>), upload bill receipts, and compress group debts via greedy zero-sum graph netting.
-            </p>
-
-            <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 pt-2">
-              <LiquidGlassButton
-                variant="primary"
-                size="md"
-                onClick={onOpenCreateTrip}
-                icon={<Plus className="w-4 h-4 stroke-[3]" />}
-              >
-                Create Custom Trip
-              </LiquidGlassButton>
-
-              <LiquidGlassButton
-                variant="glass"
-                size="md"
-                onClick={onOpenJoinTrip}
-                icon={<Key className="w-4 h-4 text-ink-muted" />}
-              >
-                Join with Invite Code
-              </LiquidGlassButton>
-
-              <LiquidGlassButton
-                variant="subtle"
-                size="md"
-                onClick={onEnterApp}
-                icon={<ArrowRight className="w-4 h-4" />}
-              >
-                Live Demo
-              </LiquidGlassButton>
-            </div>
-
-            {/* Quick Metrics Badge */}
-            <div className="grid grid-cols-3 gap-6 pt-6 border-t border-surface-hairline/60 max-w-lg">
-              <div>
-                <span className="font-numeric font-bold text-2xl text-ink-primary block">Net 0.00</span>
-                <span className="text-xs text-ink-muted font-mono">Zero-Sum Audit</span>
-              </div>
-              <div>
-                <span className="font-numeric font-bold text-2xl text-emerald-400 block">Minimal Paths</span>
-                <span className="text-xs text-ink-muted font-mono">Debt Compression</span>
-              </div>
-              <div>
-                <span className="font-numeric font-bold text-2xl text-ink-primary block">₹ INR UPI</span>
-                <span className="text-xs text-ink-muted font-mono">Instant QR Settle</span>
-              </div>
-            </div>
-          </div>
-
-          {/* Interactive Hero Preview Card */}
-          <div className="lg:col-span-5">
-            <motion.div
-              initial={{ y: 20, opacity: 0 }}
-              animate={{ y: 0, opacity: 1 }}
-              transition={{ duration: 0.5 }}
-              className="bg-surface-raised p-6 rounded-2xl border border-surface-hairline shadow-paper space-y-4"
-            >
-              <div className="flex items-center justify-between border-b border-surface-hairline/80 pb-3">
-                <div className="flex items-center gap-2">
-                  <span className="w-2.5 h-2.5 rounded-full bg-emerald-400" />
-                  <span className="font-sans font-semibold text-sm text-ink-primary">
-                    Goa Sunsets Demo (GOA2026)
-                  </span>
-                </div>
-                <span className="text-[11px] font-mono px-2 py-0.5 rounded bg-emerald-500/15 text-emerald-400 border border-emerald-500/20">
-                  Verified Audit
-                </span>
+        <div className="relative z-10 px-6 pt-16 pb-24 max-w-7xl mx-auto">
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
+            <div className="lg:col-span-7 space-y-6">
+              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-md bg-surface-overlay/80 backdrop-blur-md border border-surface-hairline text-xs font-mono text-emerald-400">
+                <ShieldCheck className="w-3.5 h-3.5 text-emerald-400" />
+                <span>Zero-Sum Double-Entry Settlement</span>
               </div>
 
-              {/* Sample Participant Net Balances */}
-              <div className="space-y-2">
-                {[
-                  { name: 'Rohan Sharma (Host)', amount: '+₹14,500.00', status: 'surplus' },
-                  { name: 'Priya Patel', amount: '-₹4,850.00', status: 'deficit' },
-                  { name: 'Vikram Mehta', amount: '-₹9,650.00', status: 'deficit' },
-                ].map((row, idx) => (
-                  <div
-                    key={idx}
-                    className="p-3 rounded-xl bg-surface-overlay/50 border border-surface-hairline flex items-center justify-between text-xs"
-                  >
-                    <span className="font-medium text-ink-primary">{row.name}</span>
-                    <span
-                      className={`font-numeric font-semibold px-2 py-0.5 rounded ${
-                        row.status === 'surplus'
-                          ? 'bg-emerald-500/15 text-emerald-400'
-                          : 'bg-rose-500/15 text-rose-400'
-                      }`}
-                    >
-                      {row.amount}
-                    </span>
-                  </div>
-                ))}
-              </div>
+              <h1 className="font-sans font-extrabold text-4xl sm:text-5xl lg:text-6xl tracking-tight text-ink-primary leading-[1.12]">
+                Group trip finances without the <span className="text-zinc-400">spreadsheets.</span>
+              </h1>
 
-              <div className="p-3.5 rounded-xl bg-surface-overlay border border-surface-hairline flex items-center justify-between text-xs">
-                <span className="text-ink-secondary">Ready to explore active trip?</span>
-                <button
-                  onClick={onEnterApp}
-                  className="px-3 py-1.5 rounded-lg bg-ink-primary text-surface-base font-bold flex items-center gap-1 hover:opacity-90 transition-all cursor-pointer"
+              <p className="text-base sm:text-lg text-ink-secondary leading-relaxed max-w-2xl font-normal">
+                Connect your itinerary with an immutable financial ledger. Invite squad members with a 6-character code (e.g. <code className="text-emerald-400 font-mono font-semibold bg-surface-overlay border border-surface-hairline px-2 py-0.5 rounded">GOA2026</code>), upload bill receipts, and compress group debts via greedy zero-sum graph netting.
+              </p>
+
+              <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 pt-2">
+                <LiquidGlassButton
+                  variant="primary"
+                  size="md"
+                  onClick={onOpenCreateTrip}
+                  icon={<Plus className="w-4 h-4 stroke-[3]" />}
                 >
-                  <span>Open Dashboard</span>
-                  <ArrowRight className="w-3.5 h-3.5" />
-                </button>
+                  Create Custom Trip
+                </LiquidGlassButton>
+
+                <LiquidGlassButton
+                  variant="glass"
+                  size="md"
+                  onClick={onOpenJoinTrip}
+                  icon={<Key className="w-4 h-4 text-ink-muted" />}
+                >
+                  Join with Invite Code
+                </LiquidGlassButton>
+
+                <LiquidGlassButton
+                  variant="subtle"
+                  size="md"
+                  onClick={onEnterApp}
+                  icon={<ArrowRight className="w-4 h-4" />}
+                >
+                  Open Dashboard
+                </LiquidGlassButton>
               </div>
-            </motion.div>
+
+              {/* Quick Metrics Badge */}
+              <div className="grid grid-cols-3 gap-6 pt-6 border-t border-surface-hairline/60 max-w-lg">
+                <div>
+                  <span className="font-numeric font-bold text-2xl text-ink-primary block">Net 0.00</span>
+                  <span className="text-xs text-ink-muted font-mono">Zero-Sum Audit</span>
+                </div>
+                <div>
+                  <span className="font-numeric font-bold text-2xl text-emerald-400 block">Minimal Paths</span>
+                  <span className="text-xs text-ink-muted font-mono">Debt Compression</span>
+                </div>
+                <div>
+                  <span className="font-numeric font-bold text-2xl text-ink-primary block">₹ INR UPI</span>
+                  <span className="text-xs text-ink-muted font-mono">Instant QR Settle</span>
+                </div>
+              </div>
+            </div>
+
+            {/* 3D Earth Globe with Curated Background */}
+            <div className="lg:col-span-5 relative flex items-center justify-center">
+              <div className="w-full max-w-[480px] p-6 rounded-3xl border border-neutral-800/80 bg-[#06080e]/75 backdrop-blur-xl relative overflow-hidden shadow-2xl flex items-center justify-center">
+                {/* Dot Grid Matrix Background */}
+                <div className="absolute inset-0 z-0 w-full h-full bg-[radial-gradient(#10b98130_1px,transparent_1px)] [background-size:22px_22px] pointer-events-none opacity-80" />
+
+                {/* Ambient Emerald Halo Glow */}
+                <div className="absolute inset-0 m-auto w-64 h-64 rounded-full bg-emerald-500/20 blur-3xl pointer-events-none" />
+
+                {/* Concentric Subtle Orbit Ring */}
+                <div className="absolute inset-0 m-auto w-80 h-80 rounded-full border border-emerald-500/15 pointer-events-none" />
+
+                <div className="relative z-10 w-full flex items-center justify-center">
+                  <Earth />
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       </section>

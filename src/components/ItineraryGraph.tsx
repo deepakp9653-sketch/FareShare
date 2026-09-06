@@ -253,6 +253,7 @@ export const ItineraryGraph: React.FC<ItineraryGraphProps> = ({
                                   <UserAvatar
                                     name={p.name}
                                     id={p.id}
+                                    avatarUrl={p.avatarUrl}
                                     size="xs"
                                   />
                                 </div>

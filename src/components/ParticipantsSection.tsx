@@ -9,7 +9,7 @@ import { UserAvatar } from './UserAvatar';
 interface ParticipantsSectionProps {
   participants: Participant[];
   netBalances: ParticipantNetBalance[];
-  onAddParticipant: (name: string, email: string, isOrganizer: boolean) => void;
+  onAddParticipant: (name: string, email: string, isOrganizer: boolean, avatarUrl?: string) => void;
   onToggleStatus: (participantId: string) => void;
   onUpdateParticipantWeight: (participantId: string, weight: number, roomTier: 'suite' | 'standard' | 'economy') => void;
 }
@@ -24,6 +24,7 @@ export const ParticipantsSection: React.FC<ParticipantsSectionProps> = ({
   const [showAddModal, setShowAddModal] = useState(false);
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
+  const [avatarUrl, setAvatarUrl] = useState('');
   const [isOrganizer, setIsOrganizer] = useState(false);
 
   // Determine Big Banker (highest total paid)
@@ -33,9 +34,10 @@ export const ParticipantsSection: React.FC<ParticipantsSectionProps> = ({
   const handleSubmitAdd = (e: React.FormEvent) => {
     e.preventDefault();
     if (!name.trim()) return;
-    onAddParticipant(name, email, isOrganizer);
+    onAddParticipant(name, email, isOrganizer, avatarUrl.trim() || undefined);
     setName('');
     setEmail('');
+    setAvatarUrl('');
     setIsOrganizer(false);
     setShowAddModal(false);
   };
@@ -87,6 +89,7 @@ export const ParticipantsSection: React.FC<ParticipantsSectionProps> = ({
                     <UserAvatar
                       name={p.name}
                       id={p.id}
+                      avatarUrl={p.avatarUrl}
                       size="lg"
                       className="border-2 border-surface-hairline"
                     />
@@ -222,6 +225,20 @@ export const ParticipantsSection: React.FC<ParticipantsSectionProps> = ({
                   onChange={(e) => setEmail(e.target.value)}
                   placeholder="vikram@fareshare.in"
                   className="w-full bg-surface-base border border-surface-hairline rounded-xl px-3 py-2 text-ink-primary focus:border-emerald-500 outline-none"
+                />
+              </div>
+
+              <div>
+                <div className="flex items-center justify-between mb-1">
+                  <label className="block text-ink-muted">Profile Image URL (Optional)</label>
+                  <span className="text-[10px] text-emerald-400">Defaults to SVG</span>
+                </div>
+                <input
+                  type="url"
+                  value={avatarUrl}
+                  onChange={(e) => setAvatarUrl(e.target.value)}
+                  placeholder="https://... (or leave blank for SVG avatar)"
+                  className="w-full bg-surface-base border border-surface-hairline rounded-xl px-3 py-2 text-ink-primary focus:border-emerald-500 outline-none placeholder:text-zinc-600"
                 />
               </div>
 

@@ -31,7 +31,144 @@ export async function logEventToNeon(tripId: string, eventType: string, actorId:
     `;
     return true;
   } catch (error) {
-    console.warn('Neon DB insert fallback to memory cache:', error);
+    console.warn('Neon DB insert event error:', error);
+    return false;
+  }
+}
+
+export async function saveTripToNeon(trip: any, participants: any[]) {
+  try {
+    // 1. Insert Trip
+    await sql`
+      INSERT INTO trips (id, title, destination, base_currency, start_date, end_date, budget_ceiling, invite_code, organizer_id)
+      VALUES (
+        ${trip.id},
+        ${trip.title},
+        ${trip.destination},
+        ${trip.baseCurrency || 'INR'},
+        ${trip.startDate || null},
+        ${trip.endDate || null},
+        ${trip.budgetCeiling || 0},
+        ${trip.inviteCode || null},
+        ${trip.organizerId || null}
+      )
+      ON CONFLICT (id) DO UPDATE SET
+        title = EXCLUDED.title,
+        destination = EXCLUDED.destination,
+        budget_ceiling = EXCLUDED.budget_ceiling,
+        invite_code = EXCLUDED.invite_code;
+    `;
+
+    // 2. Insert Participants
+    for (const p of participants) {
+      await sql`
+        INSERT INTO participants (id, trip_id, name, email, avatar_url, is_organizer, status, upi_id, weight, room_tier)
+        VALUES (
+          ${p.id},
+          ${trip.id},
+          ${p.name},
+          ${p.email},
+          ${p.avatarUrl || null},
+          ${p.isOrganizer || false},
+          ${p.status || 'active'},
+          ${p.upiId || null},
+          ${p.weight || 1},
+          ${p.roomTier || 'standard'}
+        )
+        ON CONFLICT (id) DO UPDATE SET
+          name = EXCLUDED.name,
+          email = EXCLUDED.email,
+          avatar_url = EXCLUDED.avatar_url,
+          upi_id = EXCLUDED.upi_id;
+      `;
+    }
+
+    return true;
+  } catch (error) {
+    console.error('Neon DB save trip error:', error);
+    return false;
+  }
+}
+
+export async function saveExpenseToNeon(expense: any) {
+  try {
+    // 1. Insert Expense
+    await sql`
+      INSERT INTO expenses (
+        id, trip_id, booking_id, title, total_amount, currency, split_method,
+        paid_by_id, category, receipt_url, receipt_name, subsidy_amount, paid_by_splits
+      )
+      VALUES (
+        ${expense.id},
+        ${expense.tripId},
+        ${expense.bookingId || null},
+        ${expense.title},
+        ${expense.totalAmount},
+        ${expense.currency || 'INR'},
+        ${expense.splitMethod},
+        ${expense.paidById},
+        ${expense.category || 'general'},
+        ${expense.receiptUrl || null},
+        ${expense.receiptName || null},
+        ${expense.subsidyAmount || 0},
+        ${expense.paidBySplits ? JSON.stringify(expense.paidBySplits) : null}
+      )
+      ON CONFLICT (id) DO UPDATE SET
+        total_amount = EXCLUDED.total_amount,
+        split_method = EXCLUDED.split_method;
+    `;
+
+    // 2. Insert Allocations
+    if (expense.allocations && expense.allocations.length > 0) {
+      for (const alloc of expense.allocations) {
+        const allocId = alloc.id || `alloc-${expense.id}-${alloc.participantId}`;
+        await sql`
+          INSERT INTO expense_allocations (id, expense_id, participant_id, amount_owed, notes)
+          VALUES (
+            ${allocId},
+            ${expense.id},
+            ${alloc.participantId},
+            ${alloc.amountOwed},
+            ${alloc.notes || null}
+          )
+          ON CONFLICT (id) DO UPDATE SET
+            amount_owed = EXCLUDED.amount_owed;
+        `;
+      }
+    }
+
+    return true;
+  } catch (error) {
+    console.error('Neon DB save expense error:', error);
+    return false;
+  }
+}
+
+export async function saveBookingToNeon(booking: any) {
+  try {
+    await sql`
+      INSERT INTO bookings (
+        id, trip_id, category, title, vendor, start_time, end_time, estimated_cost, actual_cost, status
+      )
+      VALUES (
+        ${booking.id},
+        ${booking.tripId},
+        ${booking.category},
+        ${booking.title},
+        ${booking.vendor || null},
+        ${booking.startTime || null},
+        ${booking.endTime || null},
+        ${booking.estimatedCost || 0},
+        ${booking.actualCost || 0},
+        ${booking.status || 'confirmed'}
+      )
+      ON CONFLICT (id) DO UPDATE SET
+        actual_cost = EXCLUDED.actual_cost,
+        status = EXCLUDED.status;
+    `;
+    return true;
+  } catch (error) {
+    console.error('Neon DB save booking error:', error);
     return false;
   }
 }
@@ -49,7 +186,13 @@ export async function saveRefundToNeon(refund: any) {
   }
 }
 
-export async function updateBookingInNeon(bookingId: string, status: string, refundPolicy?: string, cancellationReason?: string, refundAmount?: number) {
+export async function updateBookingInNeon(
+  bookingId: string,
+  status: string,
+  refundPolicy?: string,
+  cancellationReason?: string,
+  refundAmount?: number
+) {
   try {
     await sql`
       UPDATE bookings 
@@ -62,4 +205,3 @@ export async function updateBookingInNeon(bookingId: string, status: string, ref
     return false;
   }
 }
-

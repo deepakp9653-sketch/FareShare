@@ -154,7 +154,7 @@ export const AddBookingModal: React.FC<AddBookingModalProps> = ({
                         : 'bg-surface-base border-surface-hairline text-ink-muted opacity-50'
                     }`}
                   >
-                    <UserAvatar name={p.name} id={p.id} size="xs" />
+                    <UserAvatar name={p.name} id={p.id} avatarUrl={p.avatarUrl} size="xs" />
                     <span>{p.name}</span>
                   </button>
                 );

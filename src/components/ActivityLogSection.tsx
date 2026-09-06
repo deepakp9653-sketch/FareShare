@@ -17,17 +17,21 @@ import {
   Code,
   ChevronDown,
   ChevronUp,
+  Clock,
+  Trash2,
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
 interface ActivityLogSectionProps {
   events: LedgerEvent[];
+  onDeleteEvent?: (eventId: string) => void;
 }
 
-export const ActivityLogSection: React.FC<ActivityLogSectionProps> = ({ events }) => {
+export const ActivityLogSection: React.FC<ActivityLogSectionProps> = ({ events, onDeleteEvent }) => {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedFilter, setSelectedFilter] = useState<string>('all');
   const [expandedPayloadId, setExpandedPayloadId] = useState<string | null>(null);
+  const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
 
   const getEventBadge = (type: string) => {
     switch (type) {
@@ -196,29 +200,78 @@ export const ActivityLogSection: React.FC<ActivityLogSectionProps> = ({ events }
                     </span>
                   </div>
 
-                  <span className="text-ink-muted text-[11px] font-mono">
-                    {new Date(evt.timestamp).toLocaleString()}
+                  <span className="text-ink-muted text-[11px] font-mono flex items-center gap-1.5">
+                    <Clock className="w-3 h-3 text-emerald-400 shrink-0" />
+                    <span>
+                      {new Date(evt.timestamp).toLocaleString('en-IN', {
+                        day: 'numeric',
+                        month: 'short',
+                        year: 'numeric',
+                        hour: '2-digit',
+                        minute: '2-digit',
+                        second: '2-digit',
+                        hour12: true,
+                      })}
+                    </span>
                   </span>
                 </div>
 
                 <p className="text-xs text-ink-primary font-medium leading-relaxed">{evt.description}</p>
 
-                <div className="flex items-center justify-between text-[11px] text-ink-muted pt-1 border-t border-surface-hairline/60">
+                <div className="flex flex-wrap items-center justify-between gap-2 text-[11px] text-ink-muted pt-1 border-t border-surface-hairline/60">
                   <div className="flex items-center gap-1">
                     <span>Logged By:</span>
                     <span className="font-semibold text-ink-primary">{evt.actorName}</span>
                   </div>
 
-                  {evt.payload && (
-                    <button
-                      onClick={() => setExpandedPayloadId(isPayloadExpanded ? null : evt.id)}
-                      className="flex items-center gap-1 text-accent-cyan hover:underline font-semibold"
-                    >
-                      <Code className="w-3.5 h-3.5" />
-                      <span>{isPayloadExpanded ? 'Hide Payload' : 'Inspect JSON Payload'}</span>
-                      {isPayloadExpanded ? <ChevronUp className="w-3.5 h-3.5" /> : <ChevronDown className="w-3.5 h-3.5" />}
-                    </button>
-                  )}
+                  <div className="flex items-center gap-3">
+                    {evt.payload && (
+                      <button
+                        onClick={() => setExpandedPayloadId(isPayloadExpanded ? null : evt.id)}
+                        className="flex items-center gap-1 text-accent-cyan hover:underline font-semibold cursor-pointer"
+                      >
+                        <Code className="w-3.5 h-3.5" />
+                        <span>{isPayloadExpanded ? 'Hide Payload' : 'Inspect JSON Payload'}</span>
+                        {isPayloadExpanded ? <ChevronUp className="w-3.5 h-3.5" /> : <ChevronDown className="w-3.5 h-3.5" />}
+                      </button>
+                    )}
+
+                    {onDeleteEvent && (
+                      confirmDeleteId === evt.id ? (
+                        <div className="flex items-center gap-1.5 bg-red-500/10 border border-red-500/30 px-2 py-0.5 rounded-lg text-[10px]">
+                          <span className="text-red-400 font-semibold">Delete?</span>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              onDeleteEvent(evt.id);
+                              setConfirmDeleteId(null);
+                            }}
+                            className="text-red-300 hover:text-white font-bold underline cursor-pointer"
+                          >
+                            Yes
+                          </button>
+                          <span className="text-neutral-500">|</span>
+                          <button
+                            type="button"
+                            onClick={() => setConfirmDeleteId(null)}
+                            className="text-neutral-400 hover:text-white cursor-pointer"
+                          >
+                            Cancel
+                          </button>
+                        </div>
+                      ) : (
+                        <button
+                          type="button"
+                          onClick={() => setConfirmDeleteId(evt.id)}
+                          title="Delete Audit Entry"
+                          className="flex items-center gap-1 text-ink-muted hover:text-red-400 transition-colors cursor-pointer"
+                        >
+                          <Trash2 className="w-3.5 h-3.5" />
+                          <span>Delete</span>
+                        </button>
+                      )
+                    )}
+                  </div>
                 </div>
 
                 {/* Expandable JSON Payload Inspection Drawer */}

@@ -13,6 +13,7 @@ interface CreateTripModalProps {
       name: string;
       email: string;
       upiId: string;
+      avatarUrl?: string;
     },
     tripData: {
       title: string;
@@ -26,6 +27,7 @@ interface CreateTripModalProps {
       email: string;
       upiId: string;
       roomTier: 'suite' | 'standard' | 'economy';
+      avatarUrl?: string;
     }>
   ) => void;
 }
@@ -41,6 +43,7 @@ export const CreateTripModal: React.FC<CreateTripModalProps> = ({
   const [creatorName, setCreatorName] = useState('');
   const [creatorEmail, setCreatorEmail] = useState('');
   const [creatorUpi, setCreatorUpi] = useState('');
+  const [creatorAvatarUrl, setCreatorAvatarUrl] = useState('');
 
   // Step 2: Trip Details
   const [title, setTitle] = useState('');
@@ -56,11 +59,13 @@ export const CreateTripModal: React.FC<CreateTripModalProps> = ({
       email: string;
       upiId: string;
       roomTier: 'suite' | 'standard' | 'economy';
+      avatarUrl?: string;
     }>
   >([]);
 
   const [newTravelerName, setNewTravelerName] = useState('');
   const [newTravelerUpi, setNewTravelerUpi] = useState('');
+  const [newTravelerAvatarUrl, setNewTravelerAvatarUrl] = useState('');
 
   if (!isOpen) return null;
 
@@ -73,10 +78,12 @@ export const CreateTripModal: React.FC<CreateTripModalProps> = ({
         email: `${newTravelerName.toLowerCase().replace(/\s+/g, '')}@fareshare.in`,
         upiId: newTravelerUpi || `${newTravelerName.toLowerCase().replace(/\s+/g, '')}@upi`,
         roomTier: 'standard',
+        avatarUrl: newTravelerAvatarUrl.trim() || undefined,
       },
     ]);
     setNewTravelerName('');
     setNewTravelerUpi('');
+    setNewTravelerAvatarUrl('');
   };
 
   const handleRemoveTraveler = (idx: number) => {
@@ -92,6 +99,7 @@ export const CreateTripModal: React.FC<CreateTripModalProps> = ({
         name: creatorName.trim(),
         email: creatorEmail.trim() || `${creatorName.toLowerCase().replace(/\s+/g, '')}@fareshare.in`,
         upiId: creatorUpi.trim() || `${creatorName.toLowerCase().replace(/\s+/g, '')}@okicici`,
+        avatarUrl: creatorAvatarUrl.trim() || undefined,
       },
       {
         title: title.trim(),
@@ -106,6 +114,7 @@ export const CreateTripModal: React.FC<CreateTripModalProps> = ({
     // Reset Form
     setStep(1);
     setCreatorName('');
+    setCreatorAvatarUrl('');
     setTitle('');
     setDestination('');
     setTravelers([]);
@@ -118,7 +127,7 @@ export const CreateTripModal: React.FC<CreateTripModalProps> = ({
         initial={{ scale: 0.95, opacity: 0 }}
         animate={{ scale: 1, opacity: 1 }}
         exit={{ scale: 0.95, opacity: 0 }}
-        className="bg-surface-raised border border-surface-hairline p-6 rounded-3xl max-w-xl w-full space-y-5 shadow-2xl overflow-hidden"
+        className="bg-surface-raised border border-surface-hairline p-6 rounded-3xl max-w-xl w-full max-h-[90vh] overflow-y-auto space-y-5 shadow-2xl"
       >
         {/* Modal Header */}
         <div className="flex items-center justify-between border-b border-surface-hairline pb-4">
@@ -200,6 +209,22 @@ export const CreateTripModal: React.FC<CreateTripModalProps> = ({
                       />
                     </div>
                   </div>
+                </div>
+
+                <div>
+                  <div className="flex items-center justify-between mb-1">
+                    <label className="block text-xs text-ink-muted font-semibold">
+                      Profile Image URL (Optional)
+                    </label>
+                    <span className="text-[10px] text-emerald-400 font-mono">Defaults to Geometric SVG Persona</span>
+                  </div>
+                  <input
+                    type="url"
+                    value={creatorAvatarUrl}
+                    onChange={(e) => setCreatorAvatarUrl(e.target.value)}
+                    placeholder="https://... (leave empty for crisp designer SVG avatar)"
+                    className="w-full bg-surface-base border border-surface-hairline rounded-xl px-3 py-2 text-xs text-ink-primary focus:border-emerald-500 outline-none placeholder:text-zinc-600"
+                  />
                 </div>
               </motion.div>
             )}
@@ -341,6 +366,13 @@ export const CreateTripModal: React.FC<CreateTripModalProps> = ({
                       className="bg-surface-raised border border-surface-hairline rounded-lg px-2.5 py-1.5 text-xs text-ink-primary outline-none"
                     />
                   </div>
+                  <input
+                    type="url"
+                    placeholder="Profile Photo URL (Optional - defaults to SVG persona)"
+                    value={newTravelerAvatarUrl}
+                    onChange={(e) => setNewTravelerAvatarUrl(e.target.value)}
+                    className="w-full bg-surface-raised border border-surface-hairline rounded-lg px-2.5 py-1.5 text-xs text-ink-primary outline-none placeholder:text-zinc-600"
+                  />
                   <button
                     type="button"
                     onClick={handleAddTraveler}

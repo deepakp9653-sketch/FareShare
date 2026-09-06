@@ -207,6 +207,7 @@ export const Header: React.FC<HeaderProps> = ({
             <UserAvatar
               name={currentUser?.name}
               id={currentUser?.id}
+              avatarUrl={currentUser?.avatarUrl}
               size="xs"
               className="shrink-0"
             />

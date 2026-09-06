@@ -187,7 +187,7 @@ export const ShareTripModal: React.FC<ShareTripModalProps> = ({
                     onClick={() => setSelectedUserEmail(u.email)}
                     className="text-[11px] px-2.5 py-1 rounded-lg bg-surface-base border border-surface-hairline text-ink-primary hover:border-ink-primary transition-all flex items-center gap-1.5 font-medium"
                   >
-                    <UserAvatar name={u.name} id={u.id} size="xs" />
+                    <UserAvatar name={u.name} id={u.id} avatarUrl={u.avatar} size="xs" />
                     <span>{u.name}</span>
                   </button>
                 ))}
@@ -233,6 +233,7 @@ export const ShareTripModal: React.FC<ShareTripModalProps> = ({
                   <UserAvatar
                     name={p.name}
                     id={p.id}
+                    avatarUrl={p.avatarUrl}
                     size="sm"
                   />
                   <div>

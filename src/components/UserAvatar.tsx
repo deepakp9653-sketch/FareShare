@@ -5,6 +5,7 @@ import React from 'react';
 interface UserAvatarProps {
   name?: string;
   id?: string;
+  avatarUrl?: string;
   size?: 'xs' | 'sm' | 'md' | 'lg' | 'xl' | number;
   className?: string;
   showBorder?: boolean;
@@ -194,10 +195,13 @@ const renderPersonaSVG = (index: number, palette: typeof AVATAR_PALETTES[0]) => 
 export const UserAvatar: React.FC<UserAvatarProps> = ({
   name = 'Traveler',
   id = '',
+  avatarUrl,
   size = 'md',
   className = '',
   showBorder = true,
 }) => {
+  const [imageError, setImageError] = React.useState(false);
+
   // Deterministic seed based on name + id
   const str = (id + name).toLowerCase();
   let hash = 0;
@@ -232,6 +236,26 @@ export const UserAvatar: React.FC<UserAvatarProps> = ({
   }
 
   const customStyle = typeof size === 'number' ? { width: size, height: size } : {};
+
+  // If a valid image URL is provided (e.g. for the Goa demo trip), display it
+  if (avatarUrl && avatarUrl.trim().length > 0 && !imageError) {
+    return (
+      <div
+        style={customStyle}
+        className={`relative inline-flex items-center justify-center shrink-0 rounded-full overflow-hidden ${
+          showBorder ? 'border border-surface-hairline' : ''
+        } shadow-subtle select-none ${dimClass} ${className}`}
+        title={name}
+      >
+        <img
+          src={avatarUrl}
+          alt={name}
+          onError={() => setImageError(true)}
+          className="w-full h-full object-cover rounded-full"
+        />
+      </div>
+    );
+  }
 
   return (
     <div
