@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { sql, saveTripToNeon, findTripByInviteCodeInNeon } from '@/lib/db';
+import { sql, saveTripToNeon, findTripByInviteCodeInNeon, fetchTripExpensesWithAllocations } from '@/lib/db';
 
 export async function GET(req: Request) {
   try {
@@ -51,15 +51,62 @@ export async function GET(req: Request) {
         estimatedCost: Number(b.estimated_cost || 0),
         actualCost: Number(b.actual_cost || 0),
         status: b.status || 'confirmed',
-        participantIds: formattedParticipants.map((p: any) => p.id),
+        participantIds: b.participantIds || formattedParticipants.map((p: any) => p.id),
       }));
+
+      const formattedExpenses = (data.expenses || []).map((e: any) => {
+        let expAllocs = Array.isArray(e.allocations) ? e.allocations : [];
+
+        // Synthesize valid allocations if none existed in DB
+        if (expAllocs.length === 0 && formattedParticipants.length > 0) {
+          const totalAmount = Number(e.totalAmount ?? e.total_amount ?? 0);
+          const subsidyAmount = Number(e.subsidyAmount ?? e.subsidy_amount ?? 0);
+          const net = Math.max(0, totalAmount - subsidyAmount);
+          const activeParts = formattedParticipants.filter((p: any) => p.status === 'active');
+          const targetParts = activeParts.length > 0 ? activeParts : formattedParticipants;
+          const perPerson = Number((net / targetParts.length).toFixed(2));
+          let running = 0;
+          expAllocs = targetParts.map((p: any, idx: number) => {
+            let owed = perPerson;
+            if (idx === targetParts.length - 1) {
+              owed = Number((net - running).toFixed(2));
+            } else {
+              running += owed;
+            }
+            return {
+              id: `alloc-${e.id}-${p.id}`,
+              expenseId: e.id,
+              participantId: p.id,
+              amountOwed: owed,
+            };
+          });
+        }
+
+        return {
+          id: e.id,
+          tripId: e.tripId || e.trip_id,
+          bookingId: e.bookingId || e.booking_id || undefined,
+          title: e.title,
+          totalAmount: Number(e.totalAmount ?? e.total_amount ?? 0),
+          currency: e.currency || 'INR',
+          splitMethod: e.splitMethod || e.split_method || 'equal',
+          paidById: e.paidById || e.paid_by_id,
+          category: e.category || 'general',
+          receiptUrl: e.receiptUrl || e.receipt_url || undefined,
+          receiptName: e.receiptName || e.receipt_name || undefined,
+          subsidyAmount: Number(e.subsidyAmount ?? e.subsidy_amount ?? 0),
+          paidBySplits: e.paidBySplits || e.paid_by_splits || undefined,
+          createdAt: e.createdAt || e.created_at,
+          allocations: expAllocs,
+        };
+      });
 
       return NextResponse.json({
         success: true,
         trip: formattedTrip,
         participants: formattedParticipants,
         bookings: formattedBookings,
-        expenses: data.expenses || [],
+        expenses: formattedExpenses,
         events: data.events || [],
       });
     }
@@ -70,16 +117,103 @@ export async function GET(req: Request) {
       if (trips.length === 0) {
         return NextResponse.json({ success: false, error: 'Trip not found' }, { status: 404 });
       }
+      const rawTrip = trips[0];
       const participants = await sql`SELECT * FROM participants WHERE trip_id = ${tripId};`;
       const bookings = await sql`SELECT * FROM bookings WHERE trip_id = ${tripId};`;
-      const expenses = await sql`SELECT * FROM expenses WHERE trip_id = ${tripId};`;
+      const expenses = await fetchTripExpensesWithAllocations(tripId);
+
+      const formattedTrip = {
+        id: rawTrip.id,
+        title: rawTrip.title,
+        destination: rawTrip.destination,
+        baseCurrency: rawTrip.base_currency || 'INR',
+        startDate: rawTrip.start_date,
+        endDate: rawTrip.end_date,
+        budgetCeiling: Number(rawTrip.budget_ceiling || 0),
+        inviteCode: rawTrip.invite_code,
+        organizerId: rawTrip.organizer_id,
+        createdAt: rawTrip.created_at,
+      };
+
+      const formattedParticipants = participants.map((p: any) => ({
+        id: p.id,
+        tripId: p.trip_id,
+        name: p.name,
+        email: p.email,
+        avatarUrl: p.avatar_url || '',
+        isOrganizer: Boolean(p.is_organizer),
+        status: p.status || 'active',
+        upiId: p.upi_id || `${p.name.toLowerCase().replace(/\s+/g, '')}@upi`,
+        weight: Number(p.weight || 1),
+        roomTier: p.room_tier || 'standard',
+      }));
+
+      const formattedBookings = bookings.map((b: any) => ({
+        id: b.id,
+        tripId: b.trip_id,
+        category: b.category,
+        title: b.title,
+        vendor: b.vendor || '',
+        startTime: b.start_time,
+        endTime: b.end_time,
+        estimatedCost: Number(b.estimated_cost || 0),
+        actualCost: Number(b.actual_cost || 0),
+        status: b.status || 'confirmed',
+        participantIds: b.participantIds || formattedParticipants.map((p: any) => p.id),
+      }));
+
+      const formattedExpenses = (expenses || []).map((e: any) => {
+        let expAllocs = Array.isArray(e.allocations) ? e.allocations : [];
+
+        if (expAllocs.length === 0 && formattedParticipants.length > 0) {
+          const totalAmount = Number(e.totalAmount ?? e.total_amount ?? 0);
+          const subsidyAmount = Number(e.subsidyAmount ?? e.subsidy_amount ?? 0);
+          const net = Math.max(0, totalAmount - subsidyAmount);
+          const activeParts = formattedParticipants.filter((p: any) => p.status === 'active');
+          const targetParts = activeParts.length > 0 ? activeParts : formattedParticipants;
+          const perPerson = Number((net / targetParts.length).toFixed(2));
+          let running = 0;
+          expAllocs = targetParts.map((p: any, idx: number) => {
+            let owed = perPerson;
+            if (idx === targetParts.length - 1) {
+              owed = Number((net - running).toFixed(2));
+            } else {
+              running += owed;
+            }
+            return {
+              id: `alloc-${e.id}-${p.id}`,
+              expenseId: e.id,
+              participantId: p.id,
+              amountOwed: owed,
+            };
+          });
+        }
+
+        return {
+          id: e.id,
+          tripId: e.tripId || e.trip_id,
+          bookingId: e.bookingId || e.booking_id || undefined,
+          title: e.title,
+          totalAmount: Number(e.totalAmount ?? e.total_amount ?? 0),
+          currency: e.currency || 'INR',
+          splitMethod: e.splitMethod || e.split_method || 'equal',
+          paidById: e.paidById || e.paid_by_id,
+          category: e.category || 'general',
+          receiptUrl: e.receiptUrl || e.receipt_url || undefined,
+          receiptName: e.receiptName || e.receipt_name || undefined,
+          subsidyAmount: Number(e.subsidyAmount ?? e.subsidy_amount ?? 0),
+          paidBySplits: e.paidBySplits || e.paid_by_splits || undefined,
+          createdAt: e.createdAt || e.created_at,
+          allocations: expAllocs,
+        };
+      });
 
       return NextResponse.json({
         success: true,
-        trip: trips[0],
-        participants,
-        bookings,
-        expenses,
+        trip: formattedTrip,
+        participants: formattedParticipants,
+        bookings: formattedBookings,
+        expenses: formattedExpenses,
       });
     }
 

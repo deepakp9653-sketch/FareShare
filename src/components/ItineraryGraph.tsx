@@ -241,7 +241,7 @@ export const ItineraryGraph: React.FC<ItineraryGraphProps> = ({
                           <span className="text-[11px] text-ink-muted mr-2">Participants:</span>
                           <div className="flex -space-x-2">
                             {participants.map((p) => {
-                              const isParticipating = b.participantIds.includes(p.id);
+                              const isParticipating = (b.participantIds || []).includes(p.id);
                               return (
                                 <div
                                   key={p.id}

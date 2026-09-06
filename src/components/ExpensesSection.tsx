@@ -185,7 +185,7 @@ export const ExpensesSection: React.FC<ExpensesSectionProps> = ({
                     Participant Allocations:
                   </span>
                   <div className="flex flex-wrap gap-2">
-                    {exp.allocations.map((alloc) => {
+                    {(exp.allocations || []).map((alloc) => {
                       const p = participants.find((part) => part.id === alloc.participantId);
                       const isDisputed = alloc.disputeStatus === 'active';
                       const isUser = alloc.participantId === currentUserId;
@@ -203,7 +203,7 @@ export const ExpensesSection: React.FC<ExpensesSectionProps> = ({
                         >
                           <span className="text-ink-secondary">{p?.name || 'User'}:</span>
                           <span className="font-numeric font-bold text-ink-primary">
-                            ₹{alloc.amountOwed.toLocaleString('en-IN', { minimumFractionDigits: 2 })}
+                            ₹{(alloc.amountOwed || 0).toLocaleString('en-IN', { minimumFractionDigits: 2 })}
                           </span>
 
                           {isDisputed && (

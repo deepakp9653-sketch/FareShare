@@ -209,6 +209,57 @@ export async function updateBookingInNeon(
   }
 }
 
+export async function fetchTripExpensesWithAllocations(tripId: string) {
+  try {
+    const rawExpenses = await sql`SELECT * FROM expenses WHERE trip_id = ${tripId} ORDER BY created_at DESC;`;
+    if (!rawExpenses || rawExpenses.length === 0) return [];
+
+    const expenseIds = rawExpenses.map((e: any) => e.id);
+    let allAllocations: any[] = [];
+    try {
+      allAllocations = await sql`
+        SELECT * FROM expense_allocations 
+        WHERE expense_id = ANY(${expenseIds});
+      `;
+    } catch (allocErr) {
+      console.warn('Could not query expense_allocations:', allocErr);
+    }
+
+    return rawExpenses.map((e: any) => {
+      const matchedAllocs = (allAllocations || [])
+        .filter((a: any) => a.expense_id === e.id)
+        .map((a: any) => ({
+          id: a.id,
+          expenseId: a.expense_id,
+          participantId: a.participant_id,
+          amountOwed: Number(a.amount_owed || 0),
+          notes: a.notes || undefined,
+        }));
+
+      return {
+        id: e.id,
+        tripId: e.trip_id,
+        bookingId: e.booking_id || undefined,
+        title: e.title,
+        totalAmount: Number(e.total_amount || 0),
+        currency: e.currency || 'INR',
+        splitMethod: e.split_method || 'equal',
+        paidById: e.paid_by_id,
+        category: e.category || 'general',
+        receiptUrl: e.receipt_url || undefined,
+        receiptName: e.receipt_name || undefined,
+        subsidyAmount: Number(e.subsidy_amount || 0),
+        paidBySplits: e.paid_by_splits || undefined,
+        createdAt: e.created_at,
+        allocations: matchedAllocs,
+      };
+    });
+  } catch (err) {
+    console.error('fetchTripExpensesWithAllocations error:', err);
+    return [];
+  }
+}
+
 export async function findTripByInviteCodeInNeon(inviteCode: string) {
   try {
     const cleanCode = inviteCode.trim().toUpperCase();
@@ -221,7 +272,7 @@ export async function findTripByInviteCodeInNeon(inviteCode: string) {
     const trip = rows[0];
     const participants = await sql`SELECT * FROM participants WHERE trip_id = ${trip.id};`;
     const bookings = await sql`SELECT * FROM bookings WHERE trip_id = ${trip.id};`;
-    const expenses = await sql`SELECT * FROM expenses WHERE trip_id = ${trip.id};`;
+    const expenses = await fetchTripExpensesWithAllocations(trip.id);
     const events = await sql`SELECT * FROM events WHERE trip_id = ${trip.id} ORDER BY sequence_num ASC;`;
     return { trip, participants, bookings, expenses, events };
   } catch (error) {

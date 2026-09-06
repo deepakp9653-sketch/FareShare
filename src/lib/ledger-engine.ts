@@ -250,11 +250,11 @@ export function computeNetBalances(
       map[e.paidById].totalPaid += claimablePaid;
     }
 
-    e.allocations.forEach((alloc) => {
+    (e.allocations || []).forEach((alloc) => {
       if (!map[alloc.participantId]) {
         map[alloc.participantId] = { totalPaid: 0, totalOwed: 0 };
       }
-      map[alloc.participantId].totalOwed += alloc.amountOwed;
+      map[alloc.participantId].totalOwed += (alloc.amountOwed || 0);
     });
   });
 
@@ -276,14 +276,15 @@ export function computeNetBalances(
       }
 
       // Distribute debt relief across allocations proportionally with exact penny preservation
+      const allocs = expense.allocations || [];
       let sumRelief = 0;
-      expense.allocations.forEach((alloc, idx) => {
+      allocs.forEach((alloc, idx) => {
         if (map[alloc.participantId]) {
           let relief: number;
-          if (idx === expense.allocations.length - 1) {
+          if (idx === allocs.length - 1) {
             relief = Number((claimableRefund - sumRelief).toFixed(2));
           } else {
-            relief = Number((alloc.amountOwed * refundRatio).toFixed(2));
+            relief = Number(((alloc.amountOwed || 0) * refundRatio).toFixed(2));
             sumRelief += relief;
           }
           map[alloc.participantId].totalOwed -= relief;
@@ -536,9 +537,9 @@ export function simulateDryRun(
 
   // 2. Clone state for simulation
   let simParticipants = participants.map((p) => ({ ...p }));
-  let simExpenses = expenses.map((e) => ({ ...e, allocations: [...e.allocations] }));
+  let simExpenses = expenses.map((e) => ({ ...e, allocations: [...(e.allocations || [])] }));
   let simRefunds = [...refunds];
-  let simBookings = bookings.map((b) => ({ ...b, participantIds: [...b.participantIds] }));
+  let simBookings = bookings.map((b) => ({ ...b, participantIds: [...(b.participantIds || [])] }));
   let actionDescription = '';
 
   if (action.type === 'REMOVE_PARTICIPANT' && action.participantId) {
@@ -647,7 +648,9 @@ export function detectAnomalies(
       // Check if time intervals overlap
       const isOverlap = t1Start < t2End && t2Start < t1End;
       if (isOverlap) {
-        const sharedParticipants = b1.participantIds.filter((id) => b2.participantIds.includes(id));
+        const p1 = b1.participantIds || [];
+        const p2 = b2.participantIds || [];
+        const sharedParticipants = p1.filter((id) => p2.includes(id));
         if (sharedParticipants.length > 0) {
           const names = sharedParticipants
             .map((id) => participants.find((p) => p.id === id)?.name)
@@ -670,15 +673,16 @@ export function detectAnomalies(
 
   // 2. Check for Room Overcapacity
   bookings.forEach((b) => {
+    const pIds = b.participantIds || [];
     if (b.category === 'lodging' && b.roomCapacity && b.status !== 'cancelled') {
-      if (b.participantIds.length > b.roomCapacity) {
+      if (pIds.length > b.roomCapacity) {
         anomalies.push({
           id: `anom-room-${b.id}`,
           tripId,
           type: 'ROOM_OVERCAPACITY',
           severity: 'medium',
           title: `Overcapacity Warning: "${b.title}"`,
-          description: `Booking assigned ${b.participantIds.length} travelers but max room capacity is ${b.roomCapacity}.`,
+          description: `Booking assigned ${pIds.length} travelers but max room capacity is ${b.roomCapacity}.`,
           affectedEntityIds: [b.id],
           createdAt: now,
         });
@@ -710,7 +714,8 @@ export function detectAnomalies(
   const removedIds = new Set(participants.filter((p) => p.status === 'removed').map((p) => p.id));
   bookings.forEach((b) => {
     if (b.status !== 'cancelled') {
-      const ghostAssigned = b.participantIds.filter((id) => removedIds.has(id));
+      const pIds = b.participantIds || [];
+      const ghostAssigned = pIds.filter((id) => removedIds.has(id));
       if (ghostAssigned.length > 0) {
         const names = ghostAssigned.map((id) => participants.find((p) => p.id === id)?.name).join(', ');
         anomalies.push({
@@ -729,7 +734,9 @@ export function detectAnomalies(
 
   // 5. Penny Mismatch Verification
   expenses.forEach((e) => {
-    const allocSum = e.allocations.reduce((sum, a) => sum + a.amountOwed, 0);
+    const allocs = e.allocations || [];
+    if (allocs.length === 0) return;
+    const allocSum = allocs.reduce((sum, a) => sum + (a.amountOwed || 0), 0);
     const subsidy = e.subsidyAmount || 0;
     const netExpected = Math.max(0, e.totalAmount - subsidy);
     if (Math.abs(allocSum - netExpected) > 0.05) {
@@ -818,7 +825,7 @@ export function explainParticipantBalance(
 
   // 2. Expense Shares Allocated to Participant
   dynamicExpenses.forEach((exp) => {
-    const userAlloc = exp.allocations.find((a) => a.participantId === participantId);
+    const userAlloc = (exp.allocations || []).find((a) => a.participantId === participantId);
     if (userAlloc && userAlloc.amountOwed > 0) {
       totalConsumed += userAlloc.amountOwed;
       const payer = participants.find((p) => p.id === exp.paidById)?.name || 'Organizer';
@@ -1043,10 +1050,11 @@ export function suggestSplitMethod(
   }
 
   // Rule 2: Booking with restricted participant subset
-  if (booking && booking.participantIds.length > 0 && booking.participantIds.length < participants.length) {
+  const bPids = booking?.participantIds || [];
+  if (booking && bPids.length > 0 && bPids.length < participants.length) {
     return {
       method: 'equal',
-      reason: `Scoped Activity: Cost will automatically be divided only among the ${booking.participantIds.length} travelers participating in "${booking.title}".`,
+      reason: `Scoped Activity: Cost will automatically be divided only among the ${bPids.length} travelers participating in "${booking.title}".`,
       confidence: 0.92,
     };
   }
@@ -1095,7 +1103,9 @@ export function checkItineraryFeasibility(
 
       const overlaps = t1Start < t2End && t2Start < t1End;
       if (overlaps) {
-        const shared = b1.participantIds.filter((id) => b2.participantIds.includes(id));
+        const p1 = b1.participantIds || [];
+        const p2 = b2.participantIds || [];
+        const shared = p1.filter((id) => p2.includes(id));
         if (shared.length > 0 && (b1.category === 'transport' || b2.category === 'transport')) {
           conflicts.push({
             id: `conflict-transit-${b1.id}-${b2.id}`,
@@ -1122,7 +1132,9 @@ export function checkItineraryFeasibility(
       const departureTime = new Date(transit.startTime).getTime();
       // If departure is earlier than checkout for shared travelers
       if (departureTime < checkoutTime) {
-        const shared = lodging.participantIds.filter((id) => transit.participantIds.includes(id));
+        const lPids = lodging.participantIds || [];
+        const tPids = transit.participantIds || [];
+        const shared = lPids.filter((id) => tPids.includes(id));
         if (shared.length > 0 && departureTime > new Date(lodging.startTime).getTime()) {
           conflicts.push({
             id: `conflict-checkout-${lodging.id}-${transit.id}`,
@@ -1343,10 +1355,10 @@ export function generateAccountingExportCSV(
     const subsidy = e.subsidyAmount || 0;
     const claimable = Math.max(0, e.totalAmount - subsidy);
 
-    const allocBreakdown = e.allocations
+    const allocBreakdown = (e.allocations || [])
       .map((a) => {
         const pName = participants.find((part) => part.id === a.participantId)?.name || 'Member';
-        return `${pName}: Rs.${a.amountOwed.toFixed(2)}`;
+        return `${pName}: Rs.${(a.amountOwed || 0).toFixed(2)}`;
       })
       .join('; ');
 

@@ -92,7 +92,7 @@ export const CancelBookingModal: React.FC<CancelBookingModalProps> = ({
             </div>
             <div className="flex justify-between text-sm">
               <span className="text-ink-muted">Scoped Travelers:</span>
-              <span className="font-medium">{booking.participantIds.length} members</span>
+              <span className="font-medium">{(booking.participantIds || []).length} members</span>
             </div>
           </div>
 

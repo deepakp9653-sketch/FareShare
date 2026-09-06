@@ -139,8 +139,26 @@ export default function Home() {
         if (data.activeTab) setActiveTab(data.activeTab);
         if (data.currentUserId) setCurrentUserId(data.currentUserId);
         if (Array.isArray(data.trips) && data.trips.length > 0) setTrips(data.trips);
-        if (data.expensesMap) setExpensesMap(data.expensesMap);
-        if (data.bookingsMap) setBookingsMap(data.bookingsMap);
+        if (data.expensesMap) {
+          const sanitizedExpensesMap: Record<string, Expense[]> = {};
+          Object.keys(data.expensesMap).forEach((tid) => {
+            sanitizedExpensesMap[tid] = (data.expensesMap[tid] || []).map((e: any) => ({
+              ...e,
+              allocations: Array.isArray(e.allocations) ? e.allocations : [],
+            }));
+          });
+          setExpensesMap(sanitizedExpensesMap);
+        }
+        if (data.bookingsMap) {
+          const sanitizedBookingsMap: Record<string, Booking[]> = {};
+          Object.keys(data.bookingsMap).forEach((tid) => {
+            sanitizedBookingsMap[tid] = (data.bookingsMap[tid] || []).map((b: any) => ({
+              ...b,
+              participantIds: Array.isArray(b.participantIds) ? b.participantIds : [],
+            }));
+          });
+          setBookingsMap(sanitizedBookingsMap);
+        }
         if (data.participantsMap) setParticipantsMap(data.participantsMap);
         if (data.paymentsMap) setPaymentsMap(data.paymentsMap);
         if (data.eventsMap) setEventsMap(data.eventsMap);
@@ -166,8 +184,20 @@ export default function Home() {
             if (json.success && json.trip) {
               setTrips((prev) => [json.trip, ...prev.filter((t) => t.id !== json.trip.id)]);
               if (json.participants) setParticipantsMap((prev) => ({ ...prev, [json.trip.id]: json.participants }));
-              if (json.bookings) setBookingsMap((prev) => ({ ...prev, [json.trip.id]: json.bookings }));
-              if (json.expenses) setExpensesMap((prev) => ({ ...prev, [json.trip.id]: json.expenses }));
+              if (json.bookings) {
+                const safeBookings = (json.bookings || []).map((b: any) => ({
+                  ...b,
+                  participantIds: Array.isArray(b.participantIds) ? b.participantIds : [],
+                }));
+                setBookingsMap((prev) => ({ ...prev, [json.trip.id]: safeBookings }));
+              }
+              if (json.expenses) {
+                const safeExpenses = (json.expenses || []).map((e: any) => ({
+                  ...e,
+                  allocations: Array.isArray(e.allocations) ? e.allocations : [],
+                }));
+                setExpensesMap((prev) => ({ ...prev, [json.trip.id]: safeExpenses }));
+              }
               if (json.events) setEventsMap((prev) => ({ ...prev, [json.trip.id]: json.events }));
               setActiveTripId(json.trip.id);
               if (json.participants && json.participants.length > 0) {
@@ -1199,7 +1229,7 @@ export default function Home() {
           return {
             ...e,
             hasActiveDisputes: true,
-            allocations: e.allocations.map((a) =>
+            allocations: (e.allocations || []).map((a) =>
               a.participantId === participantId ? { ...a, disputeStatus: 'active', disputeReason: reason } : a
             ),
           };
@@ -1219,7 +1249,7 @@ export default function Home() {
         if (e.id === expenseId) {
           return {
             ...e,
-            allocations: e.allocations.map((a) =>
+            allocations: (e.allocations || []).map((a) =>
               a.participantId === participantId ? { ...a, disputeStatus: 'resolved', disputeResolution: 'Approved exemption' } : a
             ),
           };
