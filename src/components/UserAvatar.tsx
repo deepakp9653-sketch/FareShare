@@ -240,7 +240,7 @@ export const UserAvatar: React.FC<UserAvatarProps> = ({
   // If a valid image URL is provided (e.g. for the Goa demo trip), display it
   if (avatarUrl && avatarUrl.trim().length > 0 && !imageError) {
     return (
-      <div
+      <span
         style={customStyle}
         className={`relative inline-flex items-center justify-center shrink-0 rounded-full overflow-hidden ${
           showBorder ? 'border border-surface-hairline' : ''
@@ -253,12 +253,12 @@ export const UserAvatar: React.FC<UserAvatarProps> = ({
           onError={() => setImageError(true)}
           className="w-full h-full object-cover rounded-full"
         />
-      </div>
+      </span>
     );
   }
 
   return (
-    <div
+    <span
       style={customStyle}
       className={`relative inline-flex items-center justify-center shrink-0 rounded-full overflow-hidden bg-gradient-to-tr ${palette.bg} ${
         showBorder ? `border ${palette.border}` : ''
@@ -266,7 +266,7 @@ export const UserAvatar: React.FC<UserAvatarProps> = ({
       title={name}
     >
       {/* Background radial glow */}
-      <div
+      <span
         className="absolute inset-0 opacity-40 mix-blend-overlay"
         style={{
           background: `radial-gradient(circle at 35% 25%, ${palette.accent} 0%, transparent 70%)`,
@@ -274,9 +274,9 @@ export const UserAvatar: React.FC<UserAvatarProps> = ({
       />
 
       {/* Fresh Character Persona SVG */}
-      <div className="relative z-10 w-full h-full flex items-center justify-center">
+      <span className="relative z-10 w-full h-full flex items-center justify-center">
         {renderPersonaSVG(index, palette)}
-      </div>
-    </div>
+      </span>
+    </span>
   );
 };

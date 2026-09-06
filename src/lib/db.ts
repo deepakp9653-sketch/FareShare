@@ -93,10 +93,11 @@ export async function saveTripToNeon(trip: any, participants: any[]) {
 export async function saveExpenseToNeon(expense: any) {
   try {
     // 1. Insert Expense
+    const expenseDate = expense.createdAt ? new Date(expense.createdAt).toISOString() : new Date().toISOString();
     await sql`
       INSERT INTO expenses (
         id, trip_id, booking_id, title, total_amount, currency, split_method,
-        paid_by_id, category, receipt_url, receipt_name, subsidy_amount, paid_by_splits
+        paid_by_id, category, receipt_url, receipt_name, subsidy_amount, paid_by_splits, created_at
       )
       VALUES (
         ${expense.id},
@@ -111,11 +112,13 @@ export async function saveExpenseToNeon(expense: any) {
         ${expense.receiptUrl || null},
         ${expense.receiptName || null},
         ${expense.subsidyAmount || 0},
-        ${expense.paidBySplits ? JSON.stringify(expense.paidBySplits) : null}
+        ${expense.paidBySplits ? JSON.stringify(expense.paidBySplits) : null},
+        ${expenseDate}
       )
       ON CONFLICT (id) DO UPDATE SET
         total_amount = EXCLUDED.total_amount,
-        split_method = EXCLUDED.split_method;
+        split_method = EXCLUDED.split_method,
+        created_at = EXCLUDED.created_at;
     `;
 
     // 2. Insert Allocations

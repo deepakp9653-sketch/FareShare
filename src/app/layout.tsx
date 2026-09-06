@@ -2,7 +2,7 @@ import './globals.css';
 import type { Metadata } from 'next';
 
 export const metadata: Metadata = {
-  title: 'FareShare — Group Trip Ledger Platform',
+  title: 'TripSync — One Trip. One Ledger. Zero Confusion.',
   description: 'FinTech Precision × Group Fairness. Dynamic Split Engine & Zero-Sum Settlement Platform.',
   icons: {
     icon: '/fareshare-icon.png',

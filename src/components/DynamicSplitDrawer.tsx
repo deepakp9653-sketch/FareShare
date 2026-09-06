@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { Participant, SplitMethod, Booking, BookingCategory, Expense } from '@/lib/types';
 import { calculateSplits, suggestSplitMethod } from '@/lib/ledger-engine';
-import { X, Calculator, ShieldAlert, CheckCircle2, DollarSign, Upload, FileText, Image as ImageIcon, Sparkles, Lightbulb } from 'lucide-react';
+import { X, Calculator, ShieldAlert, CheckCircle2, DollarSign, Upload, FileText, Image as ImageIcon, Sparkles, Lightbulb, Calendar, Clock } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { UserAvatar } from './UserAvatar';
 
@@ -27,6 +27,7 @@ interface DynamicSplitDrawerProps {
     receiptName?: string;
     chatSourceRaw?: string;
     receiptConfidence?: number;
+    createdAt?: string;
   }) => void;
 }
 
@@ -45,6 +46,14 @@ export const DynamicSplitDrawer: React.FC<DynamicSplitDrawerProps> = ({
   const [bookingId, setBookingId] = useState<string>('');
   const [category, setCategory] = useState<BookingCategory>('general');
   const [subsidyAmount, setSubsidyAmount] = useState<number>(3000);
+
+  // Date and Time State (Defaults to current local time, editable)
+  const getLocalNowString = () => {
+    const now = new Date();
+    const offset = now.getTimezoneOffset() * 60000;
+    return new Date(now.getTime() - offset).toISOString().slice(0, 16);
+  };
+  const [expenseDateTime, setExpenseDateTime] = useState<string>(getLocalNowString());
 
   // Multiple Payers State
   const [isMultiplePayers, setIsMultiplePayers] = useState<boolean>(false);
@@ -69,6 +78,13 @@ export const DynamicSplitDrawer: React.FC<DynamicSplitDrawerProps> = ({
       if (initialDraft.paidById) setPaidById(initialDraft.paidById);
       if (initialDraft.category) setCategory(initialDraft.category);
       if (initialDraft.bookingId) setBookingId(initialDraft.bookingId);
+      if (initialDraft.createdAt) {
+        try {
+          const d = new Date(initialDraft.createdAt);
+          const offset = d.getTimezoneOffset() * 60000;
+          setExpenseDateTime(new Date(d.getTime() - offset).toISOString().slice(0, 16));
+        } catch (e) {}
+      }
     }
   }, [initialDraft]);
 
@@ -160,6 +176,7 @@ export const DynamicSplitDrawer: React.FC<DynamicSplitDrawerProps> = ({
       receiptName: receiptFile?.name || undefined,
       chatSourceRaw: initialDraft?.chatSourceRaw,
       receiptConfidence: initialDraft?.receiptConfidence,
+      createdAt: expenseDateTime ? new Date(expenseDateTime).toISOString() : new Date().toISOString(),
     });
     onClose();
   };
@@ -257,14 +274,40 @@ export const DynamicSplitDrawer: React.FC<DynamicSplitDrawerProps> = ({
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
-                <label className="block text-xs text-ink-muted mb-1">Expense Description</label>
+                <label className="block text-xs font-semibold text-ink-muted uppercase tracking-wider mb-1">
+                  Expense Description
+                </label>
                 <input
                   type="text"
                   required
                   value={title}
                   onChange={(e) => setTitle(e.target.value)}
                   placeholder="e.g. Thalassa Seafood Feast & Wine"
-                  className="w-full bg-surface-base border border-surface-hairline rounded-xl px-3 py-2.5 text-xs text-ink-primary focus:border-emerald-500 outline-none"
+                  className="w-full bg-surface-base border border-surface-hairline rounded-xl px-3 py-2.5 text-xs text-ink-primary focus:border-emerald-500 outline-none transition-all"
+                />
+              </div>
+
+              <div>
+                <div className="flex items-center justify-between mb-1">
+                  <label className="block text-xs font-semibold text-ink-muted uppercase tracking-wider flex items-center gap-1.5">
+                    <Calendar className="w-3.5 h-3.5 text-emerald-400" />
+                    <span>Date & Time</span>
+                  </label>
+                  <button
+                    type="button"
+                    onClick={() => setExpenseDateTime(getLocalNowString())}
+                    className="text-[11px] font-semibold text-emerald-400 hover:text-emerald-300 hover:underline transition-colors flex items-center gap-1 cursor-pointer"
+                  >
+                    <Clock className="w-3 h-3" />
+                    <span>Now</span>
+                  </button>
+                </div>
+                <input
+                  type="datetime-local"
+                  required
+                  value={expenseDateTime}
+                  onChange={(e) => setExpenseDateTime(e.target.value)}
+                  className="w-full bg-surface-base border border-surface-hairline rounded-xl px-3 py-2 text-xs text-ink-primary focus:border-emerald-500 outline-none transition-all [color-scheme:dark]"
                 />
               </div>
 

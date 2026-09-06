@@ -54,6 +54,7 @@ import { CancelBookingModal } from '@/components/CancelBookingModal';
 import { EditBookingModal } from '@/components/EditBookingModal';
 import { VendorSummaryModal } from '@/components/VendorSummaryModal';
 import { LandingPage } from '@/components/LandingPage';
+import { LiquidLogo } from '@/components/LiquidLogo';
 import { CreateTripModal } from '@/components/CreateTripModal';
 import { JoinTripModal } from '@/components/JoinTripModal';
 import { TripSwitcherModal } from '@/components/TripSwitcherModal';
@@ -80,6 +81,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 
 export default function Home() {
   const [viewMode, setViewMode] = useState<'landing' | 'app'>('landing');
+  const [isHydrated, setIsHydrated] = useState<boolean>(false);
 
   // Multi-Trip State Management
   const [trips, setTrips] = useState<Trip[]>([INITIAL_TRIP]);
@@ -122,9 +124,14 @@ export default function Home() {
   const [isShareTripOpen, setIsShareTripOpen] = useState<boolean>(false);
   const [isDashboardAccessOpen, setIsDashboardAccessOpen] = useState<boolean>(false);
 
-  // Hydrate persistent state on client mount (trips and settings)
+  // Hydrate persistent state on client mount (trips, settings, viewMode, URL deep-linking)
   useEffect(() => {
     try {
+      const urlParams = typeof window !== 'undefined' ? new URLSearchParams(window.location.search) : null;
+      const urlTrip = urlParams?.get('trip') || urlParams?.get('join') || urlParams?.get('code');
+      const dedicatedMode = localStorage.getItem('tripsync_view_mode');
+      const dedicatedTripId = localStorage.getItem('tripsync_active_trip_id');
+
       const saved = localStorage.getItem('group_ledger_session_v4');
       if (saved) {
         const data = JSON.parse(saved);
@@ -137,9 +144,44 @@ export default function Home() {
         if (data.participantsMap) setParticipantsMap(data.participantsMap);
         if (data.paymentsMap) setPaymentsMap(data.paymentsMap);
         if (data.eventsMap) setEventsMap(data.eventsMap);
+
+        // Keep in app dashboard if previously in app or invite code present in URL or storage
+        if (dedicatedMode === 'app' || data.viewMode === 'app' || urlTrip) {
+          setViewMode('app');
+        }
+      } else if (dedicatedMode === 'app' || urlTrip) {
+        setViewMode('app');
+      }
+
+      if (dedicatedTripId) {
+        setActiveTripId(dedicatedTripId);
+      }
+
+      // If URL has invite code/trip code, resolve and load
+      if (urlTrip) {
+        const cleanCode = urlTrip.trim().toUpperCase();
+        fetch(`/api/trips?inviteCode=${cleanCode}`)
+          .then((res) => res.json())
+          .then((json) => {
+            if (json.success && json.trip) {
+              setTrips((prev) => [json.trip, ...prev.filter((t) => t.id !== json.trip.id)]);
+              if (json.participants) setParticipantsMap((prev) => ({ ...prev, [json.trip.id]: json.participants }));
+              if (json.bookings) setBookingsMap((prev) => ({ ...prev, [json.trip.id]: json.bookings }));
+              if (json.expenses) setExpensesMap((prev) => ({ ...prev, [json.trip.id]: json.expenses }));
+              if (json.events) setEventsMap((prev) => ({ ...prev, [json.trip.id]: json.events }));
+              setActiveTripId(json.trip.id);
+              if (json.participants && json.participants.length > 0) {
+                setCurrentUserId(json.participants[0].id);
+              }
+              setViewMode('app');
+            }
+          })
+          .catch(() => {});
       }
     } catch (e) {
       console.warn('Could not restore session from localStorage:', e);
+    } finally {
+      setIsHydrated(true);
     }
   }, []);
 
@@ -159,12 +201,14 @@ export default function Home() {
       .catch((err) => console.warn('Could not sync cloud trips on load:', err));
   }, []);
 
-  // Persist state changes to localStorage
+  // Persist state changes to localStorage (Only runs AFTER client hydration so it NEVER overwrites saved session on mount)
   useEffect(() => {
+    if (!isHydrated) return;
     try {
       localStorage.setItem(
         'group_ledger_session_v4',
         JSON.stringify({
+          viewMode,
           activeTripId,
           activeTab,
           currentUserId,
@@ -176,10 +220,16 @@ export default function Home() {
           eventsMap,
         })
       );
+      localStorage.setItem('tripsync_view_mode', viewMode);
+      if (viewMode === 'app') {
+        localStorage.setItem('tripsync_active_trip_id', activeTripId);
+      }
     } catch (e) {
       console.warn('Could not save session to localStorage:', e);
     }
   }, [
+    isHydrated,
+    viewMode,
     activeTripId,
     activeTab,
     currentUserId,
@@ -190,6 +240,20 @@ export default function Home() {
     paymentsMap,
     eventsMap,
   ]);
+
+  // Keep URL search params in sync with active dashboard trip
+  useEffect(() => {
+    if (isHydrated && viewMode === 'app' && typeof window !== 'undefined') {
+      const activeTrip = trips.find((t) => t.id === activeTripId);
+      const code = activeTrip?.inviteCode || activeTripId;
+      if (code) {
+        const currentParams = new URLSearchParams(window.location.search);
+        if (currentParams.get('trip') !== code) {
+          window.history.replaceState(null, '', `?trip=${encodeURIComponent(code)}`);
+        }
+      }
+    }
+  }, [isHydrated, viewMode, activeTripId, trips]);
 
   // Phase 1 New Modals State
   const [isVendorsOpen, setIsVendorsOpen] = useState<boolean>(false);
@@ -367,6 +431,51 @@ export default function Home() {
     }).catch((err) => console.warn('Neon DB event persistence background sync:', err));
   };
 
+  // Helper to switch to dashboard app mode and immediately persist state and URL
+  const enterAppMode = (tripId: string, inviteCode?: string) => {
+    setActiveTripId(tripId);
+    setViewMode('app');
+    try {
+      localStorage.setItem('tripsync_view_mode', 'app');
+      localStorage.setItem('tripsync_active_trip_id', tripId);
+      const saved = localStorage.getItem('group_ledger_session_v4');
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        parsed.viewMode = 'app';
+        parsed.activeTripId = tripId;
+        localStorage.setItem('group_ledger_session_v4', JSON.stringify(parsed));
+      }
+      if (typeof window !== 'undefined') {
+        const targetTrip = trips.find((t) => t.id === tripId);
+        const code = inviteCode || targetTrip?.inviteCode || tripId;
+        window.history.replaceState(null, '', `?trip=${encodeURIComponent(code)}`);
+      }
+    } catch (e) {
+      console.warn('Could not persist app mode:', e);
+    }
+  };
+
+  // Explicit Logout handler: clears app view mode so refresh stays on landing page only after logging out
+  const handleLogout = () => {
+    setViewMode('landing');
+    try {
+      localStorage.setItem('tripsync_view_mode', 'landing');
+      localStorage.removeItem('tripsync_active_trip_id');
+      const saved = localStorage.getItem('group_ledger_session_v4');
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        parsed.viewMode = 'landing';
+        localStorage.setItem('group_ledger_session_v4', JSON.stringify(parsed));
+      }
+      if (typeof window !== 'undefined') {
+        window.history.replaceState(null, '', window.location.pathname);
+      }
+    } catch (e) {
+      console.warn('Could not persist logout state:', e);
+    }
+    triggerToast('Logged out of dashboard. Returned to homepage.');
+  };
+
   // Creator-First Trip Creation
   const handleCreateTrip = (
     creator: {
@@ -466,7 +575,7 @@ export default function Home() {
     }).catch((err) => console.warn('Neon DB trip persistence background sync:', err));
 
     setCurrentUserId(creatorId);
-    setViewMode('app');
+    enterAppMode(newTripId, inviteCode);
     setActiveTab('overview');
     triggerToast(`Created trip "${newTrip.title}"! Share code: ${inviteCode}`);
   };
@@ -533,9 +642,8 @@ export default function Home() {
           }));
         }
 
-        setActiveTripId(joinedTrip.id);
         setCurrentUserId(currentPart?.id || allParts[allParts.length - 1]?.id || 'p-1');
-        setViewMode('app');
+        enterAppMode(joinedTrip.id, cleanCode);
         setActiveTab('overview');
         triggerToast(`Welcome to ${joinedTrip.title}, ${travelerName}! Shares updated.`);
         return true;
@@ -578,9 +686,8 @@ export default function Home() {
       })),
     }));
 
-    setActiveTripId(targetTrip.id);
     setCurrentUserId(newPartId);
-    setViewMode('app');
+    enterAppMode(targetTrip.id, cleanCode);
     setActiveTab('overview');
 
     recordEvent('TRIP_JOINED_VIA_CODE', `${travelerName} joined trip via Invite Code "${cleanCode}".`, {
@@ -637,6 +744,18 @@ export default function Home() {
     recordEvent('PARTICIPANT_ADDED', `Registered member account for ${name}.`, { participantId: newP.id });
     triggerToast(`Account created for ${name}! Please configure your UPI ID.`);
 
+    // Persist new member to Neon DB
+    fetch('/api/trips/join', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        inviteCode: trip.inviteCode || 'GOA2026',
+        name,
+        email,
+        upiId: newP.upiId,
+      }),
+    }).catch((err) => console.warn('Could not sync registered member to DB:', err));
+
     setTimeout(() => {
       setIsUpiSetupOpen(true);
     }, 400);
@@ -666,6 +785,19 @@ export default function Home() {
     }));
     recordEvent('PARTICIPANT_ADDED', `Added participant ${newP.name} to trip roster.`, { participantId: newP.id });
     triggerToast(`Added ${newP.name} to roster. Balances recalculated!`);
+
+    // Persist direct member to Neon DB
+    fetch('/api/trips/join', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        inviteCode: trip.inviteCode || 'GOA2026',
+        name: newP.name,
+        email: newP.email,
+        upiId: newP.upiId,
+        avatarUrl: newP.avatarUrl,
+      }),
+    }).catch((err) => console.warn('Could not sync direct participant to DB:', err));
   };
 
   const handleAddParticipant = (name: string, email: string, isOrganizer: boolean, avatarUrl?: string) => {
@@ -699,6 +831,19 @@ export default function Home() {
 
     recordEvent('PARTICIPANT_ADDED', `Added new participant ${name} to trip roster.`, { participantId: newP.id });
     triggerToast(`Added ${name} to roster. Balances & allocations recalculated!`);
+
+    // Persist member added via roster to Neon DB
+    fetch('/api/trips/join', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        inviteCode: trip.inviteCode || 'GOA2026',
+        name,
+        email,
+        upiId: newP.upiId,
+        avatarUrl: newP.avatarUrl,
+      }),
+    }).catch((err) => console.warn('Could not sync roster participant to DB:', err));
   };
 
   const handleToggleParticipantStatus = (participantId: string) => {
@@ -742,6 +887,7 @@ export default function Home() {
     chatSourceRaw?: string;
     receiptConfidence?: number;
     isDuplicateAcknowledged?: boolean;
+    createdAt?: string;
   }) => {
     // F19: If simulated offline, queue command in local outbox
     if (isOffline) {
@@ -750,7 +896,7 @@ export default function Home() {
         tripId: trip.id,
         type: 'LOG_EXPENSE',
         payload: data,
-        clientTimestamp: new Date().toISOString(),
+        clientTimestamp: data.createdAt || new Date().toISOString(),
         status: 'queued',
       };
       setOfflineQueue((prev) => [...prev, offlineCmd]);
@@ -786,7 +932,7 @@ export default function Home() {
       paidById: data.paidById,
       paidBySplits: data.paidBySplits,
       category: data.category,
-      createdAt: new Date().toISOString(),
+      createdAt: data.createdAt || new Date().toISOString(),
       allocations,
       subsidyAmount: data.subsidyAmount,
       receiptUrl: data.receiptUrl,
@@ -1321,6 +1467,17 @@ export default function Home() {
     triggerToast(`Revised booking "${bTitle}". Participant shares recalculated!`);
   };
 
+  if (!isHydrated) {
+    return (
+      <div className="min-h-screen bg-surface-base flex items-center justify-center">
+        <div className="flex flex-col items-center gap-3">
+          <LiquidLogo size={42} showText={false} />
+          <span className="text-xs font-mono text-ink-muted animate-pulse">Syncing TripSync Ledger...</span>
+        </div>
+      </div>
+    );
+  }
+
   if (viewMode === 'landing') {
     return (
       <>
@@ -1339,8 +1496,7 @@ export default function Home() {
             // 1. Check local memory state
             const targetTrip = trips.find((t) => t.inviteCode?.toUpperCase() === cleanCode);
             if (targetTrip) {
-              setActiveTripId(targetTrip.id);
-              setViewMode('app');
+              enterAppMode(targetTrip.id, cleanCode);
               return true;
             }
 
@@ -1358,11 +1514,10 @@ export default function Home() {
                 if (json.expenses) setExpensesMap((prev) => ({ ...prev, [fetchedTrip.id]: json.expenses }));
                 if (json.events) setEventsMap((prev) => ({ ...prev, [fetchedTrip.id]: json.events }));
 
-                setActiveTripId(fetchedTrip.id);
                 if (allParts.length > 0) {
                   setCurrentUserId(allParts[0].id);
                 }
-                setViewMode('app');
+                enterAppMode(fetchedTrip.id, cleanCode);
                 triggerToast(`Loaded trip "${fetchedTrip.title}" from database!`);
                 return true;
               }
@@ -1377,8 +1532,7 @@ export default function Home() {
             setIsCreateTripOpen(true);
           }}
           onOpenDemoTrip={() => {
-            setActiveTripId(INITIAL_TRIP.id);
-            setViewMode('app');
+            enterAppMode(INITIAL_TRIP.id, INITIAL_TRIP.inviteCode);
           }}
         />
 
@@ -1425,7 +1579,7 @@ export default function Home() {
           setExplainParticipantId(pid);
           setIsExplainBalanceOpen(true);
         }}
-        onGoToLanding={() => setViewMode('landing')}
+        onGoToLanding={handleLogout}
       >
         <AnimatePresence mode="wait">
           <motion.div

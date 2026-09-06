@@ -128,10 +128,10 @@ export const DashboardShell: React.FC<DashboardShellProps> = ({
                 <LiquidLogo size={30} />
                 <div>
                   <span className="font-bold text-sm text-ink-primary tracking-tight block leading-tight group-hover:text-emerald-400 transition-colors">
-                    FareShare
+                    TripSync
                   </span>
                   <span className="text-[10px] font-mono text-ink-muted tracking-wider block group-hover:text-ink-secondary transition-colors">
-                    ← Return to Home
+                    ← Log Out to Home
                   </span>
                 </div>
               </button>
@@ -268,10 +268,10 @@ export const DashboardShell: React.FC<DashboardShellProps> = ({
             {onGoToLanding && (
               <button
                 onClick={onGoToLanding}
-                className="w-full px-3 py-1.5 rounded-lg text-xs text-emerald-400 hover:text-emerald-300 hover:bg-emerald-500/10 flex items-center gap-2.5 transition-colors cursor-pointer"
+                className="w-full px-3 py-1.5 rounded-lg text-xs text-rose-400/90 hover:text-rose-300 hover:bg-rose-500/10 flex items-center gap-2.5 transition-colors cursor-pointer"
               >
-                <Home className="w-3.5 h-3.5 text-emerald-400" />
-                <span>Return to Homepage</span>
+                <Home className="w-3.5 h-3.5 text-rose-400" />
+                <span>Log Out to Homepage</span>
               </button>
             )}
           </div>
@@ -358,11 +358,11 @@ export const DashboardShell: React.FC<DashboardShellProps> = ({
               {onGoToLanding && (
                 <button
                   onClick={onGoToLanding}
-                  title="Return to Homepage"
-                  className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-surface-overlay hover:bg-surface-hairline border border-surface-hairline text-xs font-medium text-ink-secondary hover:text-ink-primary transition-colors cursor-pointer"
+                  title="Log Out to Homepage"
+                  className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-surface-overlay hover:bg-rose-500/15 border border-surface-hairline hover:border-rose-500/30 text-xs font-medium text-ink-secondary hover:text-rose-300 transition-colors cursor-pointer"
                 >
-                  <Home className="w-3.5 h-3.5 text-ink-muted" />
-                  <span className="hidden sm:inline">Home</span>
+                  <Home className="w-3.5 h-3.5 text-ink-muted group-hover:text-rose-300" />
+                  <span className="hidden sm:inline">Log Out</span>
                 </button>
               )}
             </div>
@@ -600,10 +600,10 @@ export const DashboardShell: React.FC<DashboardShellProps> = ({
                       setIsMobileMenuOpen(false);
                       onGoToLanding();
                     }}
-                    className="flex items-center gap-1.5 text-ink-muted hover:text-ink-primary font-medium transition-colors"
+                    className="flex items-center gap-1.5 text-rose-400 hover:text-rose-300 font-medium transition-colors"
                   >
                     <Home className="w-3.5 h-3.5" />
-                    <span>Home</span>
+                    <span>Log Out</span>
                   </button>
                 )}
               </div>

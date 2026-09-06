@@ -45,10 +45,10 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onEnterApp, onOpenCrea
             <LiquidLogo size={36} />
             <div>
               <span className="font-sans font-bold text-lg tracking-tight text-ink-primary">
-                FareShare
+                TripSync
               </span>
               <span className="text-[10px] uppercase font-mono tracking-widest text-ink-muted block">
-                Group Trip Ledger Platform
+                One Trip. One Ledger. Zero Confusion.
               </span>
             </div>
           </div>
@@ -86,9 +86,9 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onEnterApp, onOpenCrea
         <div className="relative z-10 px-6 pt-16 pb-24 max-w-7xl mx-auto">
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
             <div className="lg:col-span-7 space-y-6">
-              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-md bg-surface-overlay/80 backdrop-blur-md border border-surface-hairline text-xs font-mono text-emerald-400">
+              <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-emerald-500/10 backdrop-blur-md border border-emerald-500/30 text-xs font-mono font-medium text-emerald-400">
                 <ShieldCheck className="w-3.5 h-3.5 text-emerald-400" />
-                <span>Zero-Sum Double-Entry Settlement</span>
+                <span>One Trip. One Ledger. Zero Confusion.</span>
               </div>
 
               <h1 className="font-sans font-extrabold text-4xl sm:text-5xl lg:text-6xl tracking-tight text-ink-primary leading-[1.12]">
@@ -325,12 +325,12 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onEnterApp, onOpenCrea
           <div className="flex items-center gap-3">
             <LiquidLogo size={32} />
             <div>
-              <span className="font-bold text-sm text-ink-primary block leading-tight">FareShare</span>
-              <span className="text-[10px] text-ink-muted uppercase tracking-wider block font-mono">Group Trip Ledger Platform</span>
+              <span className="font-bold text-sm text-ink-primary block leading-tight">TripSync</span>
+              <span className="text-[10px] text-ink-muted uppercase tracking-wider block font-mono">One Trip. One Ledger. Zero Confusion.</span>
             </div>
           </div>
           <p className="text-xs text-ink-muted">
-            © 2026 FareShare. Deterministic Double-Entry Group Ledger Engine.
+            © 2026 TripSync. Deterministic Double-Entry Group Ledger Engine.
           </p>
         </div>
       </footer>

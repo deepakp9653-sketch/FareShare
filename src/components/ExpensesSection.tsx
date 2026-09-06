@@ -144,7 +144,7 @@ export const ExpensesSection: React.FC<ExpensesSectionProps> = ({
                     <div className="text-xl font-numeric font-bold text-ink-primary">
                       ₹{exp.totalAmount.toLocaleString('en-IN', { minimumFractionDigits: 2 })}
                     </div>
-                    <p className="text-xs text-ink-muted flex items-center sm:justify-end gap-1 mt-0.5">
+                    <div className="text-xs text-ink-muted flex items-center sm:justify-end gap-1 mt-0.5">
                       Paid by{' '}
                       <span className="font-semibold text-ink-primary flex items-center gap-1.5">
                         <UserAvatar
@@ -155,7 +155,7 @@ export const ExpensesSection: React.FC<ExpensesSectionProps> = ({
                         />
                         {payer?.name || 'Unknown'}
                       </span>
-                    </p>
+                    </div>
                   </div>
                 </div>
 
