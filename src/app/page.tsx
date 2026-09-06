@@ -272,7 +272,18 @@ export default function Home() {
 
   const activeParticipants = participants.filter((p) => p.status === 'active');
   const netBalances = computeNetBalances(activeParticipants, expenses, payments, refunds, bookings);
-  const currentUser = participants.find((p) => p.id === currentUserId) || participants[0];
+  const currentUser = participants.find((p) => p.id === currentUserId) || participants[0] || {
+    id: currentUserId || 'p-default',
+    tripId: trip?.id || 'trip-default',
+    name: 'Traveler',
+    email: 'traveler@fareshare.in',
+    avatarUrl: '',
+    isOrganizer: false,
+    status: 'active' as const,
+    upiId: 'traveler@upi',
+    weight: 1,
+    roomTier: 'standard' as const,
+  };
 
   const audit = computeReconciliationAudit(activeParticipants, expenses, payments, refunds, bookings);
   const rawAnomalies = detectAnomalies(trip, participants, bookings, expenses, payments);

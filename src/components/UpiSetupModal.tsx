@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Participant } from '@/lib/types';
 import { X, QrCode, Upload, CheckCircle2, ArrowRight, Image as ImageIcon, ShieldCheck } from 'lucide-react';
 import { motion } from 'framer-motion';
@@ -9,7 +9,7 @@ import { UserAvatar } from './UserAvatar';
 interface UpiSetupModalProps {
   isOpen: boolean;
   onClose: () => void;
-  currentUser: Participant;
+  currentUser?: Participant | null;
   onSaveUpiDetails: (participantId: string, upiId: string, qrCodeUrl?: string) => void;
 }
 
@@ -20,12 +20,19 @@ export const UpiSetupModal: React.FC<UpiSetupModalProps> = ({
   onSaveUpiDetails,
 }) => {
   const [upiId, setUpiId] = useState<string>(
-    currentUser.upiId || `${currentUser.name.toLowerCase().replace(/\s+/g, '')}@okicici`
+    currentUser?.upiId || (currentUser?.name ? `${currentUser.name.toLowerCase().replace(/\s+/g, '')}@okicici` : '')
   );
   const [qrFile, setQrFile] = useState<File | null>(null);
-  const [qrPreview, setQrPreview] = useState<string | null>(currentUser.qrCodeUrl || null);
+  const [qrPreview, setQrPreview] = useState<string | null>(currentUser?.qrCodeUrl || null);
 
-  if (!isOpen) return null;
+  useEffect(() => {
+    if (currentUser) {
+      setUpiId(currentUser.upiId || `${currentUser.name.toLowerCase().replace(/\s+/g, '')}@okicici`);
+      setQrPreview(currentUser.qrCodeUrl || null);
+    }
+  }, [currentUser]);
+
+  if (!isOpen || !currentUser) return null;
 
   const handleQrUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -41,7 +48,7 @@ export const UpiSetupModal: React.FC<UpiSetupModalProps> = ({
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!upiId.trim()) return;
+    if (!currentUser || !upiId.trim()) return;
 
     onSaveUpiDetails(currentUser.id, upiId, qrPreview || undefined);
     onClose();
