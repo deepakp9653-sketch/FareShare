@@ -85,26 +85,19 @@ export const LiquidShaderGradient: React.FC<LiquidShaderGradientProps> = ({ clas
         float n2 = snoise(uv * 2.8 - vec2(n1 * 0.6, time * 0.32));
         float n3 = snoise(uv * 1.2 + vec2(n2 * 0.4, time * 0.12));
 
-        // Lighter, luminous FinTech Emerald & Iridescent Liquid Palette
-        vec3 cDark = vec3(0.04, 0.08, 0.07);           // Rich dark baseline
-        vec3 cEmerald = vec3(0.06, 0.72, 0.48);        // Vibrant glowing emerald
-        vec3 cMintCyan = vec3(0.12, 0.82, 0.72);       // Luminous mint / cyan refraction
-        vec3 cIndigoGlass = vec3(0.24, 0.32, 0.75);    // Soft deep indigo accent
-        vec3 cSpecularSheen = vec3(0.65, 0.98, 0.82);  // Liquid crest highlight
+        // Locked FinTech Sage/Forest Palette (#12160F baseline, #3E7D5A, #5FA97D accent)
+        vec3 cDark = vec3(0.07, 0.086, 0.059);          // #12160F baseline
+        vec3 cForest = vec3(0.243, 0.490, 0.353);       // #3E7D5A accent start
+        vec3 cSage = vec3(0.373, 0.663, 0.490);         // #5FA97D accent end
 
-        // Layer blending with lighter weights
-        vec3 color = mix(cDark, cEmerald, smoothstep(-0.4, 0.7, n1));
-        color = mix(color, cMintCyan, smoothstep(-0.2, 0.8, n2) * 0.65);
-        color = mix(color, cIndigoGlass, smoothstep(0.1, 1.0, n3) * 0.45);
+        // Soft, organic blending with low intensity
+        vec3 color = mix(cDark, cForest, smoothstep(-0.5, 0.8, n1));
+        color = mix(color, cSage, smoothstep(-0.3, 0.7, n2) * 0.45);
 
-        // Shimmering liquid glass caustic crests
-        float caustic = pow(max(0.0, n2), 3.0) * 0.45;
-        color += cSpecularSheen * caustic;
-
-        // Subtle radial vignette to softly fade edges into dark theme
+        // Soft radial fade with moderate opacity (max ~0.22)
         vec2 center = uv - vec2(0.5, 0.45);
         float dist = length(center);
-        float alpha = smoothstep(0.85, 0.2, dist) * 0.85;
+        float alpha = smoothstep(0.9, 0.1, dist) * 0.22;
 
         gl_FragColor = vec4(color, alpha);
       }

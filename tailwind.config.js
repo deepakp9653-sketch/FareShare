@@ -10,34 +10,34 @@ module.exports = {
     extend: {
       colors: {
         surface: {
-          base: '#09090b', // Midday/Dub rich dark background
-          raised: '#121215', // Card background
-          overlay: '#18181b', // Hover/dropdown/item background
-          hairline: '#27272a', // Subtle 1px border
+          base: '#12160F', // Deep charcoal-green background
+          raised: '#1B2119', // Card / surface background
+          overlay: '#1B2119', // Hover / elevated background
+          hairline: '#2A322A', // Barely visible hairline border
         },
         ink: {
-          primary: '#f4f4f5', // Crisp high-contrast white/zinc
-          secondary: '#a1a1aa', // Clean readable secondary
-          muted: '#71717a', // Subtle metadata text
+          primary: '#F4F2E6', // Warm off-white
+          secondary: '#8B9A8C', // Muted sage-gray
+          muted: '#8B9A8C', // Muted sage-gray
         },
         brand: {
-          emerald: '#10b981',
-          emeraldDim: '#059669',
-          coral: '#10b981', // Re-mapped to emerald to eliminate pinkish tone
-          coralDim: '#059669',
-          indigo: '#6366f1',
-          gold: '#f59e0b',
+          emerald: '#5FA97D',
+          emeraldDim: '#3E7D5A',
+          coral: '#5FA97D',
+          coralDim: '#3E7D5A',
+          mint: '#5FA97D',
+          mintDark: '#3E7D5A',
         },
         ledger: {
-          surplus: '#10b981', // Emerald surplus
-          surplusBg: 'rgba(16, 185, 129, 0.12)',
-          deficit: '#f43f5e', // Rose deficit indicator for balance only
-          deficitBg: 'rgba(244, 63, 94, 0.12)',
-          neutral: '#a1a1aa',
+          surplus: '#4E9A6E', // Muted sage-green credit
+          surplusBg: 'rgba(78, 154, 110, 0.12)',
+          deficit: '#B5484C', // Muted brick-red debit
+          deficitBg: 'rgba(181, 72, 76, 0.12)',
+          neutral: '#8B9A8C',
         },
-        variance: {
-          over: '#f59e0b',
-          under: '#6366f1',
+        accent: {
+          start: '#3E7D5A',
+          end: '#5FA97D',
         },
       },
       fontFamily: {
@@ -47,10 +47,9 @@ module.exports = {
       },
       boxShadow: {
         paper: '0 1px 3px 0 rgba(0, 0, 0, 0.5), 0 1px 2px -1px rgba(0, 0, 0, 0.4)',
-        coral: '0 4px 14px 0 rgba(16, 185, 129, 0.2)', // Sleek emerald glow instead of pink
-        emerald: '0 4px 14px 0 rgba(16, 185, 129, 0.25)',
-        indigo: '0 4px 14px 0 rgba(99, 102, 241, 0.25)',
+        mint: '0 4px 14px 0 rgba(95, 169, 125, 0.2)',
         subtle: '0 1px 2px 0 rgba(0, 0, 0, 0.3)',
+        glass: '0 8px 32px 0 rgba(0, 0, 0, 0.37)',
       },
     },
   },
