@@ -18,19 +18,19 @@ interface SpendDonutChartProps {
 export const SpendDonutChart: React.FC<SpendDonutChartProps> = ({ categoryStats, totalActual }) => {
   const [hoveredIndex, setHoveredIndex] = useState<number | null>(null);
 
-  // FinTech palette: Emerald, Sky, Indigo, Amber, Zinc
+  // FinTech palette: Locked tonal sage, forest, mint, and muted slate
   const categoryColors: Record<string, string> = {
-    lodging: '#10b981',   // Emerald
-    transport: '#38bdf8', // Sky
-    activity: '#818cf8',  // Indigo
-    food: '#f59e0b',      // Amber
-    general: '#71717a',   // Zinc
+    lodging: '#5FA97D',   // Solid Mint
+    transport: '#3E7D5A', // Forest
+    activity: '#4E9A6E',  // Muted Sage
+    food: '#8B9A8C',      // Sage-Gray
+    general: '#2A322A',   // Dark Slate Border
   };
 
   const slices: DonutSlice[] = Object.entries(categoryStats).map(([cat, stats]) => ({
     label: cat.charAt(0).toUpperCase() + cat.slice(1),
     amount: stats.actual,
-    color: categoryColors[cat] || '#71717a',
+    color: categoryColors[cat] || '#8B9A8C',
     percentage: totalActual > 0 ? (stats.actual / totalActual) * 100 : 0,
   }));
 
@@ -68,7 +68,7 @@ export const SpendDonutChart: React.FC<SpendDonutChartProps> = ({ categoryStats,
                 onMouseLeave={() => setHoveredIndex(null)}
                 className="cursor-pointer transition-all duration-200"
                 style={{
-                  filter: isHovered ? 'drop-shadow(0px 0px 8px rgba(255,255,255,0.2))' : 'none',
+                  filter: isHovered ? 'drop-shadow(0px 0px 8px rgba(95,169,125,0.3))' : 'none',
                 }}
               />
             );
@@ -77,12 +77,12 @@ export const SpendDonutChart: React.FC<SpendDonutChartProps> = ({ categoryStats,
 
         {/* Center Total Summary */}
         <div className="absolute inset-0 flex flex-col items-center justify-center text-center pointer-events-none">
-          <span className="text-[10px] uppercase font-mono text-ink-muted tracking-wider">Total Spend</span>
-          <span className="font-numeric font-bold text-lg text-ink-primary">
+          <span className="text-[10px] uppercase font-mono text-[#8B9A8C] tracking-wider">Total Spend</span>
+          <span className="font-numeric font-bold text-lg text-[#F4F2E6]">
             ₹{totalActual.toLocaleString('en-IN', { maximumFractionDigits: 0 })}
           </span>
           {hoveredIndex !== null && (
-            <span className="text-[11px] font-mono font-medium text-emerald-400">
+            <span className="text-[11px] font-mono font-medium text-[#5FA97D]">
               {slices[hoveredIndex].label}: {slices[hoveredIndex].percentage.toFixed(0)}%
             </span>
           )}
@@ -98,18 +98,18 @@ export const SpendDonutChart: React.FC<SpendDonutChartProps> = ({ categoryStats,
             onMouseLeave={() => setHoveredIndex(null)}
             className={`p-2.5 rounded-xl border flex items-center justify-between text-xs transition-all cursor-pointer ${
               hoveredIndex === idx
-                ? 'bg-surface-overlay border-surface-hairline text-ink-primary shadow-sm'
-                : 'bg-surface-overlay/50 border-surface-hairline/60 text-ink-secondary'
+                ? 'bg-[#1B2119] border-[#3E7D5A]/50 text-[#F4F2E6] shadow-sm'
+                : 'bg-[#1B2119]/60 border-[#2A322A] text-[#8B9A8C]'
             }`}
           >
             <div className="flex items-center gap-2">
               <span className="w-2.5 h-2.5 rounded-full shrink-0" style={{ backgroundColor: slice.color }} />
-              <span className="font-medium text-ink-primary">{slice.label}</span>
+              <span className="font-medium text-[#F4F2E6]">{slice.label}</span>
             </div>
 
             <div className="flex items-center gap-3">
-              <span className="text-ink-muted text-[11px] font-mono">{slice.percentage.toFixed(0)}%</span>
-              <span className="font-numeric font-semibold text-ink-primary">
+              <span className="text-[#8B9A8C] text-[11px] font-mono">{slice.percentage.toFixed(0)}%</span>
+              <span className="font-numeric font-semibold text-[#F4F2E6]">
                 ₹{slice.amount.toLocaleString('en-IN')}
               </span>
             </div>

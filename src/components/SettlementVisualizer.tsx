@@ -81,17 +81,17 @@ export const SettlementVisualizer: React.FC<SettlementVisualizerProps> = ({
   return (
     <div className="space-y-6">
       {/* Header Banner */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-surface-raised p-5 rounded-xl border border-surface-hairline shadow-paper">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-[#1B2119] p-5 rounded-xl border border-[#2A322A] shadow-paper">
         <div>
           <div className="flex items-center gap-2">
-            <h2 className="text-lg font-sans font-semibold text-ink-primary flex items-center gap-2">
-              <GitCommit className="w-4 h-4 text-emerald-400" /> Ledger Settlement Graph
+            <h2 className="text-lg font-sans font-semibold text-[#F4F2E6] flex items-center gap-2">
+              <GitCommit className="w-4 h-4 text-[#5FA97D]" /> Ledger Settlement Graph
             </h2>
-            <span className="text-[10px] font-mono px-2 py-0.5 rounded uppercase font-semibold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+            <span className="text-[10px] font-mono px-2 py-0.5 rounded uppercase font-semibold bg-[#4E9A6E]/15 text-[#4E9A6E] border border-[#4E9A6E]/30">
               Zero-Sum Verified
             </span>
           </div>
-          <p className="text-xs text-ink-secondary mt-0.5">
+          <p className="text-xs text-[#8B9A8C] mt-0.5">
             Automated Debt Simplification engine with dynamic UPI QR Code instant settlement.
           </p>
         </div>
@@ -103,8 +103,8 @@ export const SettlementVisualizer: React.FC<SettlementVisualizerProps> = ({
               onClick={onToggleCrossTripNetting}
               className={`px-3 py-1.5 rounded-lg text-xs font-medium border transition-all flex items-center gap-1.5 cursor-pointer ${
                 isCrossTripNetting
-                  ? 'bg-ink-primary text-surface-base border-ink-primary font-bold shadow-subtle'
-                  : 'bg-surface-overlay text-ink-secondary border-surface-hairline hover:text-ink-primary'
+                  ? 'bg-gradient-to-r from-[#3E7D5A] to-[#5FA97D] text-[#F4F2E6] border-[#5FA97D]/30 font-semibold shadow-mint'
+                  : 'bg-[#12160F] text-[#8B9A8C] border-[#2A322A] hover:text-[#F4F2E6]'
               }`}
             >
               <Layers className="w-3.5 h-3.5" />
@@ -116,8 +116,8 @@ export const SettlementVisualizer: React.FC<SettlementVisualizerProps> = ({
             onClick={() => setFilterPersonal(!filterPersonal)}
             className={`px-3 py-1.5 rounded-lg text-xs font-medium border transition-all flex items-center gap-1.5 cursor-pointer ${
               filterPersonal
-                ? 'bg-ink-primary text-surface-base border-ink-primary font-bold shadow-subtle'
-                : 'bg-surface-overlay text-ink-secondary border-surface-hairline hover:text-ink-primary'
+                ? 'bg-gradient-to-r from-[#3E7D5A] to-[#5FA97D] text-[#F4F2E6] border-[#5FA97D]/30 font-semibold shadow-mint'
+                : 'bg-[#12160F] text-[#8B9A8C] border-[#2A322A] hover:text-[#F4F2E6]'
             }`}
           >
             <User className="w-3.5 h-3.5" />
@@ -126,7 +126,7 @@ export const SettlementVisualizer: React.FC<SettlementVisualizerProps> = ({
 
           <button
             onClick={handleTriggerSimplify}
-            className="px-3.5 py-1.5 rounded-lg bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-300 border border-emerald-500/30 text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer"
+            className="px-3.5 py-1.5 rounded-lg bg-[#3E7D5A]/20 hover:bg-[#3E7D5A]/30 text-[#5FA97D] border border-[#3E7D5A]/40 text-xs font-semibold transition-all flex items-center gap-1.5 cursor-pointer"
           >
             <Zap className="w-3.5 h-3.5" />
             <span>{isSimplified ? 'Raw Debts' : 'Simplify Paths'}</span>
@@ -137,17 +137,17 @@ export const SettlementVisualizer: React.FC<SettlementVisualizerProps> = ({
       {/* Main Interactive Debt Graph Container */}
       <div
         ref={graphContainerRef}
-        className="relative bg-[#06080e]/85 border border-neutral-800/80 p-6 sm:p-8 rounded-3xl space-y-6 shadow-2xl overflow-hidden min-h-[560px] flex flex-col justify-between backdrop-blur-xl"
+        className="relative bg-[#12160F] border border-[#2A322A] p-6 sm:p-8 rounded-3xl space-y-6 shadow-2xl overflow-hidden min-h-[560px] flex flex-col justify-between backdrop-blur-xl"
       >
-        {/* Dot Grid Matrix Background from Homepage */}
-        <div className="absolute inset-0 z-0 w-full h-full bg-[radial-gradient(#10b98130_1px,transparent_1px)] [background-size:22px_22px] pointer-events-none opacity-80" />
+        {/* Dot Grid Matrix Background */}
+        <div className="absolute inset-0 z-0 w-full h-full bg-[radial-gradient(#3E7D5A30_1px,transparent_1px)] [background-size:22px_22px] pointer-events-none opacity-60" />
 
-        {/* Ambient Emerald Halo Glow */}
-        <div className="absolute inset-0 m-auto w-80 h-80 rounded-full bg-emerald-500/20 blur-3xl pointer-events-none" />
+        {/* Ambient Sage Halo Glow */}
+        <div className="absolute inset-0 m-auto w-80 h-80 rounded-full bg-[#3E7D5A]/15 blur-3xl pointer-events-none" />
 
-        {/* Concentric Subtle Orbit Rings */}
-        <div className="absolute inset-0 m-auto w-[360px] h-[360px] rounded-full border border-emerald-500/15 pointer-events-none" />
-        <div className="absolute inset-0 m-auto w-[500px] h-[500px] rounded-full border border-emerald-500/10 pointer-events-none" />
+        {/* Concentric Orbit Rings */}
+        <div className="absolute inset-0 m-auto w-[360px] h-[360px] rounded-full border border-[#3E7D5A]/20 pointer-events-none" />
+        <div className="absolute inset-0 m-auto w-[500px] h-[500px] rounded-full border border-[#3E7D5A]/10 pointer-events-none" />
 
         {/* Celebration Particles Overlay */}
         {isSettled && (
@@ -158,22 +158,22 @@ export const SettlementVisualizer: React.FC<SettlementVisualizerProps> = ({
             {[...Array(16)].map((_, idx) => (
               <div
                 key={idx}
-                className="w-3.5 h-3.5 rounded-full bg-gradient-to-t from-emerald-500 via-brand-gold to-ledger-surplus shadow-emerald"
+                className="w-3.5 h-3.5 rounded-full bg-gradient-to-t from-[#3E7D5A] via-[#5FA97D] to-[#4E9A6E]"
               />
             ))}
           </div>
         )}
 
         {/* Top Status Indicator */}
-        <div className="relative z-10 flex items-center justify-between text-xs border-b border-neutral-800/80 pb-4">
+        <div className="relative z-10 flex items-center justify-between text-xs border-b border-[#2A322A] pb-4">
           <div className="flex items-center gap-2">
-            <span className="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse shadow-sm" />
-            <span className="font-semibold text-ink-primary">
+            <span className="w-2.5 h-2.5 rounded-full bg-[#5FA97D] animate-pulse shadow-sm" />
+            <span className="font-semibold text-[#F4F2E6]">
               {isSimplified ? 'Compressed Graph (Greedy Netting Active)' : 'Raw Pairwise Debts Network'}
             </span>
           </div>
 
-          <span className="font-numeric text-ink-muted text-xs">
+          <span className="font-numeric text-[#8B9A8C] text-xs">
             {simplifiedDebts.length} Optimal Transactions Remaining (₹ INR)
           </span>
         </div>
@@ -197,7 +197,7 @@ export const SettlementVisualizer: React.FC<SettlementVisualizerProps> = ({
                       y1={0}
                       x2={x}
                       y2={y}
-                      stroke={isCreditor ? 'rgba(16, 185, 129, 0.4)' : 'rgba(244, 63, 94, 0.3)'}
+                      stroke={isCreditor ? 'rgba(78, 154, 110, 0.4)' : 'rgba(181, 72, 76, 0.3)'}
                       strokeWidth="1.5"
                       strokeDasharray={isCreditor ? 'none' : '4 4'}
                     />
@@ -205,7 +205,7 @@ export const SettlementVisualizer: React.FC<SettlementVisualizerProps> = ({
                       cx={x * 0.45}
                       cy={y * 0.45}
                       r="2.5"
-                      fill={isCreditor ? '#10b981' : '#f43f5e'}
+                      fill={isCreditor ? '#4E9A6E' : '#B5484C'}
                       opacity="0.8"
                     />
                   </g>
@@ -215,14 +215,14 @@ export const SettlementVisualizer: React.FC<SettlementVisualizerProps> = ({
 
             {/* Central Pulsing Anchor */}
             <div className="relative z-10 flex items-center justify-center">
-              <div className="absolute w-36 h-36 rounded-full border border-emerald-500/25 animate-pulse pointer-events-none" />
-              <div className="w-28 h-28 rounded-full bg-[#090e1c]/90 border border-emerald-500/40 flex flex-col items-center justify-center text-center p-3 shadow-2xl backdrop-blur-md">
-                <Sparkles className="w-4 h-4 text-brand-gold mb-1" />
-                <span className="text-[9px] uppercase font-bold text-neutral-400 tracking-wider">Settlement Hub</span>
-                <span className="font-numeric font-extrabold text-xs text-emerald-400 mt-0.5">
+              <div className="absolute w-36 h-36 rounded-full border border-[#3E7D5A]/30 animate-pulse pointer-events-none" />
+              <div className="w-28 h-28 rounded-full bg-[#1B2119] border border-[#3E7D5A]/50 flex flex-col items-center justify-center text-center p-3 shadow-2xl backdrop-blur-md">
+                <Sparkles className="w-4 h-4 text-[#5FA97D] mb-1" />
+                <span className="text-[9px] uppercase font-bold text-[#8B9A8C] tracking-wider">Settlement Hub</span>
+                <span className="font-numeric font-extrabold text-xs text-[#5FA97D] mt-0.5">
                   ₹{netBalances.reduce((acc, n) => acc + (n.netBalance > 0 ? n.netBalance : 0), 0).toLocaleString('en-IN', { maximumFractionDigits: 0 })}
                 </span>
-                <span className="text-[8px] font-mono text-neutral-400">Total Volume</span>
+                <span className="text-[8px] font-mono text-[#8B9A8C]">Total Volume</span>
               </div>
             </div>
 
@@ -242,10 +242,10 @@ export const SettlementVisualizer: React.FC<SettlementVisualizerProps> = ({
                   key={nb.participant.id}
                   layout
                   style={{ transform: `translate(${x}px, ${y}px)` }}
-                  className={`debt-node pointer-events-auto absolute px-3.5 py-2.5 rounded-2xl bg-[#0d121f]/95 border flex items-center gap-3 shadow-xl transition-all duration-300 hover:scale-105 backdrop-blur-md ${
+                  className={`debt-node pointer-events-auto absolute px-3.5 py-2.5 rounded-2xl bg-[#1B2119] border flex items-center gap-3 shadow-xl transition-all duration-300 hover:scale-105 backdrop-blur-md ${
                     isUser
-                      ? 'border-emerald-500 ring-2 ring-emerald-500/40 z-20 scale-105 shadow-emerald-500/20'
-                      : 'border-neutral-800 hover:border-neutral-700 z-10'
+                      ? 'border-[#5FA97D] ring-2 ring-[#5FA97D]/40 z-20 scale-105 shadow-[#5FA97D]/20'
+                      : 'border-[#2A322A] hover:border-[#3E7D5A]/40 z-10'
                   }`}
                 >
                   <div className="relative shrink-0">
@@ -256,21 +256,21 @@ export const SettlementVisualizer: React.FC<SettlementVisualizerProps> = ({
                       size="sm"
                     />
                     {nb.participant.isOrganizer && (
-                      <span className="absolute -bottom-1 -right-1 w-3.5 h-3.5 rounded-full bg-amber-500 border-2 border-neutral-900 flex items-center justify-center text-[8px] text-black font-bold">
+                      <span className="absolute -bottom-1 -right-1 w-3.5 h-3.5 rounded-full bg-[#5FA97D] border-2 border-[#12160F] flex items-center justify-center text-[8px] text-[#12160F] font-bold">
                         ★
                       </span>
                     )}
                   </div>
                   <div className="min-w-0">
-                    <p className="text-xs font-semibold text-white truncate max-w-[120px]">{nb.participant.name}</p>
+                    <p className="text-xs font-semibold text-[#F4F2E6] truncate max-w-[120px]">{nb.participant.name}</p>
                     <div className="mt-0.5">
                       <span
                         className={`font-numeric text-[11px] font-bold px-2 py-0.5 rounded-full border inline-block ${
                           nb.netBalance > 0
-                            ? 'bg-emerald-500/15 text-emerald-400 border-emerald-500/30'
+                            ? 'bg-[#4E9A6E]/15 text-[#4E9A6E] border-[#4E9A6E]/30'
                             : nb.netBalance < 0
-                            ? 'bg-rose-500/15 text-rose-400 border-rose-500/30'
-                            : 'bg-neutral-800 text-neutral-400 border-neutral-700'
+                            ? 'bg-[#B5484C]/15 text-[#B5484C] border-[#B5484C]/30'
+                            : 'bg-[#2A322A] text-[#8B9A8C] border-[#2A322A]'
                         }`}
                       >
                         {nb.netBalance > 0 ? `+₹${nb.netBalance.toFixed(2)}` : nb.netBalance < 0 ? `-₹${Math.abs(nb.netBalance).toFixed(2)}` : '₹0.00'}
@@ -284,12 +284,12 @@ export const SettlementVisualizer: React.FC<SettlementVisualizerProps> = ({
         </div>
       </div>
 
-        {/* Two-Sided Verification Alerts (F3) */}
+        {/* Two-Sided Verification Alerts */}
         {payments.some((p) => p.status === 'pending') && (
-          <div className="p-4 rounded-2xl bg-amber-500/10 border border-amber-500/30 space-y-3">
+          <div className="p-4 rounded-2xl bg-[#B5484C]/10 border border-[#B5484C]/30 space-y-3">
             <div className="flex items-center gap-2">
-              <ShieldCheck className="w-4 h-4 text-amber-400" />
-              <h5 className="font-bold text-xs uppercase tracking-wider text-amber-300">
+              <ShieldCheck className="w-4 h-4 text-[#5FA97D]" />
+              <h5 className="font-bold text-xs uppercase tracking-wider text-[#F4F2E6]">
                 Two-Sided Settlement Verification Required
               </h5>
             </div>
@@ -306,18 +306,18 @@ export const SettlementVisualizer: React.FC<SettlementVisualizerProps> = ({
                   return (
                     <div
                       key={p.id}
-                      className="p-3 bg-surface-base/80 border border-amber-500/20 rounded-xl flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs"
+                      className="p-3 bg-[#12160F]/80 border border-[#2A322A] rounded-xl flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs"
                     >
                       <div>
-                        <div className="flex items-center gap-2 font-semibold text-ink-primary">
+                        <div className="flex items-center gap-2 font-semibold text-[#F4F2E6]">
                           <span>{payer}</span>
-                          <ArrowRight className="w-3.5 h-3.5 text-brand-gold" />
+                          <ArrowRight className="w-3.5 h-3.5 text-[#5FA97D]" />
                           <span>{payee}</span>
-                          <span className="font-numeric font-bold text-amber-300 ml-1">
+                          <span className="font-numeric font-bold text-[#5FA97D] ml-1">
                             ₹{p.amount.toLocaleString('en-IN')}
                           </span>
                         </div>
-                        <p className="text-[11px] text-ink-secondary mt-0.5">
+                        <p className="text-[11px] text-[#8B9A8C] mt-0.5">
                           {isPayee
                             ? `${payer} reported sending you ₹${p.amount} via UPI. Please confirm receipt.`
                             : isPayer
@@ -330,13 +330,13 @@ export const SettlementVisualizer: React.FC<SettlementVisualizerProps> = ({
                         <div className="flex items-center gap-2 flex-shrink-0">
                           <button
                             onClick={() => onDisputePayment(p.id)}
-                            className="px-3 py-1.5 rounded-lg border border-red-500/30 text-red-400 hover:bg-red-500/10 text-xs font-bold transition flex items-center gap-1"
+                            className="px-3 py-1.5 rounded-lg border border-[#B5484C]/40 text-[#B5484C] hover:bg-[#B5484C]/10 text-xs font-bold transition flex items-center gap-1 cursor-pointer"
                           >
                             <X className="w-3.5 h-3.5" /> Dispute
                           </button>
                           <button
                             onClick={() => onConfirmPaymentReceipt(p.id)}
-                            className="px-3 py-1.5 rounded-lg bg-emerald-500 text-surface-base hover:bg-emerald-600 text-xs font-bold transition flex items-center gap-1 shadow-sm"
+                            className="px-3 py-1.5 rounded-lg bg-gradient-to-r from-[#3E7D5A] to-[#5FA97D] text-[#F4F2E6] hover:brightness-110 text-xs font-bold transition flex items-center gap-1 shadow-mint cursor-pointer"
                           >
                             <Check className="w-3.5 h-3.5 stroke-[3]" /> Confirm Received
                           </button>
@@ -350,10 +350,10 @@ export const SettlementVisualizer: React.FC<SettlementVisualizerProps> = ({
         )}
 
         {/* Bottom Action Cards: Minimal Settlement Execution Paths */}
-        <div className="relative z-10 pt-4 border-t border-neutral-800/80 space-y-3">
-          <h4 className="text-xs font-semibold uppercase tracking-wider text-neutral-400 flex flex-col sm:flex-row sm:items-center justify-between gap-1">
-            <span className="text-neutral-300">Simplified Settlement Execution Paths (₹ INR)</span>
-            <span className="text-brand-gold font-numeric">Click "UPI Settle" for instant QR Code</span>
+        <div className="relative z-10 pt-4 border-t border-[#2A322A] space-y-3">
+          <h4 className="text-xs font-semibold uppercase tracking-wider text-[#8B9A8C] flex flex-col sm:flex-row sm:items-center justify-between gap-1">
+            <span className="text-[#F4F2E6]">Simplified Settlement Execution Paths (₹ INR)</span>
+            <span className="text-[#5FA97D] font-numeric">Click "UPI Settle" for instant QR Code</span>
           </h4>
 
           {displayedDebts.length > 0 ? (
@@ -365,16 +365,16 @@ export const SettlementVisualizer: React.FC<SettlementVisualizerProps> = ({
                 return (
                   <div
                     key={idx}
-                    className="p-3.5 rounded-2xl bg-[#0d121f]/90 border border-neutral-800/90 flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 transition-all hover:border-emerald-500/50 backdrop-blur-md shadow-lg"
+                    className="p-3.5 rounded-2xl bg-[#1B2119] border border-[#2A322A] flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 transition-all hover:border-[#3E7D5A]/50 backdrop-blur-md shadow-lg"
                   >
                     <div className="flex items-center gap-2 text-xs">
-                      <span className="font-semibold text-rose-400">{debt.fromName}</span>
-                      <ArrowRight className="w-4 h-4 text-brand-gold" />
-                      <span className="font-semibold text-emerald-400">{debt.toName}</span>
+                      <span className="font-semibold text-[#B5484C]">{debt.fromName}</span>
+                      <ArrowRight className="w-4 h-4 text-[#8B9A8C]" />
+                      <span className="font-semibold text-[#4E9A6E]">{debt.toName}</span>
                     </div>
 
                     <div className="flex flex-wrap items-center justify-between sm:justify-end gap-2 w-full sm:w-auto">
-                      <span className="font-numeric font-bold text-sm text-white mr-1">
+                      <span className="font-numeric font-bold text-sm text-[#F4F2E6] mr-1">
                         ₹{debt.amount.toLocaleString('en-IN', { minimumFractionDigits: 2 })}
                       </span>
                       {onOpenReassignDebt && (
@@ -388,8 +388,8 @@ export const SettlementVisualizer: React.FC<SettlementVisualizerProps> = ({
                               amount: debt.amount,
                             })
                           }
-                          title="Transfer or reassign this debt obligation (F18)"
-                          className="px-2.5 py-1.5 rounded-xl border border-surface-hairline hover:border-emerald-500 text-ink-secondary hover:text-emerald-400 text-xs font-semibold transition-all flex items-center gap-1"
+                          title="Transfer or reassign this debt obligation"
+                          className="px-2.5 py-1.5 rounded-xl border border-[#2A322A] hover:border-[#3E7D5A] text-[#8B9A8C] hover:text-[#5FA97D] text-xs font-semibold transition-all flex items-center gap-1 cursor-pointer"
                         >
                           <ArrowRightLeft className="w-3.5 h-3.5" />
                           <span className="hidden sm:inline">Reassign</span>
@@ -397,7 +397,7 @@ export const SettlementVisualizer: React.FC<SettlementVisualizerProps> = ({
                       )}
                       <button
                         onClick={() => setSelectedUpiDebt({ ...debt, payeeUpiId: upiId })}
-                        className="px-3 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-semibold transition-all shadow-emerald flex items-center gap-1.5"
+                        className="px-3.5 py-1.5 rounded-xl bg-gradient-to-r from-[#3E7D5A] to-[#5FA97D] text-[#F4F2E6] text-xs font-semibold transition-all shadow-mint flex items-center gap-1.5 cursor-pointer hover:brightness-110 animate-pulse"
                       >
                         <QrCode className="w-3.5 h-3.5" /> UPI Settle
                       </button>
@@ -407,13 +407,13 @@ export const SettlementVisualizer: React.FC<SettlementVisualizerProps> = ({
               })}
             </div>
           ) : (
-            <div className="p-6 text-center bg-ledger-surplusBg/60 rounded-2xl border border-ledger-surplus/40 space-y-1">
-              <CheckCircle2 className="w-8 h-8 text-ledger-surplus mx-auto" />
-              <p className="font-serif-display font-bold text-base text-ledger-surplus">
+            <div className="p-6 text-center bg-[#4E9A6E]/15 rounded-2xl border border-[#4E9A6E]/30 space-y-1">
+              <CheckCircle2 className="w-8 h-8 text-[#4E9A6E] mx-auto" />
+              <p className="font-serif-display font-bold text-base text-[#4E9A6E]">
                 All Debts Fully Settled!
               </p>
-              <p className="text-xs text-ink-secondary">
-                The FareShare ledger has reached zero net balance. No pending transactions.
+              <p className="text-xs text-[#8B9A8C]">
+                The TripSync ledger has reached zero net balance. No pending transactions.
               </p>
             </div>
           )}

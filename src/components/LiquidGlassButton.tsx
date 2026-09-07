@@ -35,13 +35,13 @@ export const LiquidGlassButton: React.FC<LiquidGlassButtonProps> = ({
 
   const variantClasses = {
     primary:
-      'bg-ink-primary text-surface-base hover:opacity-90 shadow-[inset_0_1px_1px_rgba(255,255,255,0.3),0_4px_16px_rgba(0,0,0,0.4)] font-bold',
+      'bg-gradient-to-r from-[#3E7D5A] to-[#5FA97D] text-[#F4F2E6] hover:brightness-110 shadow-[0_4px_16px_rgba(62,125,90,0.3)] font-semibold border border-[#5FA97D]/30',
     glass:
-      'backdrop-blur-xl bg-surface-raised/70 border border-white/[0.1] text-ink-primary hover:bg-surface-raised/90 hover:border-white/[0.18] shadow-[inset_0_1px_1px_rgba(255,255,255,0.15),0_6px_20px_rgba(0,0,0,0.35)] font-medium',
+      'backdrop-blur-md bg-[#1B2119]/80 border border-[#2A322A] text-[#F4F2E6] hover:bg-[#1B2119] hover:border-[#3E7D5A]/40 font-medium',
     emerald:
-      'backdrop-blur-xl bg-emerald-500/15 border border-emerald-500/30 text-emerald-300 hover:bg-emerald-500/25 hover:border-emerald-500/40 shadow-[inset_0_1px_1px_rgba(16,185,129,0.3),0_6px_20px_rgba(16,185,129,0.15)] font-semibold',
+      'bg-[#1B2119] border border-[#2A322A] text-[#5FA97D] hover:border-[#5FA97D]/50 font-medium',
     subtle:
-      'bg-surface-overlay/60 border border-surface-hairline text-ink-secondary hover:text-ink-primary hover:bg-surface-overlay hover:border-zinc-500/40 font-medium',
+      'bg-[#1B2119] border border-[#2A322A] text-[#8B9A8C] hover:text-[#F4F2E6] hover:border-[#3E7D5A]/30 font-medium',
   }[variant];
 
   return (

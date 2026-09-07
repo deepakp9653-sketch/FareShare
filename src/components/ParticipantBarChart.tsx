@@ -21,7 +21,7 @@ export const ParticipantBarChart: React.FC<ParticipantBarChartProps> = ({ netBal
         return (
           <div
             key={nb.participant.id}
-            className="p-3 rounded-xl bg-surface-overlay/50 border border-surface-hairline space-y-2"
+            className="p-3 rounded-xl bg-[#1B2119] border border-[#2A322A] space-y-2"
           >
             <div className="flex items-center justify-between text-xs">
               <div className="flex items-center gap-2">
@@ -31,9 +31,9 @@ export const ParticipantBarChart: React.FC<ParticipantBarChartProps> = ({ netBal
                   avatarUrl={nb.participant.avatarUrl}
                   size="xs"
                 />
-                <span className="font-semibold text-ink-primary">{nb.participant.name}</span>
+                <span className="font-semibold text-[#F4F2E6]">{nb.participant.name}</span>
                 {nb.participant.isOrganizer && (
-                  <span className="text-[10px] font-mono px-1.5 py-0.2 rounded bg-surface-hairline text-ink-muted">
+                  <span className="text-[10px] font-mono px-1.5 py-0.2 rounded bg-[#2A322A] text-[#8B9A8C]">
                     Host
                   </span>
                 )}
@@ -42,10 +42,10 @@ export const ParticipantBarChart: React.FC<ParticipantBarChartProps> = ({ netBal
               <span
                 className={`font-numeric text-[11px] font-semibold px-2 py-0.5 rounded ${
                   nb.netBalance > 0
-                    ? 'bg-emerald-500/15 text-emerald-400'
+                    ? 'bg-[#4E9A6E]/15 text-[#4E9A6E]'
                     : nb.netBalance < 0
-                    ? 'bg-rose-500/15 text-rose-400'
-                    : 'bg-surface-hairline text-ink-muted'
+                    ? 'bg-[#B5484C]/15 text-[#B5484C]'
+                    : 'bg-[#2A322A] text-[#8B9A8C]'
                 }`}
               >
                 {nb.netBalance > 0
@@ -56,34 +56,34 @@ export const ParticipantBarChart: React.FC<ParticipantBarChartProps> = ({ netBal
               </span>
             </div>
 
-            {/* Dual Progress Bars: Fronted (Emerald) vs Share (Slate) */}
+            {/* Dual Progress Bars: Fronted (#4E9A6E) vs Share (#8B9A8C) */}
             <div className="space-y-1.5">
               <div className="flex items-center gap-2 text-[11px]">
-                <span className="w-14 text-ink-muted shrink-0 text-[10px] uppercase font-mono">Fronted</span>
-                <div className="h-1.5 flex-1 bg-surface-base rounded-full overflow-hidden">
+                <span className="w-14 text-[#8B9A8C] shrink-0 text-[10px] uppercase font-mono">Fronted</span>
+                <div className="h-1.5 flex-1 bg-[#12160F] rounded-full overflow-hidden">
                   <motion.div
                     initial={{ width: 0 }}
                     animate={{ width: `${paidPercent}%` }}
                     transition={{ duration: 0.6 }}
-                    className="h-full bg-emerald-400 rounded-full"
+                    className="h-full bg-[#4E9A6E] rounded-full"
                   />
                 </div>
-                <span className="font-numeric font-medium text-ink-primary w-20 text-right">
+                <span className="font-numeric font-medium text-[#F4F2E6] w-20 text-right">
                   ₹{nb.totalPaid.toLocaleString('en-IN')}
                 </span>
               </div>
 
               <div className="flex items-center gap-2 text-[11px]">
-                <span className="w-14 text-ink-muted shrink-0 text-[10px] uppercase font-mono">Share</span>
-                <div className="h-1.5 flex-1 bg-surface-base rounded-full overflow-hidden">
+                <span className="w-14 text-[#8B9A8C] shrink-0 text-[10px] uppercase font-mono">Share</span>
+                <div className="h-1.5 flex-1 bg-[#12160F] rounded-full overflow-hidden">
                   <motion.div
                     initial={{ width: 0 }}
                     animate={{ width: `${owedPercent}%` }}
                     transition={{ duration: 0.6, delay: 0.05 }}
-                    className="h-full bg-zinc-500 rounded-full"
+                    className="h-full bg-[#8B9A8C] rounded-full"
                   />
                 </div>
-                <span className="font-numeric font-medium text-ink-secondary w-20 text-right">
+                <span className="font-numeric font-medium text-[#8B9A8C] w-20 text-right">
                   ₹{nb.totalOwed.toLocaleString('en-IN')}
                 </span>
               </div>
